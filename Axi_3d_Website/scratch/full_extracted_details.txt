@@ -1,0 +1,186 @@
+
+========================================
+=== SECTION 1 ===
+========================================
+IMAGES:
+https://agile-labs.com/wp-content/uploads/2021/08/MicrosoftTeams-image-16.jpg
+
+CONTENT:
+class="elementor-section elementor-top-section elementor-element elementor-element-5cae5dc6 elementor-section-full_width elementor-section-height-min-height al-main-nav elementor-section-content-middle elementor-section-height-default elementor-section-items-middle" data-id="5cae5dc6" data-element_type="section" data-e-type="section" data-settings="{&quot;background_background&quot;:&quot;gradient&quot;}">
+* Home
+* Platform
+Solutions
+
+========================================
+=== SECTION 2 ===
+========================================
+IMAGES:
+https://agile-labs.com/wp-content/uploads/2021/08/MicrosoftTeams-image.jpg
+
+CONTENT:
+class="elementor-section elementor-top-section elementor-element elementor-element-5e431d9 al-ul-main-nav elementor-section-boxed elementor-section-height-default elementor-section-height-default" data-id="5e431d9" data-element_type="section" data-e-type="section" data-settings="{&quot;background_background&quot;:&quot;classic&quot;}">
+									Health Care
+									Supply Chain
+									Banking
+									Government & Defence
+									People Services
+									Logistics
+									Tea
+									Manufacturing
+Products
+	ERP	HMS	CMS	Schedule Demo
+Developers
+	Guide	Forum	Release Notes
+* Partners
+X
+
+========================================
+=== SECTION 3 ===
+========================================
+IMAGES:
+
+
+CONTENT:
+class="elementor-section elementor-inner-section elementor-element elementor-element-1883b44 elementor-section-full_width elementor-hidden-tablet elementor-hidden-mobile elementor-section-height-default elementor-section-height-default" data-id="1883b44" data-element_type="section" data-e-type="section">
+--- TITLE: Login ---
+									Schedule Demo
+
+========================================
+=== SECTION 4 ===
+========================================
+IMAGES:
+
+
+CONTENT:
+class="elementor-section elementor-top-section elementor-element elementor-element-c203e47 elementor-section-full_width elementor-hidden-mobile elementor-section-height-default elementor-section-height-default" data-id="c203e47" data-element_type="section" data-e-type="section">
+
+========================================
+=== SECTION 5 ===
+========================================
+IMAGES:
+
+
+CONTENT:
+class="elementor-section elementor-inner-section elementor-element elementor-element-686eb9c elementor-section-full_width elementor-section-height-min-height elementor-section-height-default" data-id="686eb9c" data-element_type="section" data-e-type="section" data-settings="{&quot;background_background&quot;:&quot;classic&quot;}">
+
+========================================
+=== SECTION 6 ===
+========================================
+IMAGES:
+
+
+CONTENT:
+class="elementor-section elementor-top-section elementor-element elementor-element-c05ca7d elementor-section-boxed elementor-section-height-default elementor-section-height-default" data-id="c05ca7d" data-element_type="section" data-e-type="section">
+
+========================================
+=== SECTION 7 ===
+========================================
+IMAGES:
+https://agile-labs.com/wp-content/uploads/2023/10/Profitability-Analysis.png
+https://agile-labs.com/wp-content/uploads/2021/08/ball-icon-48.png
+
+CONTENT:
+class="elementor-section elementor-inner-section elementor-element elementor-element-45a773d elementor-section-boxed elementor-section-height-default elementor-section-height-default" data-id="45a773d" data-element_type="section" data-e-type="section">
+--- TITLE: BUSINESS CHALLENGE ---
+It was a good problem to have. Expecting only about a dozen or so new clinical trials in the next few months, Ockham, a leader in the field of oncology services, suddenly saw its new contracts jump more than five-fold. Having recently acquired a contract research organization (CRO) in Scotland, and, before that, a US-based CRO, Ockham's business was growing quickly—but not without some growing pains.
+Even before the acquisitions and growth spurt, Ockham, which provides a full range of services to pharmaceutical companies— from providing top-notch research staff, to managing and conducting end-to-end cancer therapy clinical trials—Ockham faced a big challenge in finding the right software tools to manage the lifecycle of its Clinical Studies.. The company, based in Cary, North Carolina, chose Toronto-based Mindprint Inc. for a company-wide professional services automation (PSA) system that promised to make the entire company more productive and profitable.
+We have completed more than 250 clinical trials for new cancer therapies, explains Jim Baker, founder and CEO of Ockham. But one of our biggest challenges was measuring the profitability of each study, simple as that may sound. We just didn't have the right tools in place to do that consistently and accurately. Baker added that integrating the data systems of the new acquisitions was also a challenge that required a new set of tools.
+
+========================================
+=== SECTION 8 ===
+========================================
+IMAGES:
+
+
+CONTENT:
+class="elementor-section elementor-top-section elementor-element elementor-element-fd6e439 elementor-section-boxed elementor-section-height-default elementor-section-height-default" data-id="fd6e439" data-element_type="section" data-e-type="section">
+
+========================================
+=== SECTION 9 ===
+========================================
+IMAGES:
+https://agile-labs.com/wp-content/uploads/2023/10/oncology_1.jpg
+
+CONTENT:
+class="elementor-section elementor-inner-section elementor-element elementor-element-ecd7de1 elementor-section-boxed elementor-section-height-default elementor-section-height-default" data-id="ecd7de1" data-element_type="section" data-e-type="section">
+which specializes in enterprise software for CROs, was nearing deployment of Ockham's new custom system—when news of the sudden spurt in business came in. We had to move quickly to import a large number of studies into the system, explains Prasad A. Sristi, founder and CEO of Mindprint. But we were able to quickly redesign a core part of the system to allow for the importation of a large number of new projects, and make the system much more scalable. We turned a challenge into an opportunity.
+For Ockham, the business challenges caused by the outdated software, quickly turned into formidable new tools for business growth and profitability. We work seamlessly across four continents now, notes Baker. ―Our staff is more effective, our clients are happier, and we are on a sound growth path.
+
+========================================
+=== SECTION 10 ===
+========================================
+IMAGES:
+
+
+CONTENT:
+class="elementor-section elementor-top-section elementor-element elementor-element-824143c elementor-section-boxed elementor-section-height-default elementor-section-height-default" data-id="824143c" data-element_type="section" data-e-type="section">
+
+========================================
+=== SECTION 11 ===
+========================================
+IMAGES:
+https://agile-labs.com/wp-content/uploads/2023/10/TECHNOLOGY.jpg
+https://agile-labs.com/wp-content/uploads/2021/08/ball-icon-48.png
+
+CONTENT:
+class="elementor-section elementor-inner-section elementor-element elementor-element-870ec01 elementor-section-boxed elementor-section-height-default elementor-section-height-default" data-id="870ec01" data-element_type="section" data-e-type="section">
+--- TITLE: TECHNOLOGY ---
+The technology that made all this possible is an innovative platform called Axpert, developed by Bangalore, India-based Agile Labs. The patented Axpert system is based on a method of rapidly creating custom enterprise software – without expensive and time-consuming programming.
+Axpert makes application development and maintenance easy, by substantially reducing the effort required, explains Prasad Sristi, founder and CEO of which developed a large library of Axpert modules specifically for CROs. Application development using Axpert requires only domain experts. No expensive coding is required.
+
+========================================
+=== SECTION 12 ===
+========================================
+IMAGES:
+
+
+CONTENT:
+class="elementor-section elementor-top-section elementor-element elementor-element-40a60d0 elementor-section-boxed elementor-section-height-default elementor-section-height-default" data-id="40a60d0" data-element_type="section" data-e-type="section">
+
+========================================
+=== SECTION 13 ===
+========================================
+IMAGES:
+https://agile-labs.com/wp-content/uploads/2021/08/ball-icon-48.png
+https://agile-labs.com/wp-content/uploads/2023/10/PE.jpg
+https://agile-labs.com/wp-content/uploads/2023/10/CEO-Ockham.jpg
+
+CONTENT:
+class="elementor-section elementor-inner-section elementor-element elementor-element-a42639f elementor-section-boxed elementor-section-height-default elementor-section-height-default" data-id="a42639f" data-element_type="section" data-e-type="section">
+--- TITLE: TECHNOLOGY ---
+									Fully functional Professional Services Automation (PSA) system a single operational system to run the entire company.								
+Fully scalable solution that will allow the software system to continue to grow with the company
+Core functionality comprising the following capabilities:
+* Study Proposals: built-in flexibility, allows customizable proposals for each client's unique requirements, with risk-free, fixed-bid, engagement model.
+* Study Management: includes automated staffing, timesheet and expense report generation.
+* Revenue Forecasting: using business intelligence technology that can be fine-tuned by user input. No programing required.
+* Resource Planning: allows Ockham to align their professional resources with the client's exact needs.
+* Invoicing: highly automated invoice generation cuts invoicing time, allows for high level of individual client personalization.
+* Customer Relationship Management (CRM): includes client management, lead generation, and site report generation.
+* Human Resources (HR): automated expense reports, vacations, and sick days.
+
+========================================
+=== SECTION 14 ===
+========================================
+IMAGES:
+
+
+CONTENT:
+class="elementor-section elementor-top-section elementor-element elementor-element-770e34b elementor-section-boxed elementor-section-height-default elementor-section-height-default" data-id="770e34b" data-element_type="section" data-e-type="section">
+
+========================================
+=== SECTION 15 ===
+========================================
+IMAGES:
+https://agile-labs.com/wp-content/uploads/2023/10/BENEFITS.jpg
+https://agile-labs.com/wp-content/uploads/2021/08/ball-icon-48.png
+
+CONTENT:
+class="elementor-section elementor-inner-section elementor-element elementor-element-9736bf0 elementor-section-boxed elementor-section-height-default elementor-section-height-default" data-id="9736bf0" data-element_type="section" data-e-type="section">
+--- TITLE: BENEFITS ---
+* Entire company working on a single & simple-to-use platform. Excellent scalability and low training requirements.
+* Much more accurate financial data. No mis-reported units and returned invoices Accurate financial forecasts for the entire company. Senior management can look into the next 12 months of expected cash flow with the click of a single button
+* More discipline in budgets. Ockham team is able to churn out dozens of budgets from our system every month.
+* Invoicing time cut down drastically
+* High visibility into profitability. Study profitability is measured down to each unit based on the salary of employees actually working on those units.
+* Decreased administration overhead costs. Ockham can quickly start operations in a new country or geography.

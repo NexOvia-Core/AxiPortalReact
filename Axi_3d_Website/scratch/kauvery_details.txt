@@ -1,0 +1,27 @@
+=== TITLE ===
+Kauvery Group of hospitals automates its end-to-end operations on Axpert - Agile Labs
+
+=== IMAGES IN HTML ===
+<img height="1" width="1" style="display:none;" alt="" src="https://px.ads.linkedin.com/collect/?pid=4387676&fmt=gif" />
+<img width="440" height="130" src="https://agile-labs.com/wp-content/uploads/2021/08/MicrosoftTeams-image-16.jpg" class="attachment-full size-full wp-image-22937" alt="" srcset="https://agile-labs.com/wp-content/uploads/2021/08/MicrosoftTeams-image-16.jpg 440w, https://agile-labs.com/wp-content/uploads/2021/08/MicrosoftTeams-image-16-300x89.jpg 300w" sizes="(max-width: 440px) 100vw, 440px" />
+<img src="https://agile-labs.com/wp-content/uploads/2021/08/MicrosoftTeams-image.jpg" title="logo-image" alt="logo-image" decoding="async" />
+
+=== BACKGROUND IMAGES ===
+/wp-content/plugins/elementor/assets/lib/font-awesome/css/../webfonts/fa-solid-900.eot
+/wp-content/plugins/elementor/assets/lib/font-awesome/css/../webfonts/fa-solid-900.eot?#iefix
+/wp-content/plugins/elementor/assets/lib/font-awesome/css/../webfonts/fa-solid-900.woff2
+/wp-content/plugins/elementor/assets/lib/font-awesome/css/../webfonts/fa-solid-900.woff
+/wp-content/plugins/elementor/assets/lib/font-awesome/css/../webfonts/fa-solid-900.ttf
+/wp-content/plugins/elementor/assets/lib/font-awesome/css/../webfonts/fa-solid-900.svg#fontawesome
+
+=== WIDGET TEXT & HEADINGS ===
+[WIDGET 1] Login
+[WIDGET 2] Schedule Demo
+[WIDGET 3] PLATFORM
+[WIDGET 4] What is low code? Axpert In Action FAQ
+[WIDGET 5] RESOURCES
+[WIDGET 6] Case Studies Testimonials Blog News &amp; Events
+[WIDGET 7] THE COMPANY
+[WIDGET 8] About Us Contact Us Careers The Team
+[WIDGET 9] Agile Labs Private Limited Axpert House, 627, 1st A Main Rd, 8th Block, Jayanagar, Bengaluru, Karnataka 560070 +91 9620996796 marketing@agile-labs.com
+[WIDGET 10] Agile Labs ©2023

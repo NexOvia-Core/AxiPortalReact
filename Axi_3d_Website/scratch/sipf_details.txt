@@ -1,0 +1,43 @@
+=== TITLE ===
+State Insurance&amp; Provident Fund. - Agile Labs
+
+=== IMAGES IN HTML ===
+<img height="1" width="1" style="display:none;" alt="" src="https://px.ads.linkedin.com/collect/?pid=4387676&fmt=gif" />
+<img width="440" height="130" src="https://agile-labs.com/wp-content/uploads/2021/08/MicrosoftTeams-image-16.jpg" class="attachment-full size-full wp-image-22937" alt="" srcset="https://agile-labs.com/wp-content/uploads/2021/08/MicrosoftTeams-image-16.jpg 440w, https://agile-labs.com/wp-content/uploads/2021/08/MicrosoftTeams-image-16-300x89.jpg 300w" sizes="(max-width: 440px) 100vw, 440px" />
+<img src="https://agile-labs.com/wp-content/uploads/2021/08/MicrosoftTeams-image.jpg" title="logo-image" alt="logo-image" decoding="async" />
+<img decoding="async" width="51" height="48" src="https://agile-labs.com/wp-content/uploads/2021/08/ball-icon-48.png" class="attachment-full size-full wp-image-15" alt="ball-icon" />
+<img decoding="async" width="51" height="48" src="https://agile-labs.com/wp-content/uploads/2021/08/ball-icon-48.png" class="attachment-full size-full wp-image-15" alt="ball-icon" />
+<img fetchpriority="high" decoding="async" width="532" height="325" src="https://agile-labs.com/wp-content/uploads/2023/10/BUSINESS_.png" class="attachment-full size-full wp-image-26445" alt="" srcset="https://agile-labs.com/wp-content/uploads/2023/10/BUSINESS_.png 532w, https://agile-labs.com/wp-content/uploads/2023/10/BUSINESS_-300x183.png 300w" sizes="(max-width: 532px) 100vw, 532px" />
+<img decoding="async" width="364" height="770" src="https://agile-labs.com/wp-content/uploads/2023/10/TECHNOLOGY_01.png" class="attachment-full size-full wp-image-26444" alt="" srcset="https://agile-labs.com/wp-content/uploads/2023/10/TECHNOLOGY_01.png 364w, https://agile-labs.com/wp-content/uploads/2023/10/TECHNOLOGY_01-142x300.png 142w" sizes="(max-width: 364px) 100vw, 364px" />
+<img loading="lazy" decoding="async" width="382" height="562" src="https://agile-labs.com/wp-content/uploads/2023/10/Activitics.png" class="attachment-full size-full wp-image-26446" alt="" srcset="https://agile-labs.com/wp-content/uploads/2023/10/Activitics.png 382w, https://agile-labs.com/wp-content/uploads/2023/10/Activitics-204x300.png 204w" sizes="(max-width: 382px) 100vw, 382px" />
+<img decoding="async" width="51" height="48" src="https://agile-labs.com/wp-content/uploads/2021/08/ball-icon-48.png" class="attachment-full size-full wp-image-15" alt="ball-icon" />
+<img decoding="async" width="51" height="48" src="https://agile-labs.com/wp-content/uploads/2021/08/ball-icon-48.png" class="attachment-full size-full wp-image-15" alt="ball-icon" />
+
+=== BACKGROUND IMAGES ===
+https://agile-labs.com/wp-content/uploads/2023/10/E_government.jpg
+/wp-content/plugins/elementor/assets/lib/font-awesome/css/../webfonts/fa-solid-900.eot
+/wp-content/plugins/elementor/assets/lib/font-awesome/css/../webfonts/fa-solid-900.eot?#iefix
+/wp-content/plugins/elementor/assets/lib/font-awesome/css/../webfonts/fa-solid-900.woff2
+/wp-content/plugins/elementor/assets/lib/font-awesome/css/../webfonts/fa-solid-900.woff
+/wp-content/plugins/elementor/assets/lib/font-awesome/css/../webfonts/fa-solid-900.ttf
+/wp-content/plugins/elementor/assets/lib/font-awesome/css/../webfonts/fa-solid-900.svg#fontawesome
+
+=== WIDGET TEXT & HEADINGS ===
+[WIDGET 1] Login
+[WIDGET 2] Schedule Demo
+[WIDGET 3] CUSTOMER REQUIREMENT
+[WIDGET 4] The requirement envisages the inter-connection of about 50 locations centralized at the “State Data Centre” maintained by the department of IT, for online operation and updating of data related to provident schemes, pension schemes, life insurance schemes and general insurance schemes, for one of the State Governments of India, ensuring that the “State Data Centre” is made available to more than 6 lakhs users and employees.
+[WIDGET 5] BUSINESS SITUATION
+[WIDGET 6] SOLUTION
+[WIDGET 7] An online web-based portal application enabled with automatic workflow to cater to the requirements of all the business processes and activities at various levels of all the schemes and support functions of the government.
+[WIDGET 8] Capture/upload transaction entries and any data relating to each subscriber at the treasury level after performing necessary tests to ensure that the debit/credit relates to the concerned employee and upload it directly/automatically in the ledger and other records of the department eliminating manual entries completely. The solution is designed in such a way that it will in modular form to cater the needs of the future changes and requirements. Generate various forms, applications, authority letters/cheques for various claims/payments as per the practice/provisions in the rules Transfer accounts related to subscriber and schemes between locations.
+[WIDGET 9] BENEFITS
+[WIDGET 10] Advantage of using Axpert: The project was executed in 90 man months with the help of Axpert and Agile methodology which has saved around 45% of the project effort distributed over various phases. Saving on resources and man power
+[WIDGET 11] PLATFORM
+[WIDGET 12] What is low code? Axpert In Action FAQ
+[WIDGET 13] RESOURCES
+[WIDGET 14] Case Studies Testimonials Blog News &amp; Events
+[WIDGET 15] THE COMPANY
+[WIDGET 16] About Us Contact Us Careers The Team
+[WIDGET 17] Agile Labs Private Limited Axpert House, 627, 1st A Main Rd, 8th Block, Jayanagar, Bengaluru, Karnataka 560070 +91 9620996796 marketing@agile-labs.com
+[WIDGET 18] Agile Labs ©2023

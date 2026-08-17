@@ -1,0 +1,715 @@
+/* ── Social login buttons ── */
+.social-login-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 18px 0 14px;
+  color: #e7e7e7;
+  font-size: 13px;
+}
+.social-login-divider span {
+  color: #e7e7e7b0;
+}
+.social-login-divider::before,
+.social-login-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #3a3e4f;
+}
+/*
+.social-login-btns {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+}
+.social-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 16px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  border: 1.5px solid #e0e0e0;
+  background: #fff;
+  color: #333; 
+}
+.social-btn:hover {
+  opacity: 0.85;
+}
+.social-btn svg {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.modal-content-custom {
+  border-radius: 1.5rem;
+  border: none;
+  background: linear-gradient(to bottom right, #ffffff, #f8fdfb);
+}
+.icon-circle {
+  width: 80px;
+  height: 80px;
+  background-color: #e6f4ea; 
+  color: #1e7e34; 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  margin: 0 auto 1.5rem;
+}
+.btn-gradient {
+  background: linear-gradient(45deg, #1e7e34, #28a745);
+  border: none;
+  color: white;
+  font-weight: 600;
+  transition: transform 0.2s ease;
+}
+.btn-gradient:hover {
+  transform: translateY(-2px);
+  color: white;
+  box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+} */
+
+/* AUTH MODAL OVERRIDES - DARK DESIGN */
+
+#signupform,
+#loginModel,
+#axiCompanyDetailsModal,
+#axiSchemaModal,
+#otpModal,
+#axiKeepMeSigninModal {
+  background: transparent !important;
+}
+
+#redirectModal {
+  background-color: #fff !important;
+}
+
+#signupform::after,
+#loginModel::after,
+#axiCompanyDetailsModal::after,
+#axiSchemaModal::after,
+#otpModal::after {
+  display: none !important;
+}
+
+#axiSchemaModal .form-wrapper p {
+  color: #9a9a9a !important;
+  font-size: 14px !important;
+  text-align: center !important;
+  margin-bottom: 24px !important;
+  line-height: 1.5 !important;
+}
+
+#otpModal .form-wrapper p {
+  color: #9a9a9a !important;
+  font-size: 14px !important;
+  text-align: center !important;
+  margin-bottom: 24px !important;
+  line-height: 1.5 !important;
+}
+
+/* Dark modal box */
+.register-form-box,
+.login-form-box {
+  background: #fff !important;
+  /*! border: 1px solid #32364a !important; */
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5) !important;
+  border-radius: 20px !important;
+  padding: 36px 40px 44px !important;
+}
+
+/* Text Colors */
+.register-form-box .title,
+.login-form-box .title,
+.register-form-box .title span,
+.login-form-box .title span {
+  color: #252a47 !important;
+  -webkit-text-fill-color: #252a47 !important;
+  background: none !important;
+  font-size: 26px !important;
+  font-weight: 800 !important;
+  text-align: center !important;
+}
+
+.register-form-box .note p,
+.login-form-box .note p {
+  color: #2e2e2e !important;
+  -webkit-text-fill-color: #444 !important;
+  background: none !important;
+  text-align: center !important;
+  font-size: 16px !important;
+  text-shadow: none;
+}
+
+/* Subtitle under title */
+.register-form-box .title-wrapper p,
+.login-form-box .title-wrapper p {
+  color: #9a9a9a !important;
+  font-size: 14px !important;
+  text-align: center !important;
+  margin-top: 8px !important;
+  line-height: 1.5 !important;
+}
+
+.register-form-box #axi-mobile {
+  padding-left: 130px !important;
+}
+
+/* Input Fields - dark style */
+.register-form-box .input-field input,
+.login-form-box .input-field input {
+  border: 1.5px solid #3a3e4f !important;
+  border-radius: 0 !important;
+  background: #fff !important;
+  color: #333 !important;
+  height: 52px !important;
+  padding: 0 20px !important;
+  font-size: 15px !important;
+  width: 100% !important;
+  font-weight: 600;
+}
+
+.register-form-box .input-field input::placeholder,
+.login-form-box .input-field input::placeholder {
+  color: #747474 !important;
+}
+
+.register-form-box .input-field input:focus,
+.login-form-box .input-field input:focus {
+  border-color: #666 !important;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.06) !important;
+  outline: none !important;
+}
+
+/* Primary Button - white */
+/*
+.wc-btn-primary {
+  background: #ffffff !important;
+  color: #111111 !important;
+  border: none !important;
+  border-radius: 50px !important;
+  padding: 14px 24px !important;
+  font-weight: 700 !important;
+  font-size: 15px !important;
+  width: 100% !important;
+  text-align: center !important;
+  transition:
+    background 0.2s ease,
+    box-shadow 0.2s ease !important;
+  box-shadow: none !important;
+}
+
+.wc-btn-primary span {
+  color: #111111 !important;
+}
+
+.wc-btn-primary:hover {
+  background: #f0f0f0 !important;
+  transform: none !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
+}
+*/
+
+/* Back button override */
+#axi-login-back {
+  background: #3a3a3a !important;
+  color: #ffffff !important;
+  border-color: #555 !important;
+}
+
+#axi-login-back span {
+  color: #ffffff !important;
+}
+
+/* Social login divider */
+.social-login-divider {
+  margin: 20px 0 16px;
+  color: #3a3e4f !important;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.social-login-divider span {
+  color: #272727 !important;
+  font-weight: 500 !important;
+}
+
+.social-login-divider::before,
+.social-login-divider::after {
+  background: #3a3e4f47 !important;
+}
+
+/* Social buttons - full width with label */
+.social-login-btns {
+  display: flex;
+  flex-direction: column !important;
+  gap: 10px !important;
+}
+
+.social-btn {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 12px !important;
+  width: 100% !important;
+  padding: 13px 20px !important;
+  border-radius: 50px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: background 0.2s !important;
+  color: #333 !important;
+  border: 1.5px solid #bfc3d4 !important;
+  background: #fff !important;
+}
+
+.social-btn:hover {
+  background: aliceblue !important;
+  opacity: 1 !important;
+  border: 1px solid #909ddc !important;
+}
+
+.social-btn svg {
+  width: 20px !important;
+  height: 20px !important;
+  flex-shrink: 0 !important;
+}
+
+/* GitHub icon - make white */
+.social-btn svg[fill="#000000"] {
+  fill: #ffffff !important;
+}
+
+/* Close Button */
+.close-btn {
+  border: 1px solid #444444 !important;
+  background: #2d3145 !important;
+  border-radius: 50% !important;
+}
+
+.close-btn img {
+  filter: invert(1) !important;
+}
+
+.close-btn:hover {
+  background: #515777 !important;
+  border-color: #838cbd !important;
+}
+
+/* Note Links */
+.note a {
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  text-decoration: underline !important;
+}
+
+/* Policy label */
+.policy-field label {
+  color: #8f8f8f !important;
+}
+
+/* Hide decorative elements */
+.gradient-bg,
+.Form-robo,
+.register-form-box .icon,
+.login-form-box .icon {
+  display: none !important;
+}
+
+/* Title wrapper spacing */
+.register-form-box .title-wrapper,
+.login-form-box .title-wrapper {
+  margin-bottom: 18px;
+  text-align: center;
+}
+
+/* ── Company Details Modal (Step 2) fixes ── */
+
+/* Match Step 1 size — make modal content scrollable without visible scrollbar */
+#axiCompanyDetailsModal .modal-content {
+  max-height: 90vh;
+  overflow-y: auto;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+#axiCompanyDetailsModal .modal-content::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
+/* Compact input height so all fields fit without overflow */
+#axiCompanyDetailsModal .register-form-box .input-field input {
+  height: 40px !important;
+  font-size: 13px !important;
+  padding: 0 16px !important;
+}
+
+/* Tighten spacing between fields */
+#axiCompanyDetailsModal .input-field {
+  margin-bottom: 7px !important;
+}
+
+/* Error alert — prevent wrapping, keep it on one clean block */
+#axi-company-error {
+  font-size: 12.5px !important;
+  padding: 8px 14px !important;
+  border-radius: 8px !important;
+  white-space: normal !important;
+  /* word-break: break-word !important; */
+  text-wrap-mode: nowrap;
+  line-height: 1.4 !important;
+  margin-bottom: 12px !important;
+  /* width: max-content; */
+  grid-column: 1/13;
+}
+
+.axi-custom-select {
+  border: 1.5px solid #3a3e4f !important;
+  border-radius: 50px !important;
+  background-color: #252a47 !important;
+  color: #fff !important;
+  height: 52px !important;
+  padding: 0 45px 0 20px !important; /* Extra right padding for the arrow */
+  font-size: 15px !important;
+  width: 100% !important;
+  outline: none !important;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23747474' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 18px center !important;
+  background-size: 16px !important;
+  cursor: pointer;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+
+.axi-custom-select:focus {
+  border-color: #666 !important;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.06) !important;
+}
+
+.axi-custom-select option {
+  background-color: #1d223b !important;
+  color: #fff !important;
+  padding: 10px !important;
+}
+
+.axi-custom-select option:disabled {
+  color: #747474 !important;
+  font-style: italic;
+}
+
+#signupSuccessModal {
+  background: none;
+}
+
+#signupSuccessModal .modal-content {
+  position: relative;
+  height: 30rem;
+}
+
+#signupSuccessModal .close-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  outline: none;
+  padding: 0;
+  cursor: pointer;
+  z-index: 10;
+}
+
+#signupSuccessModal .close-btn img {
+  width: 18px;
+  height: 18px;
+}
+
+#signupSuccessModal .close-btn:focus,
+#signupSuccessModal .close-btn:active {
+  outline: none;
+  box-shadow: none;
+}
+
+.opt-container {
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.otp-input {
+  width: 50px;
+  height: 55px;
+  font-size: 24px;
+  font-weight: 600;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background-color: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+  transition: all 0.2s ease-in-out;
+}
+
+.otp-input:focus {
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+  outline: none;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.otp-input::-webkit-outer-spin-button,
+.otp-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Resend */
+#resend-otp-btn {
+  width: 100px;
+  background-color: #f87045;
+  border: none;
+  color: #ffffff !important;
+  font-weight: 600;
+  padding: 0;
+  margin-left: 5px;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+#resend-otp-btn:disabled {
+  color: rgba(255, 255, 255, 0.4);
+  cursor: not-allowed;
+  text-decoration: none;
+}
+
+#resend-otp-btn:not(:disabled):hover {
+  color: #ffffff;
+  text-decoration: underline;
+}
+
+.expiry-timer-active {
+  color: #ff4d4d !important;
+  font-variant-numeric: tabular-nums;
+}
+
+.expiry-timer-dead {
+  color: rgba(255, 255, 255, 0.3) !important;
+  text-decoration: line-through;
+}
+
+#otpModal .title {
+  font-size: 13px !important;
+}
+
+/* --- axi-toast-container for global alerts --- */
+#axi-toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 999999999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.axi-toast {
+  min-width: 280px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: #1e222d;
+  color: #fff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  border: 1px solid #ff4d4d;
+}
+
+.axi-toast-error {
+  border-color: #ff4d4d;
+}
+.axi-toast-warning {
+  border-color: #ffcc00;
+}
+.axi-toast-success {
+  border-color: #00c851;
+}
+
+.is-invalid {
+  border-color: #ff4d4d !important;
+  background-color: rgba(255, 77, 77, 0.05) !important;
+}
+
+.error-feedback {
+  color: #ff4d4d;
+  font-size: 12px;
+  margin-top: 4px;
+  /* padding-left: 15px; */
+  animation: fadeIn 0.3s ease;
+  text-align: left;
+}
+
+.axi-toast button {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  padding: 0 0 0 12px;
+  opacity: 0.6;
+  transition: opacity 0.15s;
+}
+.axi-toast button:hover {
+  opacity: 1;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+button[disabled] {
+  opacity: 0.8;
+  cursor: not-allowed;
+}
+
+/* Login preferences styling */
+.login-preferences {
+  text-align: left;
+  padding: 0 4px;
+}
+
+.login-preferences .form-check {
+  padding-left: 1.8rem;
+  margin-bottom: 0.5rem;
+}
+
+.login-preferences .form-check-input {
+  width: 1.1em;
+  height: 1.1em;
+  margin-top: 0.2em;
+  cursor: pointer;
+}
+
+.login-preferences .form-check-input:checked {
+  background-color: var(--axi-primary, #0d6efd);
+  border-color: var(--axi-primary, #0d6efd);
+}
+
+.login-preferences .form-check-label {
+  font-size: 15px !important;
+  color: #3d4349;
+  cursor: pointer;
+  user-select: none;
+  font-weight: 500;
+  line-height: 24px;
+  margin-left: 5px;
+}
+
+/* Step transition animation */
+/* #axi-login-step-1,
+#axi-login-step-2 {
+  transition: opacity 0.2s ease-in-out;
+} */
+
+#axi-login-step-1.d-none,
+#axi-login-step-2.d-none {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* AFTER: */
+.axi-keepme-profile-btn {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 12px 16px;
+  background: #252a47;
+  border: 1.5px solid #3a3e4f;
+  border-radius: 10px;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+  text-align: left;
+  color: #e0e0e0;
+}
+.axi-keepme-profile-btn:hover {
+  background: #242c59;
+  border-color: #6366f1;
+  color: #ffffff;
+}
+.axi-keepme-profile-btn svg {
+  flex-shrink: 0;
+  color: inherit;
+}
+.axi-keepme-name {
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1.3;
+}
+.axi-keepme-schema {
+  font-size: 12px;
+  color: #9ca3af;
+  display: block;
+  font-weight: 400;
+}
+.axi-keepme-profile-btn:hover .axi-keepme-schema {
+  color: #a5b4fc;
+}
+.axi-keepme-alt {
+  border-style: dashed;
+  color: #6b7280;
+}
+.axi-keepme-alt:hover {
+  background: #2d3145;
+  border-color: #6b7280;
+  color: #e0e0e0;
+}
+
+#axiKeepMeSigninModal .form-wrapper p {
+  color: #9a9a9a !important;
+  font-size: 14px !important;
+  text-align: center !important;
+  margin-bottom: 24px !important;
+  line-height: 1.5 !important;
+}
+
+/*customize vj*/
+.register-form-box .note p a,
+.login-form-box .note p a {
+  color: #0950fb !important;
+  -webkit-text-fill-color: #0950fb !important;
+}
+
+.axi-selected-package {
+  color: #2e2e2e !important;
+  -webkit-text-fill-color: #444 !important;
+  background: none !important;
+  text-align: center !important;
+  font-size: 14px !important;
+  text-shadow: none !important;
+  margin-bottom: 10px !important;
+}
+.axi-selected-package p span {
+  color: #0950fb !important;
+}

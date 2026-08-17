@@ -1,0 +1,171 @@
+
+========================================
+=== SECTION 1 ===
+========================================
+IMAGES:
+https://agile-labs.com/wp-content/uploads/2021/08/MicrosoftTeams-image-16.jpg
+
+CONTENT:
+class="elementor-section elementor-top-section elementor-element elementor-element-5cae5dc6 elementor-section-full_width elementor-section-height-min-height al-main-nav elementor-section-content-middle elementor-section-height-default elementor-section-items-middle" data-id="5cae5dc6" data-element_type="section" data-e-type="section" data-settings="{&quot;background_background&quot;:&quot;gradient&quot;}">
+* Home
+* Platform
+Solutions
+
+========================================
+=== SECTION 2 ===
+========================================
+IMAGES:
+https://agile-labs.com/wp-content/uploads/2021/08/MicrosoftTeams-image.jpg
+
+CONTENT:
+class="elementor-section elementor-top-section elementor-element elementor-element-5e431d9 al-ul-main-nav elementor-section-boxed elementor-section-height-default elementor-section-height-default" data-id="5e431d9" data-element_type="section" data-e-type="section" data-settings="{&quot;background_background&quot;:&quot;classic&quot;}">
+									Health Care
+									Supply Chain
+									Banking
+									Government & Defence
+									People Services
+									Logistics
+									Tea
+									Manufacturing
+Products
+	ERP	HMS	CMS	Schedule Demo
+Developers
+	Guide	Forum	Release Notes
+* Partners
+X
+
+========================================
+=== SECTION 3 ===
+========================================
+IMAGES:
+
+
+CONTENT:
+class="elementor-section elementor-inner-section elementor-element elementor-element-1883b44 elementor-section-full_width elementor-hidden-tablet elementor-hidden-mobile elementor-section-height-default elementor-section-height-default" data-id="1883b44" data-element_type="section" data-e-type="section">
+--- TITLE: Login ---
+									Schedule Demo
+
+========================================
+=== SECTION 4 ===
+========================================
+IMAGES:
+
+
+CONTENT:
+class="elementor-section elementor-top-section elementor-element elementor-element-be6d2c9 elementor-section-full_width elementor-hidden-mobile elementor-section-height-default elementor-section-height-default" data-id="be6d2c9" data-element_type="section" data-e-type="section">
+
+========================================
+=== SECTION 5 ===
+========================================
+IMAGES:
+
+
+CONTENT:
+class="elementor-section elementor-inner-section elementor-element elementor-element-bb6d179 elementor-section-full_width elementor-section-height-min-height elementor-section-height-default" data-id="bb6d179" data-element_type="section" data-e-type="section" data-settings="{&quot;background_background&quot;:&quot;classic&quot;}">
+
+========================================
+=== SECTION 6 ===
+========================================
+IMAGES:
+
+
+CONTENT:
+class="elementor-section elementor-top-section elementor-element elementor-element-54e8652 elementor-section-boxed elementor-section-height-default elementor-section-height-default" data-id="54e8652" data-element_type="section" data-e-type="section">
+
+========================================
+=== SECTION 7 ===
+========================================
+IMAGES:
+https://agile-labs.com/wp-content/uploads/2021/08/ball-icon-48.png
+https://agile-labs.com/wp-content/uploads/2023/10/Unique-features.png
+https://agile-labs.com/wp-content/uploads/2021/08/ball-icon-48.png
+https://agile-labs.com/wp-content/uploads/2023/10/suppliers-and-contractors.png
+
+CONTENT:
+class="elementor-section elementor-inner-section elementor-element elementor-element-0f05ab3 elementor-section-boxed elementor-section-height-default elementor-section-height-default" data-id="0f05ab3" data-element_type="section" data-e-type="section">
+--- TITLE: Unique features ---
+--- TITLE: Manage contracts of suppliers and contractors ---
+
+========================================
+=== SECTION 8 ===
+========================================
+IMAGES:
+
+
+CONTENT:
+class="elementor-section elementor-top-section elementor-element elementor-element-7753e98 elementor-section-boxed elementor-section-height-default elementor-section-height-default" data-id="7753e98" data-element_type="section" data-e-type="section">
+
+========================================
+=== SECTION 9 ===
+========================================
+IMAGES:
+https://agile-labs.com/wp-content/uploads/2021/08/ball-icon-48.png
+https://agile-labs.com/wp-content/uploads/2023/10/Control-and-station.jpg
+https://agile-labs.com/wp-content/uploads/2021/08/ball-icon-48.png
+https://agile-labs.com/wp-content/uploads/2023/10/Financial.jpg
+
+CONTENT:
+class="elementor-section elementor-inner-section elementor-element elementor-element-0d81720 elementor-section-boxed elementor-section-height-default elementor-section-height-default" data-id="0d81720" data-element_type="section" data-e-type="section">
+					Control operations at stations
+--- TITLE: Financial accounting ---
+
+========================================
+=== SECTION 10 ===
+========================================
+IMAGES:
+
+
+CONTENT:
+class="elementor-section elementor-top-section elementor-element elementor-element-8fc6068 elementor-section-boxed elementor-section-height-default elementor-section-height-default" data-id="8fc6068" data-element_type="section" data-e-type="section">
+
+========================================
+=== SECTION 11 ===
+========================================
+IMAGES:
+https://agile-labs.com/wp-content/uploads/2021/08/ball-icon-48.png
+https://agile-labs.com/wp-content/uploads/2023/10/Manage-with-else.png
+https://agile-labs.com/wp-content/uploads/2021/08/ball-icon-48.png
+https://agile-labs.com/wp-content/uploads/2023/10/Architecture_axpert.jpg
+
+CONTENT:
+class="elementor-section elementor-inner-section elementor-element elementor-element-401e904 elementor-section-boxed elementor-section-height-default elementor-section-height-default" data-id="401e904" data-element_type="section" data-e-type="section">
+					Manage with ease
+--- TITLE: Architecture ---
+
+========================================
+=== SECTION 12 ===
+========================================
+IMAGES:
+
+
+CONTENT:
+class="elementor-section elementor-top-section elementor-element elementor-element-dec953f elementor-section-boxed elementor-section-height-default elementor-section-height-default" data-id="dec953f" data-element_type="section" data-e-type="section">
+
+========================================
+=== SECTION 13 ===
+========================================
+IMAGES:
+https://agile-labs.com/wp-content/uploads/2021/08/ball-icon-48.png
+
+CONTENT:
+class="elementor-section elementor-inner-section elementor-element elementor-element-535d54a elementor-section-boxed elementor-section-height-default elementor-section-height-default" data-id="535d54a" data-element_type="section" data-e-type="section">
+--- TITLE:  Axpert Customer List…..few  ---
+
+========================================
+=== SECTION 14 ===
+========================================
+IMAGES:
+https://agile-labs.com/wp-content/uploads/2023/10/Axpert_india.png
+https://agile-labs.com/wp-content/uploads/2023/10/Axpert_Global.png
+
+CONTENT:
+class="elementor-section elementor-inner-section elementor-element elementor-element-84be6c5 elementor-section-boxed elementor-section-height-default elementor-section-height-default" data-id="84be6c5" data-element_type="section" data-e-type="section">
+
+========================================
+=== SECTION 15 ===
+========================================
+IMAGES:
+
+
+CONTENT:
+class="elementor-section elementor-top-section elementor-element elementor-element-76fd62a elementor-section-boxed elementor-section-height-default elementor-section-height-default" data-id="76fd62a" data-element_type="section" data-e-type="section">

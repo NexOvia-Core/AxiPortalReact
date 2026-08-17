@@ -1,0 +1,78 @@
+
+[WIDGET 1]
+IMAGES: https://agile-labs.com/wp-content/uploads/2021/08/MicrosoftTeams-image-16.jpg
+
+[WIDGET 2]
+TEXT: Home Platform Solutions Health Care
+
+[WIDGET 3]
+TEXT: Login
+
+[WIDGET 4]
+TEXT: Schedule Demo
+
+[WIDGET 5]
+IMAGES: https://agile-labs.com/wp-content/uploads/2021/08/ball-icon-48.png
+
+[WIDGET 6]
+TEXT: Unique features
+
+[WIDGET 7]
+IMAGES: https://agile-labs.com/wp-content/uploads/2023/10/Unique-features.png
+
+[WIDGET 8]
+IMAGES: https://agile-labs.com/wp-content/uploads/2021/08/ball-icon-48.png
+
+[WIDGET 9]
+TEXT: Manage contracts of suppliers and contractors
+
+[WIDGET 10]
+IMAGES: https://agile-labs.com/wp-content/uploads/2023/10/suppliers-and-contractors.png
+
+[WIDGET 11]
+IMAGES: https://agile-labs.com/wp-content/uploads/2021/08/ball-icon-48.png
+
+[WIDGET 12]
+TEXT: Control operations at stations
+
+[WIDGET 13]
+IMAGES: https://agile-labs.com/wp-content/uploads/2023/10/Control-and-station.jpg
+
+[WIDGET 14]
+IMAGES: https://agile-labs.com/wp-content/uploads/2021/08/ball-icon-48.png
+
+[WIDGET 15]
+TEXT: Financial accounting
+
+[WIDGET 16]
+IMAGES: https://agile-labs.com/wp-content/uploads/2023/10/Financial.jpg
+
+[WIDGET 17]
+IMAGES: https://agile-labs.com/wp-content/uploads/2021/08/ball-icon-48.png
+
+[WIDGET 18]
+TEXT: Manage with ease
+
+[WIDGET 19]
+IMAGES: https://agile-labs.com/wp-content/uploads/2023/10/Manage-with-else.png
+
+[WIDGET 20]
+IMAGES: https://agile-labs.com/wp-content/uploads/2021/08/ball-icon-48.png
+
+[WIDGET 21]
+TEXT: Architecture
+
+[WIDGET 22]
+IMAGES: https://agile-labs.com/wp-content/uploads/2023/10/Architecture_axpert.jpg
+
+[WIDGET 23]
+IMAGES: https://agile-labs.com/wp-content/uploads/2021/08/ball-icon-48.png
+
+[WIDGET 24]
+TEXT: Axpert Customer List…..few
+
+[WIDGET 25]
+IMAGES: https://agile-labs.com/wp-content/uploads/2023/10/Axpert_india.png
+
+[WIDGET 26]
+IMAGES: https://agile-labs.com/wp-content/uploads/2023/10/Axpert_Global.png
