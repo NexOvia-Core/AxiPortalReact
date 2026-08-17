@@ -171,10 +171,10 @@ const LogoCard: React.FC<{ logo: PartnerLogo }> = ({ logo }) => {
 };
 
 export const MarqueeSectionPortfolio: React.FC = () => {
-  // Quadruple arrays for seamless 100% infinite marquee loops
-  const loopRow1 = [...partnerLogosRow1, ...partnerLogosRow1, ...partnerLogosRow1, ...partnerLogosRow1];
-  const loopRow2 = [...partnerLogosRow2, ...partnerLogosRow2, ...partnerLogosRow2, ...partnerLogosRow2];
-  const loopRow3 = [...partnerLogosRow3, ...partnerLogosRow3, ...partnerLogosRow3, ...partnerLogosRow3];
+  // Triple arrays for seamless 100% infinite marquee loops
+  const loopRow1 = [...partnerLogosRow1, ...partnerLogosRow1, ...partnerLogosRow1];
+  const loopRow2 = [...partnerLogosRow2, ...partnerLogosRow2, ...partnerLogosRow2];
+  const loopRow3 = [...partnerLogosRow3, ...partnerLogosRow3, ...partnerLogosRow3];
 
   return (
     <section className="w-full bg-[#fff6e5] text-[#1E1B4B] py-20 px-5 sm:px-8 md:px-10 overflow-hidden flex flex-col items-center justify-center gap-12 border-y border-[#1E1B4B]/10">

@@ -91,10 +91,10 @@ export const AboutSectionPortfolio: React.FC<AboutSectionPortfolioProps> = ({ on
     { value: 750, suffix: "+", label: "Deployments" },
   ];
 
-  // Quadrupled arrays for smooth 100% infinite marquee loops
-  const loopTimeline = [...timelineMilestones, ...timelineMilestones, ...timelineMilestones, ...timelineMilestones];
-  const loopGroupA = [...complianceGroupA, ...complianceGroupA, ...complianceGroupA, ...complianceGroupA];
-  const loopGroupB = [...complianceGroupB, ...complianceGroupB, ...complianceGroupB, ...complianceGroupB];
+  // Triple arrays for smooth 100% infinite marquee loops
+  const loopTimeline = [...timelineMilestones, ...timelineMilestones, ...timelineMilestones];
+  const loopGroupA = [...complianceGroupA, ...complianceGroupA, ...complianceGroupA];
+  const loopGroupB = [...complianceGroupB, ...complianceGroupB, ...complianceGroupB];
 
   return (
     <section id="about" className="w-full relative bg-[#fff6e5] text-[#1E1B4B] px-5 sm:px-8 md:px-10 py-24 flex flex-col justify-center overflow-hidden border-b border-[#1E1B4B]/10">
@@ -108,9 +108,9 @@ export const AboutSectionPortfolio: React.FC<AboutSectionPortfolioProps> = ({ on
         {/* LEFT HAND SIDE: Main Text & Specs (Frameless, High-Contrast) */}
         <div className="lg:col-span-5 flex flex-col items-start text-left gap-6 pr-0 lg:pr-6">
           <FadeIn delay={0} y={20}>
-            <span className="inline-block px-4 py-1.5 rounded-full border border-[#00007f]/25 bg-[#00007f]/10 text-xs uppercase tracking-widest text-[#00007f] font-bold shadow-xs">
+            <p className="text-xs sm:text-sm font-semibold tracking-[0.35em] uppercase text-[#fc8151] mb-3">
               WHY AGILE LABS
-            </span>
+            </p>
           </FadeIn>
 
           <FadeIn delay={0.1} y={20}>

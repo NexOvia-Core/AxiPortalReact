@@ -3,8 +3,10 @@ import HeroSection from "@/components/HeroSection";
 import MarqueeSectionPortfolio from "@/components/MarqueeSectionPortfolio";
 import AboutSectionPortfolio from "@/components/AboutSectionPortfolio";
 import PlatformSection from "@/components/PlatformSection";
+import PackagesSection from "@/components/PackagesSection";
 import ProjectsSectionPortfolio from "@/components/ProjectsSectionPortfolio";
 import AiPlatformShowcaseSection from "@/components/AiPlatformShowcaseSection";
+import TestimonialsSection from "@/components/TestimonialsSection";
 import CTASection from "@/components/CTASection";
 import ContactModal from "@/components/ContactModal";
 import Footer from "@/components/Footer";
@@ -29,11 +31,17 @@ export default function Home() {
       {/* 4. PLATFORM SECTION - "WHERE AXI KEEPS MOVING" WITH VIDEO & SOLUTION CARDS */}
       <PlatformSection />
 
+      {/* 4.5. OUR PACKAGES SECTION - GLASSMORPHISM 3D REALISTIC KPI CARDS */}
+      <PackagesSection onInstallClick={handleOpenContact} />
+
       {/* 5. PROJECTS SECTION - PPTX MOTION STACKING CARDS */}
       <ProjectsSectionPortfolio onLiveProjectClick={handleOpenContact} />
 
       {/* 6. AI ASSISTED BUSINESS PLATFORM SHOWCASE SECTION */}
       <AiPlatformShowcaseSection onContactClick={handleOpenContact} />
+
+      {/* 6.5. TESTIMONIALS SECTION */}
+      <TestimonialsSection />
 
       {/* 7. CTA SECTION - UNLEASH THE POWER */}
       <CTASection />

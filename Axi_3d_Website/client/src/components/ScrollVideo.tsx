@@ -2,6 +2,12 @@
  * ScrollVideo — Scroll-scrubbed cinematic video background
  * Fixed full-bleed z-0 layer. Renders poster → video → canvas frame cache.
  * Motion is SCROLL-DRIVEN ONLY (no autoplay loop).
+ *
+ * Performance optimizations:
+ * - IntersectionObserver pauses rAF loop when off-screen
+ * - Resize handler is debounced (150ms)
+ * - LERP skips when delta < epsilon
+ * - Poster uses first-frame poster image, not .mp4
  */
 import { useEffect, useRef } from "react";
 
@@ -12,6 +18,7 @@ const MAX_FRAMES = 90;
 const MAX_FRAME_WIDTH = 960;
 const LERP_FACTOR = 0.12;
 const SEEK_DELTA_THRESHOLD = 0.04;
+const LERP_EPSILON = 0.0005;
 
 export default function ScrollVideo() {
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -26,25 +33,42 @@ export default function ScrollVideo() {
   const smoothProgress = useRef(0);
   const targetProgress = useRef(0);
   const currentFrame = useRef(-1);
+  const isVisibleRef = useRef(true);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     const video = videoRef.current;
     const poster = posterRef.current;
-    if (!canvas || !video) return;
+    const wrapper = wrapperRef.current;
+    if (!canvas || !video || !wrapper) return;
 
     const ctx = canvas.getContext("2d", { alpha: false })!;
     const dpr = Math.min(devicePixelRatio, 2);
 
-    // Resize canvas to fill viewport
+    // Visibility observer — pause rAF when wrapper is off-screen
+    const visibilityObserver = new IntersectionObserver(
+      ([entry]) => {
+        isVisibleRef.current = entry.isIntersecting;
+        if (entry.isIntersecting && !rafId.current) {
+          rafId.current = requestAnimationFrame(tick);
+        }
+      },
+      { rootMargin: "200px" }
+    );
+    visibilityObserver.observe(wrapper);
+
+    // Debounced resize canvas to fill viewport
+    let resizeTimer: ReturnType<typeof setTimeout>;
     const resizeCanvas = () => {
-      canvas.width = window.innerWidth * dpr;
-      canvas.height = window.innerHeight * dpr;
-      canvas.style.width = window.innerWidth + "px";
-      canvas.style.height = window.innerHeight + "px";
-      ctx.scale(dpr, dpr);
-      // Redraw current frame after resize
-      drawFrame(smoothProgress.current);
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        canvas.width = window.innerWidth * dpr;
+        canvas.height = window.innerHeight * dpr;
+        canvas.style.width = window.innerWidth + "px";
+        canvas.style.height = window.innerHeight + "px";
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        drawFrame(smoothProgress.current);
+      }, 150);
     };
 
     // Object-cover draw helper
@@ -78,15 +102,26 @@ export default function ScrollVideo() {
       targetProgress.current = maxScroll > 0 ? Math.min(window.scrollY / maxScroll, 1) : 0;
     };
 
-    // Animation loop
+    // Animation loop — only runs when visible
     let lastSeekTime = -1;
     const tick = () => {
+      if (!isVisibleRef.current) {
+        rafId.current = 0;
+        return;
+      }
       rafId.current = requestAnimationFrame(tick);
       updateProgress();
 
+      const delta = targetProgress.current - smoothProgress.current;
+
+      // Skip if already converged
+      if (Math.abs(delta) < LERP_EPSILON) {
+        smoothProgress.current = targetProgress.current;
+        return;
+      }
+
       // Lerp smooth
-      smoothProgress.current +=
-        (targetProgress.current - smoothProgress.current) * LERP_FACTOR;
+      smoothProgress.current += delta * LERP_FACTOR;
 
       if (cacheReady.current) {
         drawFrame(smoothProgress.current);
@@ -189,8 +224,11 @@ export default function ScrollVideo() {
 
     return () => {
       cancelAnimationFrame(rafId.current);
+      rafId.current = 0;
+      clearTimeout(resizeTimer);
       window.removeEventListener("resize", resizeCanvas);
       window.removeEventListener("scroll", updateProgress);
+      visibilityObserver.disconnect();
       frameCache.current.forEach((b) => b.close());
       frameCache.current = [];
       offscreenRef.current?.remove();
@@ -204,17 +242,13 @@ export default function ScrollVideo() {
       style={{ background: "#0a0a0a" }}
       aria-hidden="true"
     >
-      {/* Layer 1: Poster — fades out once video has data */}
-      <img
+      {/* Layer 1: Poster — solid background while video loads */}
+      <div
         ref={posterRef}
-        src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260729_102822_0e6c87e8-c141-4744-bf32-ad30db296371.mp4"
-        alt=""
         className="absolute inset-0 w-full h-full"
-        style={{ objectFit: "cover", opacity: 1 }}
-        // Use video as poster — browser will show first frame
-        onError={(e) => {
-          // If poster fails, just hide it
-          (e.target as HTMLImageElement).style.opacity = "0";
+        style={{
+          background: "linear-gradient(135deg, #0a0a0a 0%, #00007f 50%, #0a0a0a 100%)",
+          opacity: 1,
         }}
       />
 

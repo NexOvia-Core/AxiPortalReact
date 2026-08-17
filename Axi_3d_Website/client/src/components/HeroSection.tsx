@@ -1,7 +1,7 @@
 /**
  * Hero Section - Full viewport with Three.js 3D particle field & orbital 3D loop design
- * Restored matching Image 1: Top Nav (Platform, AXI Modules, About Us, Agile Labs, Explore the Platform CTA button),
- * Subtitle ("orbital dashboards"), and center gradient CTA button ("Explore the Platform").
+ * Restored matching Image 1: Top Nav (Platform, AXI Modules, About Us, Agile Labs, Get Started CTA button),
+ * Subtitle ("orbital dashboards"), and center gradient CTA button ("Get Started").
  */
 import React, { Suspense, useRef, useMemo, useState, useEffect } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
@@ -44,6 +44,7 @@ function ParticleField() {
     if (meshRef.current) {
       meshRef.current.rotation.y = state.clock.elapsedTime * 0.03;
       meshRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.08) * 0.08;
+      state.invalidate();
     }
   });
 
@@ -66,6 +67,7 @@ function OrbitRing({ radius, speed, color, tilt = 0 }: { radius: number; speed: 
     if (ref.current) {
       ref.current.rotation.x = tilt + state.clock.elapsedTime * speed;
       ref.current.rotation.z = state.clock.elapsedTime * speed * 0.3;
+      state.invalidate();
     }
   });
 
@@ -128,7 +130,7 @@ interface HeroSectionProps {
 
 const navItems = [
   { label: "Platform", href: "#platform" },
-  { label: "AXI Modules", href: "/modules" },
+  { label: "Packages", href: "/modules" },
   { label: "About Us", href: "/about" },
   { label: "Partners", href: "/partners" },
   { label: "Agile Labs", href: "https://agile-labs.com", external: true },
@@ -146,7 +148,7 @@ export default function HeroSection({ onContactClick }: HeroSectionProps) {
       ([entry]) => {
         setIsInView(entry.isIntersecting);
       },
-      { rootMargin: "100px" }
+      { rootMargin: "0px" }
     );
 
     if (sectionRef.current) {
@@ -175,6 +177,7 @@ export default function HeroSection({ onContactClick }: HeroSectionProps) {
               gl={{ antialias: false, alpha: true, powerPreference: "high-performance" }}
               style={{ background: "transparent" }}
               dpr={[1, 1.25]}
+              frameloop="demand"
             >
               <Scene3D />
             </Canvas>
@@ -187,9 +190,9 @@ export default function HeroSection({ onContactClick }: HeroSectionProps) {
         <nav className="w-full flex items-center justify-between px-6 md:px-12 pt-6 md:pt-8">
           {/* Brand Logo */}
           <a href="/" className="flex items-center gap-3 group">
-            <img 
-              src="/AXI_LOGO_AXPERT.png" 
-              alt="AXI Logo" 
+            <img
+              src="/AXI_LOGO_AXPERT.png"
+              alt="AXI Logo"
               className="h-9 sm:h-11 md:h-12 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
             />
           </a>
@@ -229,7 +232,7 @@ export default function HeroSection({ onContactClick }: HeroSectionProps) {
               onClick={() => openLogin("https://agile.axi-global.com/aspx/signin.aspx")}
               className="bg-gradient-to-r from-[#210062] via-[#5c1380] to-[#d6573c] text-[#ffffff] shadow-md hover:shadow-xl rounded-full px-6 py-2.5 font-semibold text-sm transition-all duration-300 hover:scale-105 inline-block cursor-pointer"
             >
-              Explore the Platform
+              Get Started
             </button>
           </div>
 
@@ -290,7 +293,7 @@ export default function HeroSection({ onContactClick }: HeroSectionProps) {
                 }}
                 className="w-full py-2.5 bg-gradient-to-r from-[#210062] via-[#5c1380] to-[#d6573c] text-white rounded-full font-semibold text-sm shadow-md"
               >
-                Explore the Platform
+                Get Started
               </button>
             </div>
           </div>
@@ -345,22 +348,32 @@ export default function HeroSection({ onContactClick }: HeroSectionProps) {
             transition={{ duration: 0.8, delay: 0.8 }}
             className="text-base sm:text-lg md:text-xl text-[#00007f]/75 max-w-3xl mx-auto mb-10 leading-relaxed font-normal"
           >
-            Transform your enterprise data into living intelligence. Real-time analytics, predictive insights, and orbital dashboards that bring your numbers to life.
+            The one ERP that goes as deep as enterprise-grade systems —
+            without the cost or the cage.
+
           </motion.p>
 
-          {/* Single Centered Action Button (Image 1: Explore the Platform) */}
+          {/* Centered Action Buttons (Get Started & Explore the Packages) */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 1.1 }}
-            className="flex items-center justify-center"
+            className="flex flex-wrap items-center justify-center gap-4"
           >
             <button
               onClick={() => openLogin("https://agile.axi-global.com/aspx/signin.aspx")}
               className="bg-gradient-to-r from-[#210062] via-[#5c1380] to-[#d6573c] text-white shadow-xl hover:shadow-2xl rounded-full px-8 sm:px-10 py-3.5 sm:py-4 font-semibold text-sm sm:text-base transition-all duration-300 hover:scale-105 inline-block cursor-pointer"
             >
-              Explore the Platform
+              Get Started
             </button>
+
+
+            <a
+              href="/modules"
+              className="border-2 border-[#1E1B4B]/30 hover:border-[#1E1B4B] text-[#1E1B4B] hover:bg-[#1E1B4B] hover:text-white shadow-md hover:shadow-xl rounded-full px-8 sm:px-10 py-3.5 sm:py-4 font-semibold text-sm sm:text-base transition-all duration-300 hover:scale-105 inline-block cursor-pointer bg-white/60 backdrop-blur-sm"
+            >
+              Explore Our Packages
+            </a>
           </motion.div>
         </motion.div>
       </div>

@@ -9,7 +9,6 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import CaseStudies from "@/pages/CaseStudies";
-import TestimonialsPage from "@/pages/TestimonialsPage";
 import NewsEvents from "@/pages/NewsEvents";
 import Team from "@/pages/Team";
 import Careers from "@/pages/Careers";
@@ -29,6 +28,7 @@ function Router() {
     <Switch>
       <Route path={"/"} component={Home} />
       <Route path={"/modules"} component={Modules} />
+      <Route path={"/packages"} component={Modules} />
       <Route path={"/about"} component={About} />
       <Route path={"/about-us"} component={About} />
       <Route path={"/partners"} component={Partners} />
@@ -40,7 +40,6 @@ function Router() {
       <Route path={"/case-studies/axpert_ockham-oncology"} component={CaseStudyOckham} />
       <Route path={"/case-studies/karnataka-state-beverages"} component={CaseStudyKSBC} />
       <Route path={"/case-studies/axpert-metro-rail"} component={CaseStudyMetro} />
-      <Route path={"/testimonials"} component={TestimonialsPage} />
       <Route path={"/news-events"} component={NewsEvents} />
       <Route path={"/team"} component={Team} />
       <Route path={"/careers"} component={Careers} />

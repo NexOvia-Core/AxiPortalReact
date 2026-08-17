@@ -7,7 +7,7 @@ import { useAuthModal } from "@/contexts/AuthContext";
 
 const navLinks = [
   { label: "Platform", href: "/#platform" },
-  { label: "AXI Modules", href: "/modules" },
+  { label: "Packages", href: "/modules" },
   { label: "About Us", href: "/about" },
   { label: "Partners", href: "/partners" },
   { label: "Agile Labs", href: "https://agile-labs.com", external: true },
@@ -31,11 +31,10 @@ export default function Navigation() {
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.7, ease: [0.23, 1, 0.32, 1] }}
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-400 transform-gpu ${
-        scrolled
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-400 transform-gpu ${scrolled
           ? "bg-white/90 backdrop-blur-2xl shadow-md border-b border-white/60 py-3"
           : "bg-white/80 backdrop-blur-xl border-b border-white/50 py-4 shadow-sm"
-      }`}
+        }`}
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="flex items-center justify-between">
@@ -58,10 +57,10 @@ export default function Navigation() {
                 (link.href === "/about"
                   ? location === "/about" || location === "/about-us"
                   : link.href === "/modules"
-                  ? location === "/modules"
-                  : link.href === "/partners"
-                  ? location === "/partners"
-                  : location === "/");
+                    ? location === "/modules"
+                    : link.href === "/partners"
+                      ? location === "/partners"
+                      : location === "/");
 
               return (
                 <a
@@ -69,17 +68,15 @@ export default function Navigation() {
                   href={link.href}
                   target={link.external ? "_blank" : undefined}
                   rel={link.external ? "noopener noreferrer" : undefined}
-                  className={`relative px-4 py-2 text-sm font-semibold transition-all duration-300 group ${
-                    isActive
+                  className={`relative px-4 py-2 text-sm font-semibold transition-all duration-300 group ${isActive
                       ? "text-[#00007f]"
                       : "text-[#00007f]/75 hover:text-[#00007f]"
-                  }`}
+                    }`}
                 >
                   {link.label}
                   <span
-                    className={`absolute bottom-0 left-4 right-4 h-0.5 bg-gradient-to-r from-[#00007f] via-[#5c1380] to-[#d6573c] transition-transform duration-400 origin-left rounded-full ${
-                      isActive ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"
-                    }`}
+                    className={`absolute bottom-0 left-4 right-4 h-0.5 bg-gradient-to-r from-[#00007f] via-[#5c1380] to-[#d6573c] transition-transform duration-400 origin-left rounded-full ${isActive ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"
+                      }`}
                   />
                 </a>
               );
@@ -111,7 +108,7 @@ export default function Navigation() {
                 background: "linear-gradient(135deg, #210062 0%, #5c1380 50%, #d6573c 100%)",
               }}
             >
-              Explore the Platform
+              Get Started
               <div className="absolute inset-0 shimmer opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
             </button>
           </div>
@@ -144,10 +141,10 @@ export default function Navigation() {
                   (link.href === "/about"
                     ? location === "/about" || location === "/about-us"
                     : link.href === "/modules"
-                    ? location === "/modules"
-                    : link.href === "/partners"
-                    ? location === "/partners"
-                    : location === "/");
+                      ? location === "/modules"
+                      : link.href === "/partners"
+                        ? location === "/partners"
+                        : location === "/");
 
                 return (
                   <motion.a
@@ -159,11 +156,10 @@ export default function Navigation() {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.05 }}
-                    className={`block text-base font-semibold transition-colors py-2 cursor-pointer ${
-                      isActive
+                    className={`block text-base font-semibold transition-colors py-2 cursor-pointer ${isActive
                         ? "text-[#00007f] font-bold"
                         : "text-[#00007f]/75 hover:text-[#00007f]"
-                    }`}
+                      }`}
                   >
                     {link.label}
                   </motion.a>
@@ -203,7 +199,7 @@ export default function Navigation() {
                     background: "linear-gradient(135deg, #210062 0%, #5c1380 50%, #d6573c 100%)",
                   }}
                 >
-                  Explore the Platform
+                  Get Started
                 </button>
               </div>
             </div>

@@ -81,7 +81,7 @@ export default function TestimonialsSection() {
   };
 
   return (
-    <section ref={ref} className="py-32 px-6 relative overflow-hidden" style={{ background: "#fff6e5" }}>
+    <section id="testimonials" ref={ref} className="py-12 md:py-16 px-6 relative overflow-hidden" style={{ background: "#fff6e5" }}>
       {/* Ambient glows */}
       <div className="ambient-glow ambient-glow-coral w-[450px] h-[450px] top-0 left-1/4" />
       <div className="ambient-glow ambient-glow-blue w-[400px] h-[400px] bottom-0 right-1/4" />
@@ -94,18 +94,15 @@ export default function TestimonialsSection() {
           initial={{ opacity: 0, y: 30 }}
           animate={isVisible ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
-          className="text-center mb-16"
+          className="text-center mb-8 sm:mb-10"
         >
           <h2 className="font-[Space_Grotesk] text-4xl md:text-6xl font-bold text-[#00007f] mb-5 leading-tight">
             What the <span className="gradient-text">users says</span>
           </h2>
-          <p className="text-base md:text-lg text-[#00007f]/55 max-w-2xl mx-auto leading-relaxed">
-            Leave pen-and-paper bookings in the past allowing you to focus more on your business or simply enjoy your newfound free time.
-          </p>
         </motion.div>
 
         {/* Main Sliding Grid Wrapper */}
-        <div 
+        <div
           className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch"
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
@@ -124,7 +121,7 @@ export default function TestimonialsSection() {
                 className="grid grid-cols-1 md:grid-cols-2 gap-6 h-full"
               >
                 {currentReviews.map((review) => (
-                  <div 
+                  <div
                     key={review.id}
                     className="glass-card rounded-3xl p-8 flex flex-col justify-between relative overflow-hidden border border-white/70 shadow-lg hover:shadow-xl transition-all duration-500 bg-white/60"
                   >
@@ -183,11 +180,10 @@ export default function TestimonialsSection() {
                       setDirection(idx > currentIndex ? 1 : -1);
                       setCurrentIndex(idx);
                     }}
-                    className={`h-2 rounded-full transition-all duration-400 ${
-                      idx === currentIndex || idx === nextIndex
+                    className={`h-2 rounded-full transition-all duration-400 ${idx === currentIndex || idx === nextIndex
                         ? "w-7 bg-[#fc8151]"
                         : "w-2 bg-[#00007f]/20 hover:bg-[#00007f]/40"
-                    }`}
+                      }`}
                     aria-label={`Go to slide ${idx + 1}`}
                   />
                 ))}

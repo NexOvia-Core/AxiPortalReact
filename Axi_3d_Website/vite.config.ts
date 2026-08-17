@@ -56,7 +56,7 @@ function writeToLogFile(source: LogSource, entries: unknown[]) {
   const logPath = path.join(LOG_DIR, `${source}.log`);
 
   // Format entries with timestamps
-  const lines = entries.map((entry) => {
+  const lines = entries.map(entry => {
     const ts = new Date().toISOString();
     return `[${ts}] ${JSON.stringify(entry)}`;
   });
@@ -132,7 +132,7 @@ function vitePluginManusDebugCollector(): Plugin {
         }
 
         let body = "";
-        req.on("data", (chunk) => {
+        req.on("data", chunk => {
           body += chunk.toString();
         });
 
@@ -162,7 +162,10 @@ function vitePluginStorageProxy(): Plugin {
           return;
         }
 
-        const forgeBaseUrl = (process.env.BUILT_IN_FORGE_API_URL || "").replace(/\/+$/, "");
+        const forgeBaseUrl = (process.env.BUILT_IN_FORGE_API_URL || "").replace(
+          /\/+$/,
+          ""
+        );
         const forgeKey = process.env.BUILT_IN_FORGE_API_KEY;
 
         if (!forgeBaseUrl || !forgeKey) {
@@ -172,7 +175,10 @@ function vitePluginStorageProxy(): Plugin {
         }
 
         try {
-          const forgeUrl = new URL("v1/storage/presign/get", forgeBaseUrl + "/");
+          const forgeUrl = new URL(
+            "v1/storage/presign/get",
+            forgeBaseUrl + "/"
+          );
           forgeUrl.searchParams.set("path", key);
 
           const forgeResp = await fetch(forgeUrl, {
@@ -203,40 +209,17 @@ function vitePluginStorageProxy(): Plugin {
   };
 }
 
-function vitePluginAuthApi(): Plugin {
-  return {
-    name: "auth-api-plugin",
-    configureServer(server: ViteDevServer) {
-      server.middlewares.use("/api/auth", async (req, res, next) => {
-        if (req.method !== "POST") {
-          return next();
-        }
-
-        let body = "";
-        req.on("data", (chunk) => {
-          body += chunk.toString();
-        });
-
-        req.on("end", async () => {
-          try {
-            const payload = JSON.parse(body || "{}");
-            const { handleAuthSubmit } = await import("./server/api");
-            const result = await handleAuthSubmit(payload);
-            res.writeHead(200, { "Content-Type": "application/json" });
-            res.end(JSON.stringify(result));
-          } catch (e: any) {
-            res.writeHead(400, { "Content-Type": "application/json" });
-            res.end(JSON.stringify({ success: false, error: e.message || String(e) }));
-          }
-        });
-      });
-    },
-  };
-}
-
-const plugins = [react(), tailwindcss(), jsxLocPlugin(), vitePluginManusRuntime(), vitePluginManusDebugCollector(), vitePluginStorageProxy(), vitePluginAuthApi()];
+const plugins = [
+  react(),
+  tailwindcss(),
+  jsxLocPlugin(),
+  vitePluginManusRuntime(),
+  vitePluginManusDebugCollector(),
+  vitePluginStorageProxy(),
+];
 
 export default defineConfig({
+  base: process.env.VITE_APP_BASE_PATH || "/",
   plugins,
   resolve: {
     alias: {
@@ -264,13 +247,26 @@ export default defineConfig({
     port: 3000,
     strictPort: false, // Will find next available port if 3000 is busy
     host: true,
+    proxy: {
+      "/api": {
+        target: process.env.VITE_BFF_ORIGIN || "https://localhost:5001",
+        changeOrigin: true,
+        secure: false,
+      },
+      "/axiportal/api": {
+        target: process.env.VITE_BFF_ORIGIN || "https://localhost:5001",
+        changeOrigin: true,
+        secure: false,
+        rewrite: path => path.replace(/^\/axiportal/, ""),
+      },
+    },
     allowedHosts: [
       ".manuspre.computer",
       ".manus.computer",
       ".manus-asia.computer",
       ".manuscomputer.ai",
       ".manusvm.computer",
-      "localhost",
+      "axi-global",
       "127.0.0.1",
     ],
     fs: {

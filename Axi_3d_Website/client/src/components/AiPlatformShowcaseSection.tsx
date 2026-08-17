@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
+import { useIsMobile } from "@/hooks/useMobile";
 import {
   Sparkles,
   ArrowRight,
@@ -32,6 +33,7 @@ export default function AiPlatformShowcaseSection({ onContactClick }: AiPlatform
   const { ref, isVisible } = useScrollAnimation(0.15);
   const [activeArea, setActiveArea] = useState<string>("Sales");
   const [isHovered, setIsHovered] = useState(false);
+  const isMobile = useIsMobile();
 
   // 3D Motion Tilt & Translation Values for the Dashboard Card
   const mouseX = useMotionValue(0);
@@ -43,6 +45,7 @@ export default function AiPlatformShowcaseSection({ onContactClick }: AiPlatform
   const moveY = useSpring(useTransform(mouseY, [-0.5, 0.5], [-30, 30]), { stiffness: 250, damping: 25 });
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (isMobile) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const width = rect.width;
     const height = rect.height;
@@ -79,7 +82,7 @@ export default function AiPlatformShowcaseSection({ onContactClick }: AiPlatform
             className="lg:col-span-5 space-y-6 relative z-20"
           >
             {/* Pill Badge */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#fc8151]/15 border border-[#fc8151]/30 text-[#fc8151] text-xs font-extrabold uppercase tracking-[0.2em] shadow-xs">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#fc8151]/15 border border-[#fc8151]/30 text-[#00007f] text-xs font-extrabold uppercase tracking-[0.2em] shadow-xs">
               <Sparkles className="w-3.5 h-3.5" />
               AI ASSISTED. BUSINESS EMPOWERED.
             </div>
@@ -92,7 +95,7 @@ export default function AiPlatformShowcaseSection({ onContactClick }: AiPlatform
 
             {/* Description Subtext */}
             <p className="text-base sm:text-lg text-[#373e79] font-normal leading-relaxed">
-              Your organization needs an AI-assisted business platform to stay ahead of competition. Axi makes your organization fast and accurate.
+              AXI brings AI-powered intelligence to your business, making every decision faster, smarter, and more accurate.
             </p>
 
             {/* Proactive Callout Sentence */}
@@ -399,7 +402,7 @@ export default function AiPlatformShowcaseSection({ onContactClick }: AiPlatform
                           ].map((pt, idx) => (
                             <g key={idx}>
                               <circle cx={pt.x} cy={pt.y} r="5" fill="#ffffff" stroke="#fc8151" strokeWidth="3" />
-                              <circle cx={pt.x} cy={pt.y} r="8" fill="#fc8151" opacity="0.2" className="animate-ping" />
+                              <circle cx={pt.x} cy={pt.y} r="8" fill="#fc8151" opacity="0.2" className="animate-soft-pulse" />
                             </g>
                           ))}
                         </svg>

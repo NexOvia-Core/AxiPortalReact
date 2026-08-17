@@ -1,0 +1,105 @@
+import { useState } from "react";
+import { bff, type Schema } from "@/lib/bff";
+import { toast } from "sonner";
+import {
+  clearSelectedPackages,
+  readSelectedPackages,
+} from "@/lib/package-selection";
+import PackageInstallModal from "./PackageInstallModal";
+
+export default function SchemaSelectionModal({
+  schemas,
+  keepMeSignIn,
+  onClose,
+  secondaryAuth,
+}: {
+  schemas: Schema[];
+  keepMeSignIn: boolean;
+  onClose: () => void;
+  secondaryAuth?: { email: string; ssoKey: string; ssoProvider: string };
+}) {
+  const [selected, setSelected] = useState(schemas[0]?.axiaccid || "");
+  const [loading, setLoading] = useState(false);
+  const [installing, setInstalling] = useState(false);
+  const continueToApp = async () => {
+    const schema = schemas.find(item => item.axiaccid === selected);
+    if (!schema) return;
+    setLoading(true);
+    try {
+      if (secondaryAuth)
+        await bff.authUpdate(
+          secondaryAuth.email,
+          schema.axiaccid,
+          secondaryAuth.ssoKey,
+          secondaryAuth.ssoProvider
+        );
+      if (readSelectedPackages().length > 0) {
+        setInstalling(true);
+        setLoading(false);
+        return;
+      }
+      const result = await bff.signinInfo(schema, keepMeSignIn);
+      if (!result.redirectUrl)
+        throw new Error("The BFF did not return a redirect URL.");
+      window.location.assign(result.redirectUrl);
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Unable to continue."
+      );
+      setLoading(false);
+    }
+  };
+  const schema = schemas.find(item => item.axiaccid === selected);
+  return (
+    <>
+      {installing && schema ? (
+        <PackageInstallModal
+          schema={schema}
+          packages={readSelectedPackages()}
+          onComplete={() => {
+            setInstalling(false);
+            continueToApp();
+          }}
+          onClose={() => {
+            clearSelectedPackages();
+            setInstalling(false);
+          }}
+        />
+      ) : null}
+      <div className="fixed inset-0 z-[210] flex items-center justify-center p-4 bg-black/70">
+        <div className="w-full max-w-md rounded-2xl bg-white p-7 space-y-4">
+          <h2 className="text-xl font-bold text-[#1E1B4B]">
+            Choose your application
+          </h2>
+          <select
+            value={selected}
+            onChange={e => setSelected(e.target.value)}
+            className="w-full rounded-xl border p-3"
+          >
+            {schemas.map(schema => (
+              <option key={schema.axiaccid} value={schema.axiaccid}>
+                {schema.axiaccid}
+              </option>
+            ))}
+          </select>
+          <button
+            onClick={continueToApp}
+            disabled={loading}
+            className="w-full rounded-xl bg-[#210062] py-3 font-bold text-white"
+          >
+            {loading ? "Opening..." : "Continue"}
+          </button>
+          <button
+            onClick={() => {
+              clearSelectedPackages();
+              onClose();
+            }}
+            className="w-full text-sm text-slate-500"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </>
+  );
+}

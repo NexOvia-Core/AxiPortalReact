@@ -3,12 +3,29 @@
  * Comprehensive overview of Axi Enterprise Modules with video teasers and descriptions.
  * Theme: Warm Immersive Enterprise (#fff6e5) with glassmorphism and ambient glow.
  */
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import ScrollProgress from "@/components/ScrollProgress";
-import { Play, CheckCircle, Sparkles, Layers, Terminal, Bot, ShoppingCart, DollarSign, Package, PieChart, Cpu, ShieldCheck, Wrench, CreditCard } from "lucide-react";
+import { useAuthModal } from "@/contexts/AuthContext";
+import { saveSelectedPackage } from "@/lib/package-selection";
+import {
+  Play,
+  CheckCircle,
+  Sparkles,
+  Layers,
+  Terminal,
+  Bot,
+  ShoppingCart,
+  DollarSign,
+  Package,
+  PieChart,
+  Cpu,
+  ShieldCheck,
+  Wrench,
+  CreditCard,
+} from "lucide-react";
 
 interface ModuleItem {
   id: string;
@@ -33,8 +50,8 @@ const modulesData: ModuleItem[] = [
       "Connect seamlessly with LLMs integrated directly into live ERP data for real-time business insights.",
       "Search across customer, product, and document history with 360° record recall and conversational querying.",
       "Surface actionable intelligent decisions and automated alerts rather than traditional static dashboards.",
-      "Empower teams to interrogate data, flag anomalies, and query stock or finance status in plain language."
-    ]
+      "Empower teams to interrogate data, flag anomalies, and query stock or finance status in plain language.",
+    ],
   },
   {
     id: "cmdline",
@@ -47,8 +64,8 @@ const modulesData: ModuleItem[] = [
       "Instant access to any transaction, report, or wizard in the entire ERP using natural command line inputs.",
       "Execute direct actions like 'View trial balance', 'View Sales data', or 'Create Purchase order' in milliseconds.",
       "In-context popup capabilities allow users to view pending requests without leaving their current workflow.",
-      "Eliminate deep menu navigation with a unified search and command interface designed for ultimate efficiency."
-    ]
+      "Eliminate deep menu navigation with a unified search and command interface designed for ultimate efficiency.",
+    ],
   },
   {
     id: "p2p",
@@ -61,8 +78,8 @@ const modulesData: ModuleItem[] = [
       "End-to-end automation from RFQ and Purchase Order creation to Goods Received Note (GRN) and vendor bill matching.",
       "Apportion additional logistic, clearing, and freight expenses directly to GRN items based on item value.",
       "Support pre-billing returns against GRNs and post-billing returns against supplier invoices with auto GL posting.",
-      "Comprehensive purchase summary reports provide instant visibility across suppliers, sub-locations, and items."
-    ]
+      "Comprehensive purchase summary reports provide instant visibility across suppliers, sub-locations, and items.",
+    ],
   },
   {
     id: "o2c",
@@ -75,8 +92,8 @@ const modulesData: ModuleItem[] = [
       "Unified sequence for customer management, sales order booking, delivery, and sales invoice generation.",
       "Multi-currency handling locks transaction currency at setup to ensure strict international accounting compliance.",
       "Flexible pricing matrices allow customer-wise, location-wise, and future-dated price lists with automated discount schemes.",
-      "Deep profitability tracking offers customer-wise and sales person-wise margins grouped by product categories."
-    ]
+      "Deep profitability tracking offers customer-wise and sales person-wise margins grouped by product categories.",
+    ],
   },
   {
     id: "finance",
@@ -89,8 +106,8 @@ const modulesData: ModuleItem[] = [
       "Hierarchical Chart of Accounts with tree-structure sub-groups and direct Excel opening balance imports.",
       "Automatic financial voucher posting from sales, purchases, receipts, payments, and stock returns.",
       "Real-time drill-down statements for Trial Balance, Profit & Loss, Balance Sheet, and auto-revaluation of stock.",
-      "Automated financial year-end closing journal creates new financial years and posts opening balances seamlessly."
-    ]
+      "Automated financial year-end closing journal creates new financial years and posts opening balances seamlessly.",
+    ],
   },
   {
     id: "inventory",
@@ -103,8 +120,8 @@ const modulesData: ModuleItem[] = [
       "Multi-location and sub-location store management with default Main and Rejections store isolation.",
       "Material receipts, issues, and inter-store transfers with automatic tax handling for multi-state transfers.",
       "Stock ledgers and statements available both with quantity-only and full inventory valuation options.",
-      "Integrated auto-revaluation routine updates stock valuation prior to generating financial and balance reports."
-    ]
+      "Integrated auto-revaluation routine updates stock valuation prior to generating financial and balance reports.",
+    ],
   },
   {
     id: "costcenters",
@@ -117,8 +134,8 @@ const modulesData: ModuleItem[] = [
       "Hierarchical cost groups (such as Strategic Business Units or Departments) and cost center allocation.",
       "Automate expense apportioning across cost centers using predefined percentage matrices during journal entry.",
       "Detailed expense analysis commands allow managers to track overheads and operational spend per cost center.",
-      "Full visibility into department-wise cost distribution without requiring manual spreadsheet allocations."
-    ]
+      "Full visibility into department-wise cost distribution without requiring manual spreadsheet allocations.",
+    ],
   },
   {
     id: "mrp",
@@ -131,8 +148,8 @@ const modulesData: ModuleItem[] = [
       "Evaluates every live sales order in real-time to determine reserve, produce, buy, or transfer decisions.",
       "Dynamically factors lead times, existing stock levels, and active purchase orders to eliminate stockouts.",
       "Prevents over-procurement while ensuring manufacturing lines have guaranteed material availability.",
-      "Fully integrated into the low-code core for custom replenishment rules and lead time calculations."
-    ]
+      "Fully integrated into the low-code core for custom replenishment rules and lead time calculations.",
+    ],
   },
   {
     id: "production",
@@ -145,8 +162,8 @@ const modulesData: ModuleItem[] = [
       "Multi-level Bill of Materials (BOM), production routing, work order generation, and batch-wise costing.",
       "Real-time tracking of raw material consumption and finished goods generation at each sub-location stage.",
       "Full integration with Quality Control ensures sub-standard items are automatically routed to rejection stores.",
-      "Provides accurate unit costing by incorporating overhead apportionments and batch material costs."
-    ]
+      "Provides accurate unit costing by incorporating overhead apportionments and batch material costs.",
+    ],
   },
   {
     id: "qc",
@@ -159,8 +176,8 @@ const modulesData: ModuleItem[] = [
       "Automated quality check triggers upon material receipt before items enter usable stock inventory.",
       "Automatic blocking and transfer of rejected lots into designated rejection sub-locations.",
       "Vendor rejection pattern analysis flags rate deviations and quality risks the moment they occur.",
-      "Prevents defective materials from entering production lines or being shipped to end customers."
-    ]
+      "Prevents defective materials from entering production lines or being shipped to end customers.",
+    ],
   },
   {
     id: "assets",
@@ -173,8 +190,8 @@ const modulesData: ModuleItem[] = [
       "Comprehensive asset register tracking capitalisation, warranty schedules, and location assignments.",
       "Automated depreciation calculations supporting straight-line and written-down value methods.",
       "Preventive maintenance schedules for plant machinery with complete service history logs.",
-      "Minimizes unplanned downtime by alerting maintenance teams prior to scheduled service dates."
-    ]
+      "Minimizes unplanned downtime by alerting maintenance teams prior to scheduled service dates.",
+    ],
   },
   {
     id: "arap",
@@ -187,19 +204,38 @@ const modulesData: ModuleItem[] = [
       "Open customer and supplier invoice management with bulk upload capabilities from Excel files.",
       "Multi-currency payment recording with settlement of advance payments against subsequent invoices.",
       "Automated tracking of payment dues, credit limits, and collection follow-up reminders in the inbox.",
-      "Seamless posting into GL sub-ledgers for instant cash flow and working capital analysis."
-    ]
-  }
+      "Seamless posting into GL sub-ledgers for instant cash flow and working capital analysis.",
+    ],
+  },
 ];
 
 function ModuleVideoCard({ module }: { module: ModuleItem }) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const cardRef = useRef<HTMLDivElement | null>(null);
   const [isHovered, setIsHovered] = useState(false);
+  const [isNearViewport, setIsNearViewport] = useState(false);
+
+  // Lazy-load video when card enters extended viewport
+  useEffect(() => {
+    const card = cardRef.current;
+    if (!card || !module.videoUrl) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsNearViewport(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "300px" }
+    );
+    observer.observe(card);
+    return () => observer.disconnect();
+  }, [module.videoUrl]);
 
   const handleMouseEnter = () => {
     setIsHovered(true);
     if (videoRef.current) {
-      videoRef.current.play().catch(() => { });
+      videoRef.current.play().catch(() => {});
     }
   };
 
@@ -212,6 +248,7 @@ function ModuleVideoCard({ module }: { module: ModuleItem }) {
 
   return (
     <div
+      ref={cardRef}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       className="relative rounded-3xl overflow-hidden glass-card border border-white/80 p-3 shadow-xl transition-all duration-500 hover:shadow-2xl group cursor-pointer"
@@ -220,10 +257,11 @@ function ModuleVideoCard({ module }: { module: ModuleItem }) {
         {module.videoUrl ? (
           <video
             ref={videoRef}
-            src={module.videoUrl}
+            src={isNearViewport ? module.videoUrl : undefined}
             loop
             muted
             playsInline
+            preload="none"
             className="w-full h-full object-cover rounded-2xl transition-transform duration-700 group-hover:scale-105"
           />
         ) : (
@@ -235,17 +273,18 @@ function ModuleVideoCard({ module }: { module: ModuleItem }) {
               {module.title}
             </h4>
             <p className="text-xs text-[#00007f]/50">
-              Interactive Teaser Module
+              PACKAGES INTERACTIVE TEASER WILL BE RELEASED SOON!
             </p>
           </div>
         )}
 
         {/* Glass transparent overlay when NOT hovered */}
         <div
-          className={`absolute inset-0 transition-all duration-500 flex flex-col items-center justify-center p-6 text-center pointer-events-none ${isHovered
-            ? "opacity-0 backdrop-blur-none bg-transparent"
-            : "opacity-100 backdrop-blur-md bg-[#fff6e5]/45"
-            }`}
+          className={`absolute inset-0 transition-all duration-500 flex flex-col items-center justify-center p-6 text-center pointer-events-none ${
+            isHovered
+              ? "opacity-0 backdrop-blur-none bg-transparent"
+              : "opacity-100 backdrop-blur-md bg-[#fff6e5]/45"
+          }`}
         >
           <div className="w-14 h-14 rounded-full glass border border-white/80 flex items-center justify-center text-[#00007f] shadow-lg mb-3 animate-pulse">
             <Play size={24} className="ml-1 text-[#fc8151]" />
@@ -257,13 +296,19 @@ function ModuleVideoCard({ module }: { module: ModuleItem }) {
 }
 
 function ModuleContentCard({ module }: { module: ModuleItem }) {
+  const { openLogin } = useAuthModal();
+
   return (
     <div className="glass-card rounded-3xl p-8 md:p-10 flex flex-col justify-between border border-white/80 shadow-lg hover:shadow-xl transition-all duration-500 h-full bg-white/60">
       <div>
         <div className="flex items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-3.5">
             <div className="w-12 h-12 rounded-2xl flex items-center justify-center glass bg-gradient-to-br from-[#00007f]/10 to-[#fc8151]/10 text-[#00007f] shadow-sm">
-              <module.icon size={22} className="gradient-text" strokeWidth={1.8} />
+              <module.icon
+                size={22}
+                className="gradient-text"
+                strokeWidth={1.8}
+              />
             </div>
             <div>
               <h3 className="font-[Space_Grotesk] text-2xl md:text-3xl font-bold text-[#00007f]">
@@ -297,22 +342,48 @@ function ModuleContentCard({ module }: { module: ModuleItem }) {
         <span className="text-xs font-mono font-medium text-[#00007f]/40 uppercase tracking-widest">
           AXPERT LOW-CODE CORE
         </span>
-        <a
-          href="https://agile.axi-global.com/aspx/signin.aspx"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-xs font-semibold text-[#00007f] hover:text-[#fc8151] transition-colors flex items-center gap-1 group"
+        <button
+          type="button"
+          onClick={() => {
+            saveSelectedPackage(module.id);
+            openLogin("https://agile.axi-global.com/aspx/signin.aspx");
+          }}
+          className="text-xs font-semibold text-[#00007f] hover:text-[#fc8151] transition-colors flex items-center gap-1 group cursor-pointer"
         >
-          Explore Module <span className="group-hover:translate-x-1 transition-transform">→</span>
-        </a>
+          Install Package{" "}
+          <span className="group-hover:translate-x-1 transition-transform">
+            →
+          </span>
+        </button>
       </div>
     </div>
   );
 }
 
 export default function Modules() {
+  useEffect(() => {
+    const scrollToModule = () => {
+      const hash = window.location.hash.replace("#", "");
+      if (hash) {
+        setTimeout(() => {
+          const element = document.getElementById(hash);
+          if (element) {
+            element.scrollIntoView({ behavior: "smooth", block: "center" });
+          }
+        }, 300);
+      }
+    };
+
+    scrollToModule();
+    window.addEventListener("hashchange", scrollToModule);
+    return () => window.removeEventListener("hashchange", scrollToModule);
+  }, []);
+
   return (
-    <div className="min-h-screen overflow-x-hidden" style={{ background: "#fff6e5" }}>
+    <div
+      className="min-h-screen overflow-x-hidden"
+      style={{ background: "#fff6e5" }}
+    >
       <ScrollProgress />
       <div className="noise-overlay" />
       <Navigation />
@@ -330,10 +401,12 @@ export default function Modules() {
             transition={{ duration: 0.8 }}
           >
             <h1 className="font-[Space_Grotesk] text-5xl md:text-7xl font-bold text-[#00007f] mb-6 leading-tight">
-              AXI Platform <span className="gradient-text">Modules</span>
+              AXI Platform <span className="gradient-text">Packages</span>
             </h1>
             <p className="text-lg md:text-xl text-[#00007f]/60 max-w-3xl mx-auto leading-relaxed">
-              Explore AXI&apos;s modular architecture powered by Axpert low-code core. Point mouse over any video teaser to play automatically, and discover how each workflow adapts to your enterprise.
+              Explore AXI&apos;s modular architecture powered by Axpert low-code
+              core. Point mouse over any video teaser to play automatically, and
+              discover how each workflow adapts to your enterprise.
             </p>
           </motion.div>
         </div>
@@ -347,11 +420,12 @@ export default function Modules() {
             return (
               <motion.div
                 key={module.id}
+                id={module.id}
                 initial={{ opacity: 0, y: 60 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: false, amount: 0.2 }}
                 transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
-                className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12 items-center"
+                className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12 items-center rounded-3xl transition-all duration-700 p-2 sm:p-4"
               >
                 {isEven ? (
                   <>

@@ -30,3 +30,17 @@ No automated test projects or package test script are currently configured. At m
 ## Commit & Pull Request Guidelines
 
 Recent website commits use short, descriptive subjects such as `Axi_changes` and `Axi 3d Website`. Prefer clearer imperative summaries, for example `Add contact form validation`. Keep commits scoped to one application or concern. Pull requests should describe the change, list validation performed, link related work, and include screenshots for visible website changes. Do not commit credentials; keep environment-specific values in local configuration.
+
+## Agent skills
+
+### Issue tracker
+
+GitHub Issues in `NexOvia-Core/AxiPortalReact`. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default canonical triage labels are in use. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context domain documentation is used. See `docs/agents/domain.md`.

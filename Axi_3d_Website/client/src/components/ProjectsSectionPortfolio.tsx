@@ -27,7 +27,7 @@ const DashboardMotionGraph: React.FC = () => {
 
       <div className="flex items-center justify-between border-b border-[#1E1B4B]/15 pb-3 relative z-20">
         <div className="flex items-center gap-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
+          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-soft-pulse" />
           <span className="text-xs font-black uppercase tracking-wider text-[#00007f] font-[Space_Grotesk]">
             Live Inventory Dashboard — All Locations
           </span>
@@ -183,7 +183,7 @@ const ImpactMetricsMotionGraph: React.FC = () => {
       {/* Header Bar */}
       <div className="flex items-center justify-between border-b border-[#1E1B4B]/15 pb-3 relative z-20">
         <div className="flex items-center gap-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#fc8151] animate-ping" />
+          <span className="w-2.5 h-2.5 rounded-full bg-[#fc8151] animate-soft-pulse" />
           <span className="text-xs font-black uppercase tracking-wider text-[#00007f] font-[Space_Grotesk]">
             TYPICAL REDUCTION AFTER MOVING TO AXI (%)
           </span>
@@ -511,7 +511,7 @@ export const ProjectsSectionPortfolio: React.FC<{ onLiveProjectClick?: () => voi
   return (
     <section
       id="projects"
-      className="w-full bg-[#fff6e5] text-[#1E1B4B] rounded-t-[40px] sm:rounded-t-[50px] md:rounded-t-[60px] -mt-10 sm:-mt-12 md:-mt-14 pt-20 sm:pt-24 md:pt-32 pb-6 md:pb-10 px-5 sm:px-8 md:px-10 relative z-10"
+      className="w-full bg-[#fff6e5] text-[#1E1B4B] rounded-t-[40px] sm:rounded-t-[50px] md:rounded-t-[60px] mt-8 sm:mt-12 md:mt-16 pt-10 sm:pt-14 md:pt-16 pb-6 md:pb-10 px-5 sm:px-8 md:px-10 relative z-10"
     >
       <div className="max-w-6xl mx-auto flex flex-col items-center">
         {/* Heading */}

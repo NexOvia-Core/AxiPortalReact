@@ -2,9 +2,15 @@ import { motion } from "framer-motion";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import ScrollProgress from "@/components/ScrollProgress";
-import { MapPin, Phone, Mail, Send, MessageSquare } from "lucide-react";
+import { MapPin, Phone, Mail, Send, MessageSquare, ExternalLink } from "lucide-react";
 
 export default function ContactUs() {
+  const googleMapsUrl =
+    "https://www.google.com/maps/place/Agile+Labs+Private+Limited/@12.918873,77.574648,12z/data=!4m6!3m5!1s0x3bae6ca33155557b:0x556d32e4be232a70!8m2!3d12.9188728!4d77.574648!16s%2Fg%2F11r95bhl4?hl=en-US&entry=ttu&g_ep=EgoyMDI2MDgwNC4wIKXMDSoASAFQAw%3D%3D";
+
+  const googleMapsEmbedUrl =
+    "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3888.7562817290947!2d77.574648!3d12.9188728!2m3!1f0!1f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bae6ca33155557b%3A0x556d32e4be232a70!2sAgile%20Labs%20Private%20Limited!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin";
+
   return (
     <div className="min-h-screen bg-[#00007f] text-white selection:bg-[#fc8151] selection:text-white relative overflow-hidden font-body">
       <ScrollProgress />
@@ -48,8 +54,8 @@ export default function ContactUs() {
       {/* 2. CONTACT CONTENT */}
       <section className="py-12 pb-24 px-6 lg:px-8 max-w-7xl mx-auto relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-          
-          {/* Left Side: Office Information (Cream Card) */}
+
+          {/* Left Side: Office Information & Google Map Location */}
           <motion.div
             initial={{ opacity: 0, x: -40 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -57,35 +63,70 @@ export default function ContactUs() {
             transition={{ duration: 0.7, ease: [0.23, 1, 0.32, 1] }}
             className="space-y-8"
           >
+            {/* Corporate Office Card */}
             <div className="bg-[#fff8ee] text-[#1e293b] p-8 md:p-10 rounded-3xl border border-[#fc8151]/20 shadow-2xl relative overflow-hidden group hover:shadow-[0_20px_50px_rgba(252,129,81,0.15)] transition-all duration-500">
               <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-[#fc8151]/15 to-transparent rounded-bl-full pointer-events-none" />
-              
+
               <h3 className="text-2xl font-bold font-display text-[#00007f] mb-6 flex items-center gap-3">
                 <MapPin className="text-[#fc8151] w-6 h-6" />
                 Corporate Office
               </h3>
-              
+
               <div className="space-y-4 text-[#373e79]">
                 <p className="font-bold text-[#00007f] text-lg">Agile Labs Pvt Ltd.</p>
                 <p className="leading-relaxed font-medium text-[#373e79]">
-                  #117, 3rd Floor, SV Complex,<br />
-                  KR Road, 7th Block Jayanagar,<br />
-                  Bangalore – 560070
+                  Axpert House, 627, 1st A Main Rd,<br />
+                  8th Block, Jayanagar, <br />
+                  Bengaluru,Karnataka 560070
                 </p>
-                
+
                 <div className="pt-6 border-t border-slate-200/80 space-y-3 mt-6">
-                  <a href="tel:+918041461141" className="flex items-center gap-3 text-[#373e79] font-semibold hover:text-[#fc8151] transition-colors">
+                  <a href="tel:+919620996796" className="flex items-center gap-3 text-[#373e79] font-semibold hover:text-[#fc8151] transition-colors">
                     <Phone className="w-5 h-5 text-[#fc8151]" />
-                    +91 80 4146 1141
+                    +91 9620996796
                   </a>
-                  <a href="mailto:info@agile-labs.com" className="flex items-center gap-3 text-[#373e79] font-semibold hover:text-[#fc8151] transition-colors">
+                  <a href="mailto:marketing@agile-labs.com" className="flex items-center gap-3 text-[#373e79] font-semibold hover:text-[#fc8151] transition-colors">
                     <Mail className="w-5 h-5 text-[#fc8151]" />
-                    info@agile-labs.com
+                    marketing@agile-labs.com
                   </a>
                 </div>
               </div>
             </div>
 
+            {/* GOOGLE MAP LOCATION CARD (DIRECTLY AFTER CORPORATE OFFICE SECTION) */}
+            <div className="bg-[#fff8ee] text-[#1e293b] p-4.5 rounded-3xl border border-[#fc8151]/20 shadow-2xl overflow-hidden group hover:shadow-[0_20px_50px_rgba(252,129,81,0.15)] transition-all duration-500">
+              <div className="flex items-center justify-between mb-3 px-2">
+                <div className="flex items-center gap-2">
+                  <MapPin className="text-[#fc8151] w-5 h-5" />
+                  <h4 className="font-bold text-[#00007f] text-base">Office Location Map</h4>
+                </div>
+                <a
+                  href={googleMapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#00007f] hover:bg-[#fc8151] text-white text-xs font-bold transition-all shadow-sm"
+                >
+                  <span>Open in Google Maps</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              </div>
+
+              <div className="rounded-2xl overflow-hidden h-72 relative border border-slate-200/80 shadow-inner">
+                <iframe
+                  title="Agile Labs Private Limited Google Maps Location"
+                  src={googleMapsEmbedUrl}
+                  width="100%"
+                  height="100%"
+                  style={{ border: 0 }}
+                  allowFullScreen
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  className="w-full h-full rounded-2xl filter contrast-[1.03]"
+                />
+              </div>
+            </div>
+
+            {/* Global Presence Card */}
             <div className="bg-[#fff8ee] text-[#1e293b] p-8 md:p-10 rounded-3xl border border-[#fc8151]/20 shadow-2xl relative overflow-hidden group hover:shadow-[0_20px_50px_rgba(252,129,81,0.15)] transition-all duration-500">
               <h3 className="text-xl font-bold font-display text-[#00007f] mb-6">Global Presence</h3>
               <div className="grid grid-cols-2 gap-6">
@@ -111,31 +152,31 @@ export default function ContactUs() {
             <div className="bg-[#fff8ee] text-[#1e293b] p-8 md:p-10 rounded-3xl border border-[#fc8151]/20 shadow-2xl hover:shadow-[0_20px_50px_rgba(252,129,81,0.15)] transition-all duration-500">
               <h3 className="text-2xl font-bold font-display text-[#00007f] mb-2">Send us a message</h3>
               <p className="text-[#373e79] mb-8 font-medium">We'll get back to you within 24 hours.</p>
-              
+
               <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">First Name</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       className="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#fc8151] focus:ring-1 focus:ring-[#fc8151] transition-all font-medium"
                       placeholder="Jane"
                     />
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">Last Name</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       className="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#fc8151] focus:ring-1 focus:ring-[#fc8151] transition-all font-medium"
                       placeholder="Doe"
                     />
                   </div>
                 </div>
-                
+
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">Email Address</label>
-                  <input 
-                    type="email" 
+                  <input
+                    type="email"
                     className="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#fc8151] focus:ring-1 focus:ring-[#fc8151] transition-all font-medium"
                     placeholder="jane@company.com"
                   />
@@ -143,7 +184,7 @@ export default function ContactUs() {
 
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">Message</label>
-                  <textarea 
+                  <textarea
                     rows={4}
                     className="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#fc8151] focus:ring-1 focus:ring-[#fc8151] transition-all resize-none font-medium"
                     placeholder="How can we help you?"

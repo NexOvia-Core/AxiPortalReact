@@ -89,6 +89,9 @@ try
         app.UseHsts();
     app.UseHttpsRedirection();
 
+    // Production hosts the portal below /axiportal while the BFF routes remain /api/*.
+    app.UsePathBase("/axiportal");
+
     // 3. Serve your portal HTML/CSS/JS from wwwroot
     //    index.html, auth.js, styles.css, etc. → just drop them here
     app.UseDefaultFiles();       // maps "/" → "/index.html"

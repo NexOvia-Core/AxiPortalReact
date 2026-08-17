@@ -314,6 +314,7 @@ export default function ShowcaseSection() {
                 }
               }}
               className="flex items-center gap-6 whitespace-nowrap"
+              style={{ willChange: "transform" }}
             >
               {tickerItems.map((member, index) => {
                 const cardKey = `${member.id}-${index}`;
