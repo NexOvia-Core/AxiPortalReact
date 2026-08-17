@@ -1,0 +1,32 @@
+# Node / React
+node_modules/
+dist/
+build/
+*.tsbuildinfo
+.pnpm-store/
+
+# .NET
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Local env and logs
+.env
+.env.*
+*.log
+logs/
+auth_logs.json
+
+# Editor / OS files
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
+
+# Repo-specific generated content
+AxiPortal 3/bin/
+AxiPortal 3/obj/
+Axi_3d_Website/client/public/__manus__/
