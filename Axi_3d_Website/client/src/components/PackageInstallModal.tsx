@@ -4,7 +4,10 @@ import {
   clearSelectedPackages,
   type SelectedPackage,
 } from "@/lib/package-selection";
-import { toast } from "sonner";
+import {
+  isTerminalPackageStatus,
+  usePackageProgress,
+} from "@/hooks/usePackageProgress";
 
 export default function PackageInstallModal({
   schema,
@@ -18,53 +21,39 @@ export default function PackageInstallModal({
   onClose: () => void;
 }) {
   const [started, setStarted] = useState(false);
-  const [statuses, setStatuses] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const progress = usePackageProgress(
+    schema.axiaccid,
+    schema.username,
+    packages.map(item => item.packageName),
+    started
+  );
+  const statuses = Object.fromEntries(
+    (progress.data ?? []).map(item => [item.packageName, item.status])
+  );
   useEffect(() => {
-    if (!started) return;
-    const timer = window.setInterval(async () => {
-      try {
-        const progress = await bff.packageProgress(
-          schema.axiaccid,
-          schema.username,
-          packages.map(item => item.packageName)
-        );
-        const next = Object.fromEntries(
-          progress.map(item => [item.packageName, item.status])
-        );
-        setStatuses(next);
-        if (
-          Object.values(next).length === packages.length &&
-          Object.values(next).every(
-            status => status === "INSTALLED" || status === "FAILED"
-          )
-        ) {
-          window.clearInterval(timer);
-          const failed = Object.values(next).some(
-            status => status === "FAILED"
-          );
-          if (failed) {
-            toast.error(
-              "One or more Packages failed to install. Main-app access remains blocked."
-            );
-            return;
-          }
-          clearSelectedPackages();
-          onComplete();
-        }
-      } catch {
-        toast.error("Unable to retrieve Package progress.");
-      }
-    }, 10000);
-    return () => window.clearInterval(timer);
-  }, [onComplete, packages, schema.axiaccid, schema.username, started]);
+    if (!started || !progress.data || progress.data.length !== packages.length)
+      return;
+    if (!progress.data.every(item => isTerminalPackageStatus(item.status)))
+      return;
+    if (progress.data.some(item => item.status === "FAILED")) {
+      setError(
+        "One or more packages failed to install. Main-app access remains blocked."
+      );
+      return;
+    }
+    clearSelectedPackages();
+    onComplete();
+  }, [onComplete, packages.length, progress.data, started]);
   const start = async () => {
     setLoading(true);
+    setError("");
     try {
       await bff.installPackages(schema.axiaccid, schema.username, packages);
       setStarted(true);
     } catch (error) {
-      toast.error(
+      setError(
         error instanceof Error ? error.message : "Unable to start installation."
       );
     } finally {
@@ -86,6 +75,14 @@ export default function PackageInstallModal({
             <span>{statuses[item.packageName] || "Ready"}</span>
           </div>
         ))}
+        {(error || progress.error) && (
+          <p
+            role="alert"
+            className="rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+          >
+            {error || "Unable to retrieve package progress."}
+          </p>
+        )}
         {!started ? (
           <button
             disabled={loading}

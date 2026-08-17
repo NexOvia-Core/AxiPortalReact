@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Check, Phone } from "lucide-react";
+import { X, Check } from "lucide-react";
 import { useAuthModal } from "@/contexts/AuthContext";
-import { toast } from "sonner";
 import OtpModal from "./OtpModal";
 import { bff } from "@/lib/bff";
 import AccountProvisionModal from "./AccountProvisionModal";
@@ -26,11 +25,12 @@ export default function AuthModal() {
     openLogin,
     openSignUp,
     targetUrl,
+    clearSelectedPackage,
+    selectedPackage,
   } = useAuthModal();
 
   const [email, setEmail] = useState("");
-  const [fullName, setFullName] = useState("");
-  const [keepSignedIn, setKeepSignedIn] = useState(true);
+  const [keepSignedIn, setKeepSignedIn] = useState(false);
   const [useOtp, setUseOtp] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -39,6 +39,7 @@ export default function AuthModal() {
   const [challenge, setChallenge] = useState<{
     challengeId: string;
     expiresInSeconds: number;
+    resendInSeconds: number;
   }>();
   const [showAccountProvision, setShowAccountProvision] = useState(false);
   const [schemas, setSchemas] = useState<Schema[]>([]);
@@ -54,6 +55,24 @@ export default function AuthModal() {
     id: string;
     isEmailVerified: boolean;
   }>();
+  const [error, setError] = useState("");
+  const [requiresPassword, setRequiresPassword] = useState(false);
+
+  const dismiss = () => {
+    setEmail("");
+    setKeepSignedIn(false);
+    setUseOtp(false);
+    setChallenge(undefined);
+    setShowOtpModal(false);
+    setShowAccountProvision(false);
+    setSchemas([]);
+    setSecondaryAuth(undefined);
+    setSignupSso(undefined);
+    setRequiresPassword(false);
+    setError("");
+    clearSelectedPackage();
+    closeModal();
+  };
 
   const handleOAuthResult = (result: import("@/lib/bff").OAuthResult) => {
     setEmail(result.email);
@@ -67,6 +86,7 @@ export default function AuthModal() {
       setChallenge({
         challengeId: result.challengeId,
         expiresInSeconds: Number(result.expiresInSeconds) || 300,
+        resendInSeconds: 30,
       });
       setShowOtpModal(true);
       return;
@@ -84,6 +104,9 @@ export default function AuthModal() {
   useEffect(() => {
     setUseOtp(false);
     setShowOtpModal(false);
+    setError("");
+    setSchemas([]);
+    setRequiresPassword(false);
   }, [mode]);
 
   useEffect(() => {
@@ -147,7 +170,7 @@ export default function AuthModal() {
         );
         handleOAuthResult(result);
       } catch (error) {
-        toast.error(
+        setError(
           error instanceof Error ? error.message : "LinkedIn sign-in failed."
         );
       } finally {
@@ -169,7 +192,7 @@ export default function AuthModal() {
         throw new Error("The remembered session has expired.");
       window.location.assign(result.redirectUrl);
     } catch (error) {
-      toast.error(
+      setError(
         error instanceof Error
           ? error.message
           : "Unable to sign in with this account."
@@ -235,7 +258,7 @@ export default function AuthModal() {
                   )
                 );
               } catch (error) {
-                toast.error(
+                setError(
                   error instanceof Error
                     ? error.message
                     : "Google sign-in failed."
@@ -247,7 +270,7 @@ export default function AuthModal() {
           })
           .requestAccessToken({ prompt: "select_account" });
       } catch (error) {
-        toast.error(
+        setError(
           error instanceof Error ? error.message : "Google sign-in failed."
         );
         setLoading(false);
@@ -300,7 +323,7 @@ export default function AuthModal() {
         );
         handleOAuthResult(result);
       } catch (error) {
-        toast.error(
+        setError(
           error instanceof Error ? error.message : "Microsoft sign-in failed."
         );
       } finally {
@@ -312,8 +335,11 @@ export default function AuthModal() {
       const config = (await bff.oauthConfig()) as {
         supabase?: { url?: string; publicKey?: string };
       };
-      if (!config.supabase?.url || !config.supabase.publicKey)
-        return toast.error("LinkedIn sign-in is not configured.");
+      if (!config.supabase?.url || !config.supabase.publicKey) {
+        setError("LinkedIn sign-in is not configured.");
+        return;
+      }
+      const { url, publicKey } = config.supabase;
       sessionStorage.setItem("axi_oauth_mode", mode);
       const supabaseWindow = window as unknown as {
         supabase?: {
@@ -336,7 +362,7 @@ export default function AuthModal() {
         });
       }
       await supabaseWindow
-        .supabase!.createClient(config.supabase.url, config.supabase.publicKey)
+        .supabase!.createClient(url, publicKey)
         .auth.signInWithOAuth({
           provider: "linkedin_oidc",
           options: { redirectTo: window.location.href },
@@ -347,37 +373,36 @@ export default function AuthModal() {
   };
 
   // ── OTP checkbox toggled on Login page ───────
-  const handleOtpToggle = () => {
-    if (!useOtp) {
-      setUseOtp(true);
-    } else {
-      setUseOtp(false);
-    }
-  };
+  const handleOtpToggle = () => setUseOtp(value => !value);
 
   // ── Form submit ─────────────────────────────────
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // In login mode, if OTP checkbox is checked, open OTP modal
-    if (mode === "login" && useOtp) {
-      setShowOtpModal(true);
-      return;
-    }
-
     if (!email) {
-      toast.error("Please enter your work email");
+      setError("Enter your work email.");
       return;
     }
 
     setLoading(true);
+    setError("");
     try {
+      if (mode === "login" && !useOtp) {
+        const result = await bff.verifyEmailSchemas(email);
+        if (!result.schemas?.length) {
+          throw new Error(
+            "No active applications are available for this account."
+          );
+        }
+        setSchemas(result.schemas);
+        setRequiresPassword(true);
+        return;
+      }
       const result = await bff.checkAndSendOtp(email, mode);
       setChallenge(result);
       setShowOtpModal(true);
-      toast.success("A verification code has been sent to your email.");
     } catch (error) {
-      toast.error(
+      setError(
         error instanceof Error
           ? error.message
           : "Submission failed. Please try again."
@@ -410,7 +435,7 @@ export default function AuthModal() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={closeModal}
+            onClick={dismiss}
             className="fixed inset-0 bg-[#0a0c1a]/70 backdrop-blur-md transition-opacity"
           />
 
@@ -424,7 +449,7 @@ export default function AuthModal() {
           >
             {/* Close Button */}
             <button
-              onClick={closeModal}
+              onClick={dismiss}
               className="absolute top-5 right-5 w-9 h-9 flex items-center justify-center rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900 transition-colors focus:outline-none"
               aria-label="Close modal"
             >
@@ -458,6 +483,12 @@ export default function AuthModal() {
                   : "Register your account to experience living intelligence"}
               </p>
             </div>
+
+            {selectedPackage && (
+              <p className="mb-5 rounded-lg border border-[#d6573c]/20 bg-[#d6573c]/10 px-3 py-2 text-center text-sm text-[#7a2a1b]">
+                Selected package: <strong>{selectedPackage.packageName}</strong>
+              </p>
+            )}
 
             {/* Social Auth Buttons */}
             {mode === "login" && rememberedAccounts.length > 0 && (
@@ -555,24 +586,15 @@ export default function AuthModal() {
 
             {/* Email Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
-              {mode === "signup" && (
-                <div>
-                  <input
-                    type="text"
-                    value={fullName}
-                    onChange={e => setFullName(e.target.value)}
-                    placeholder="Enter your full name"
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-[#FAF8F5] text-slate-800 text-sm font-medium placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#5c1380] focus:border-transparent transition-all"
-                  />
-                </div>
-              )}
-
               <div>
                 <input
                   type="email"
                   required
                   value={email}
-                  onChange={e => setEmail(e.target.value)}
+                  onChange={e => {
+                    setEmail(e.target.value);
+                    setError("");
+                  }}
                   placeholder="Enter your work email"
                   className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-[#FAF8F5] text-slate-800 text-sm font-medium placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#5c1380] focus:border-transparent transition-all"
                 />
@@ -611,22 +633,13 @@ export default function AuthModal() {
                 </div>
               )}
 
-              {/* Sign up mode alternate Mobile/OTP option */}
-              {mode === "signup" && (
-                <div className="pt-1 text-center">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      toast.error(
-                        "Mobile-number signup is not supported by the BFF. Use your work email."
-                      )
-                    }
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#00007f] hover:text-[#5c1380] transition-colors py-1 cursor-pointer"
-                  >
-                    <Phone size={14} />
-                    <span>Or Sign Up using Mobile Number</span>
-                  </button>
-                </div>
+              {error && (
+                <p
+                  role="alert"
+                  className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+                >
+                  {error}
+                </p>
               )}
 
               {/* Submit Button */}
@@ -687,6 +700,7 @@ export default function AuthModal() {
         email={email}
         challengeId={challenge?.challengeId}
         expiresInSeconds={challenge?.expiresInSeconds}
+        resendInSeconds={challenge?.resendInSeconds}
       />
       {showAccountProvision && (
         <AccountProvisionModal
@@ -695,7 +709,7 @@ export default function AuthModal() {
           onClose={() => {
             setShowAccountProvision(false);
             setSignupSso(undefined);
-            closeModal();
+            dismiss();
           }}
         />
       )}
@@ -703,10 +717,13 @@ export default function AuthModal() {
         <SchemaSelectionModal
           schemas={schemas}
           keepMeSignIn={keepSignedIn}
+          requirePassword={requiresPassword}
+          browserId={browserId}
           secondaryAuth={secondaryAuth}
           onClose={() => {
             setSchemas([]);
             setSecondaryAuth(undefined);
+            setRequiresPassword(false);
           }}
         />
       )}

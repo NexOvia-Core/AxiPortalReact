@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { bff, type Schema } from "@/lib/bff";
-import { toast } from "sonner";
 import {
   clearSelectedPackages,
   readSelectedPackages,
@@ -12,18 +11,29 @@ export default function SchemaSelectionModal({
   keepMeSignIn,
   onClose,
   secondaryAuth,
+  requirePassword = false,
+  browserId,
 }: {
   schemas: Schema[];
   keepMeSignIn: boolean;
   onClose: () => void;
   secondaryAuth?: { email: string; ssoKey: string; ssoProvider: string };
+  requirePassword?: boolean;
+  browserId?: string;
 }) {
   const [selected, setSelected] = useState(schemas[0]?.axiaccid || "");
   const [loading, setLoading] = useState(false);
   const [installing, setInstalling] = useState(false);
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const continueToApp = async () => {
     const schema = schemas.find(item => item.axiaccid === selected);
     if (!schema) return;
+    if (requirePassword && !password) {
+      setError("Enter your password to continue.");
+      return;
+    }
+    setError("");
     setLoading(true);
     try {
       if (secondaryAuth)
@@ -38,14 +48,17 @@ export default function SchemaSelectionModal({
         setLoading(false);
         return;
       }
-      const result = await bff.signinInfo(schema, keepMeSignIn);
+      const result = await bff.signinInfo(
+        schema,
+        keepMeSignIn,
+        password,
+        browserId
+      );
       if (!result.redirectUrl)
         throw new Error("The BFF did not return a redirect URL.");
       window.location.assign(result.redirectUrl);
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Unable to continue."
-      );
+      setError(error instanceof Error ? error.message : "Unable to continue.");
       setLoading(false);
     }
   };
@@ -82,6 +95,24 @@ export default function SchemaSelectionModal({
               </option>
             ))}
           </select>
+          {requirePassword && (
+            <input
+              type="password"
+              value={password}
+              onChange={event => setPassword(event.target.value)}
+              placeholder="Enter your password"
+              autoComplete="current-password"
+              className="w-full rounded-xl border p-3"
+            />
+          )}
+          {error && (
+            <p
+              role="alert"
+              className="rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+            >
+              {error}
+            </p>
+          )}
           <button
             onClick={continueToApp}
             disabled={loading}

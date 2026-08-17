@@ -1,4 +1,16 @@
-import React, { createContext, useContext, useState } from "react";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+} from "react";
+import {
+  clearSelectedPackages,
+  readSelectedPackages,
+  saveSelectedPackage,
+  type SelectedPackage,
+} from "@/lib/package-selection";
 
 interface AuthModalContextType {
   isOpen: boolean;
@@ -8,16 +20,26 @@ interface AuthModalContextType {
   openSignUp: (targetUrl?: string) => void;
   closeModal: () => void;
   setMode: (mode: "login" | "signup") => void;
+  selectedPackage?: SelectedPackage;
+  selectPackage: (packageName: string, packageVersion?: string) => void;
+  clearSelectedPackage: () => void;
 }
 
-const AuthModalContext = createContext<AuthModalContextType | undefined>(undefined);
+const AuthModalContext = createContext<AuthModalContextType | undefined>(
+  undefined
+);
 
 const DEFAULT_TARGET_URL = "https://agile.axi-global.com/aspx/signin.aspx";
 
-export const AuthModalProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AuthModalProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [isOpen, setIsOpen] = useState(false);
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [targetUrl, setTargetUrl] = useState(DEFAULT_TARGET_URL);
+  const [selectedPackage, setSelectedPackage] = useState<
+    SelectedPackage | undefined
+  >(() => readSelectedPackages()[0]);
 
   const openLogin = (url?: string) => {
     setMode("login");
@@ -35,18 +57,44 @@ export const AuthModalProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setIsOpen(false);
   };
 
+  const selectPackage = useCallback(
+    (packageName: string, packageVersion = "latest") => {
+      saveSelectedPackage(packageName, packageVersion);
+      setSelectedPackage({ packageName, packageVersion });
+    },
+    []
+  );
+
+  const clearSelectedPackage = useCallback(() => {
+    clearSelectedPackages();
+    setSelectedPackage(undefined);
+  }, []);
+
+  const value = useMemo(
+    () => ({
+      isOpen,
+      mode,
+      targetUrl,
+      openLogin,
+      openSignUp,
+      closeModal,
+      setMode,
+      selectedPackage,
+      selectPackage,
+      clearSelectedPackage,
+    }),
+    [
+      isOpen,
+      mode,
+      targetUrl,
+      selectedPackage,
+      selectPackage,
+      clearSelectedPackage,
+    ]
+  );
+
   return (
-    <AuthModalContext.Provider
-      value={{
-        isOpen,
-        mode,
-        targetUrl,
-        openLogin,
-        openSignUp,
-        closeModal,
-        setMode,
-      }}
-    >
+    <AuthModalContext.Provider value={value}>
       {children}
     </AuthModalContext.Provider>
   );

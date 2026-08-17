@@ -1,6 +1,6 @@
 import React, { useRef, useState } from "react";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
-import { useLocation } from "wouter";
+import { useAuthModal } from "@/contexts/AuthContext";
 import {
   ShoppingCart,
   CircleDollarSign,
@@ -15,10 +15,6 @@ import {
 } from "lucide-react";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import { useIsMobile } from "@/hooks/useMobile";
-
-interface PackagesSectionProps {
-  onInstallClick?: (packageName?: string) => void;
-}
 
 interface PackageItem {
   id: string;
@@ -109,23 +105,16 @@ const packagesList: PackageItem[] = [
   },
 ];
 
-function GlassKpiCard({
-  pkg,
-  index,
-  onInstallClick,
-}: {
-  pkg: PackageItem;
-  index: number;
-  onInstallClick?: (name: string) => void;
-}) {
+function GlassKpiCard({ pkg, index }: { pkg: PackageItem; index: number }) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
-  const [, setLocation] = useLocation();
+  const { openSignUp, selectPackage } = useAuthModal();
   const isMobile = useIsMobile();
 
-  const handleExplore = (e: React.MouseEvent) => {
+  const handleSelectPackage = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setLocation(`/modules#${pkg.targetModuleId}`);
+    selectPackage(pkg.title, "1.0");
+    openSignUp();
   };
 
   // Motion values for smooth 3D mouse parallax tilt
@@ -175,7 +164,11 @@ function GlassKpiCard({
       initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-40px" }}
-      transition={{ duration: 0.6, delay: index * 0.07, ease: [0.215, 0.61, 0.355, 1] }}
+      transition={{
+        duration: 0.6,
+        delay: index * 0.07,
+        ease: [0.215, 0.61, 0.355, 1],
+      }}
       style={{ perspective: 1000 }}
       className="h-full flex p-1"
     >
@@ -189,10 +182,11 @@ function GlassKpiCard({
           rotateY,
           transformStyle: "preserve-3d",
         }}
-        className={`relative w-full rounded-2xl p-5 sm:p-6 flex flex-col justify-between transition-all duration-300 ease-out group select-none ${pkg.isPrimaryAction
-          ? "bg-white/80 backdrop-blur-xl border border-white/90 border-t-white ring-1 ring-[#0077ff]/20 shadow-[0_16px_36px_-10px_rgba(0,119,255,0.18)] hover:shadow-[0_26px_50px_-12px_rgba(0,119,255,0.25)]"
-          : "bg-white/75 backdrop-blur-xl border border-white/80 border-t-white/95 border-l-white/90 shadow-[0_14px_30px_-8px_rgba(0,0,127,0.08),0_4px_10px_-2px_rgba(0,0,0,0.03)] hover:shadow-[0_24px_48px_-10px_rgba(0,0,127,0.15),0_8px_18px_-4px_rgba(0,0,0,0.05)] hover:bg-white/90"
-          }`}
+        className={`relative w-full rounded-2xl p-5 sm:p-6 flex flex-col justify-between transition-all duration-300 ease-out group select-none ${
+          pkg.isPrimaryAction
+            ? "bg-white/80 backdrop-blur-xl border border-white/90 border-t-white ring-1 ring-[#0077ff]/20 shadow-[0_16px_36px_-10px_rgba(0,119,255,0.18)] hover:shadow-[0_26px_50px_-12px_rgba(0,119,255,0.25)]"
+            : "bg-white/75 backdrop-blur-xl border border-white/80 border-t-white/95 border-l-white/90 shadow-[0_14px_30px_-8px_rgba(0,0,127,0.08),0_4px_10px_-2px_rgba(0,0,0,0.03)] hover:shadow-[0_24px_48px_-10px_rgba(0,0,127,0.15),0_8px_18px_-4px_rgba(0,0,0,0.05)] hover:bg-white/90"
+        }`}
       >
         {/* Inner Glass Clip Layer for shine and ambient background */}
         <div className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none z-0">
@@ -220,7 +214,10 @@ function GlassKpiCard({
         </div>
 
         {/* TOP LAYER: Content floating with 3D Depth */}
-        <div className="relative z-20 space-y-4" style={{ transform: "translateZ(25px)" }}>
+        <div
+          className="relative z-20 space-y-4"
+          style={{ transform: "translateZ(25px)" }}
+        >
           {/* 3D Floating Icon Box */}
           <div className="flex items-center justify-between">
             <div
@@ -264,12 +261,12 @@ function GlassKpiCard({
           style={{ transform: "translateZ(22px)" }}
         >
           <motion.button
-            onClick={handleExplore}
+            onClick={handleSelectPackage}
             whileHover={{ scale: 1.04 }}
             whileTap={{ scale: 0.96 }}
             className="px-4 py-1.5 rounded-lg font-bold text-xs text-[#00007f] bg-white/70 hover:bg-white backdrop-blur-md border border-white shadow-2xs transition-all flex items-center gap-1 group/btn cursor-pointer z-30"
           >
-            <span>{pkg.actionText}</span>
+            <span>Select package</span>
             <ArrowUpRight
               size={14}
               className="text-[#00007f] group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform"
@@ -281,7 +278,7 @@ function GlassKpiCard({
   );
 }
 
-export default function PackagesSection({ onInstallClick }: PackagesSectionProps) {
+export default function PackagesSection() {
   const { ref, isVisible } = useScrollAnimation(0.15);
 
   return (
@@ -314,19 +311,23 @@ export default function PackagesSection({ onInstallClick }: PackagesSectionProps
           </h2>
 
           <p className="text-base sm:text-lg text-[#00007f] leading-relaxed max-w-2xl mx-auto font-normal">
-            Built on <span className="font-semibold text-[#00007f]">Axpert</span> – Patented, Proven & secure low code platform that is used by <span className="font-semibold text-[#00007f]">100,000+ users</span> in <span className="font-semibold text-[#00007f]">750+ enterprises</span> across <span className="font-semibold text-[#00007f]">10+ countries</span>.
+            Built on{" "}
+            <span className="font-semibold text-[#00007f]">Axpert</span> –
+            Patented, Proven & secure low code platform that is used by{" "}
+            <span className="font-semibold text-[#00007f]">100,000+ users</span>{" "}
+            in{" "}
+            <span className="font-semibold text-[#00007f]">
+              750+ enterprises
+            </span>{" "}
+            across{" "}
+            <span className="font-semibold text-[#00007f]">10+ countries</span>.
           </p>
         </motion.div>
 
         {/* 3D REALISTIC RECTANGULAR KPI CARDS GRID */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-7 items-stretch">
           {packagesList.map((pkg, index) => (
-            <GlassKpiCard
-              key={pkg.id}
-              pkg={pkg}
-              index={index}
-              onInstallClick={onInstallClick}
-            />
+            <GlassKpiCard key={pkg.id} pkg={pkg} index={index} />
           ))}
         </div>
       </div>

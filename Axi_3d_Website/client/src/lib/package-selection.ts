@@ -1,4 +1,4 @@
-const storageKey = "axi_selected_packages";
+const storageKey = "axi_selected_package";
 
 export type SelectedPackage = { packageName: string; packageVersion: string };
 
@@ -6,21 +6,20 @@ export function saveSelectedPackage(
   packageName: string,
   packageVersion = "latest"
 ) {
-  const current = readSelectedPackages().filter(
-    item => item.packageName !== packageName
-  );
   sessionStorage.setItem(
     storageKey,
-    JSON.stringify([...current, { packageName, packageVersion }])
+    JSON.stringify({ packageName, packageVersion })
   );
 }
 
 export function readSelectedPackages(): SelectedPackage[] {
   try {
-    const value = JSON.parse(
-      sessionStorage.getItem(storageKey) || "[]"
-    ) as SelectedPackage[];
-    return Array.isArray(value) ? value : [];
+    const value = JSON.parse(sessionStorage.getItem(storageKey) || "null") as
+      | SelectedPackage
+      | SelectedPackage[]
+      | null;
+    if (Array.isArray(value)) return value.slice(-1);
+    return value?.packageName ? [value] : [];
   } catch {
     return [];
   }

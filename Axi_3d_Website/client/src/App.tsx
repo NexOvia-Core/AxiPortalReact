@@ -1,5 +1,6 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import NotFound from "@/pages/NotFound";
 import Modules from "@/pages/Modules";
 import About from "@/pages/About";
@@ -33,13 +34,34 @@ function Router() {
       <Route path={"/about-us"} component={About} />
       <Route path={"/partners"} component={Partners} />
       <Route path={"/case-studies"} component={CaseStudies} />
-      <Route path={"/case-studies/axpert-healthcare-manufacturing"} component={CaseStudySutures} />
-      <Route path={"/case-studies/bidhannagar-commissionerate"} component={CaseStudyBidhannagar} />
-      <Route path={"/case-studies/kauvery-group-of-hospitals"} component={CaseStudyKauvery} />
-      <Route path={"/case-studies/state-insurance-provident-fund"} component={CaseStudyStateInsurance} />
-      <Route path={"/case-studies/axpert_ockham-oncology"} component={CaseStudyOckham} />
-      <Route path={"/case-studies/karnataka-state-beverages"} component={CaseStudyKSBC} />
-      <Route path={"/case-studies/axpert-metro-rail"} component={CaseStudyMetro} />
+      <Route
+        path={"/case-studies/axpert-healthcare-manufacturing"}
+        component={CaseStudySutures}
+      />
+      <Route
+        path={"/case-studies/bidhannagar-commissionerate"}
+        component={CaseStudyBidhannagar}
+      />
+      <Route
+        path={"/case-studies/kauvery-group-of-hospitals"}
+        component={CaseStudyKauvery}
+      />
+      <Route
+        path={"/case-studies/state-insurance-provident-fund"}
+        component={CaseStudyStateInsurance}
+      />
+      <Route
+        path={"/case-studies/axpert_ockham-oncology"}
+        component={CaseStudyOckham}
+      />
+      <Route
+        path={"/case-studies/karnataka-state-beverages"}
+        component={CaseStudyKSBC}
+      />
+      <Route
+        path={"/case-studies/axpert-metro-rail"}
+        component={CaseStudyMetro}
+      />
       <Route path={"/news-events"} component={NewsEvents} />
       <Route path={"/team"} component={Team} />
       <Route path={"/careers"} component={Careers} />
@@ -55,17 +77,25 @@ function Router() {
 import { AuthModalProvider } from "./contexts/AuthContext";
 import AuthModal from "./components/AuthModal";
 
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: { retry: 1, refetchOnWindowFocus: false },
+  },
+});
+
 function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider defaultTheme="light">
-        <TooltipProvider>
-          <AuthModalProvider>
-            <Toaster />
-            <Router />
-            <AuthModal />
-          </AuthModalProvider>
-        </TooltipProvider>
+        <QueryClientProvider client={queryClient}>
+          <TooltipProvider>
+            <AuthModalProvider>
+              <Toaster />
+              <Router />
+              <AuthModal />
+            </AuthModalProvider>
+          </TooltipProvider>
+        </QueryClientProvider>
       </ThemeProvider>
     </ErrorBoundary>
   );

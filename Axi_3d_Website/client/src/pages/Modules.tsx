@@ -9,7 +9,6 @@ import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import ScrollProgress from "@/components/ScrollProgress";
 import { useAuthModal } from "@/contexts/AuthContext";
-import { saveSelectedPackage } from "@/lib/package-selection";
 import {
   Play,
   CheckCircle,
@@ -296,7 +295,7 @@ function ModuleVideoCard({ module }: { module: ModuleItem }) {
 }
 
 function ModuleContentCard({ module }: { module: ModuleItem }) {
-  const { openLogin } = useAuthModal();
+  const { openSignUp, selectPackage } = useAuthModal();
 
   return (
     <div className="glass-card rounded-3xl p-8 md:p-10 flex flex-col justify-between border border-white/80 shadow-lg hover:shadow-xl transition-all duration-500 h-full bg-white/60">
@@ -345,8 +344,8 @@ function ModuleContentCard({ module }: { module: ModuleItem }) {
         <button
           type="button"
           onClick={() => {
-            saveSelectedPackage(module.id);
-            openLogin("https://agile.axi-global.com/aspx/signin.aspx");
+            selectPackage(module.title, "1.0");
+            openSignUp();
           }}
           className="text-xs font-semibold text-[#00007f] hover:text-[#fc8151] transition-colors flex items-center gap-1 group cursor-pointer"
         >

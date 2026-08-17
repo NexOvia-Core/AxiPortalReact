@@ -32,7 +32,7 @@ export default function Home() {
       <PlatformSection />
 
       {/* 4.5. OUR PACKAGES SECTION - GLASSMORPHISM 3D REALISTIC KPI CARDS */}
-      <PackagesSection onInstallClick={handleOpenContact} />
+      <PackagesSection />
 
       {/* 5. PROJECTS SECTION - PPTX MOTION STACKING CARDS */}
       <ProjectsSectionPortfolio onLiveProjectClick={handleOpenContact} />

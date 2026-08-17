@@ -56,18 +56,29 @@ export const bff = {
       challengeId,
     }),
   checkAccount: (axiAccId: string) =>
-    request<{ success?: boolean }>("auth/check-account", { axiAccId }),
+    request<{ success?: boolean; Success?: boolean }>("auth/check-account", {
+      axiAccId,
+    }),
   setupAccount: (account: SetupAccount) =>
     request<unknown>("auth/setup-account", account),
-  signinInfo: (schema: Schema, keepMeSignIn: boolean) =>
+  signinInfo: (
+    schema: Schema,
+    keepMeSignIn: boolean,
+    password?: string,
+    brId?: string
+  ) =>
     request<{ redirectUrl?: string }>("auth/signin-info", {
       schemaName: schema.axiaccid,
       userName: schema.username,
       email: schema.email,
       isPrimary: schema.isprimary,
       keepMeSignIn,
+      password,
+      brId,
       installedPackages: schema.installedpackages,
     }),
+  verifyEmailSchemas: (email: string) =>
+    request<{ schemas?: Schema[] }>("auth/verify-email-schemas", { email }),
   rememberedAccounts: (brId: string) =>
     request<string[]>("auth/keepme-signin-list", { brId }),
   oauth: (
