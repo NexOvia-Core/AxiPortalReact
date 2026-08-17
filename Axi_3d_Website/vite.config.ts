@@ -218,6 +218,8 @@ const plugins = [
   vitePluginStorageProxy(),
 ];
 
+const bffOrigin = process.env.VITE_BFF_ORIGIN || "http://localhost/AxiPortalBFF";
+
 export default defineConfig({
   base: process.env.VITE_APP_BASE_PATH || "/",
   plugins,
@@ -249,12 +251,12 @@ export default defineConfig({
     host: true,
     proxy: {
       "/api": {
-        target: process.env.VITE_BFF_ORIGIN || "https://localhost:5001",
+        target: bffOrigin,
         changeOrigin: true,
         secure: false,
       },
       "/axiportal/api": {
-        target: process.env.VITE_BFF_ORIGIN || "https://localhost:5001",
+        target: bffOrigin,
         changeOrigin: true,
         secure: false,
         rewrite: path => path.replace(/^\/axiportal/, ""),

@@ -343,21 +343,6 @@ export default function AuthModal() {
         });
       return;
     }
-    try {
-      await fetch("/api/auth/submit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: `${provider}_user@axi.com`,
-          auth_provider: provider,
-          keep_signed_in: keepSignedIn,
-          use_otp: false,
-          action_type: mode,
-        }),
-      });
-    } catch {
-      // Best-effort redirect even if offline
-    }
     window.location.href = redirectUrl;
   };
 
