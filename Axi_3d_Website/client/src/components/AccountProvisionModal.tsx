@@ -9,27 +9,41 @@ const companySchema = z.object({
   userName: z
     .string()
     .trim()
-    .min(3, "Username must contain at least 3 characters.")
-    .max(32)
+    .min(1, "Username is required.")
+    .min(3, "Username must be at least 3 characters.")
+    .max(32, "Username cannot exceed 32 characters.")
     .regex(
-      /^[A-Za-z0-9_.-]+$/,
-      "Use letters, numbers, periods, underscores, or hyphens."
+      /^[A-Za-z0-9_-]+$/,
+      "Username can only contain letters, numbers, '_' and '-'."
     ),
-  orgName: z.string().trim().min(2, "Organisation name is required.").max(100),
+  orgName: z
+    .string()
+    .trim()
+    .min(1, "Organization name is required.")
+    .min(2, "Organization name must be at least 2 characters.")
+    .max(100, "Organization name cannot exceed 100 characters.")
+    .regex(
+      /^[A-Za-z0-9][A-Za-z0-9 .,'&()/-]{1,99}$/,
+      "Organization name contains invalid characters."
+    ),
   axiAccId: z
     .string()
     .trim()
     .toUpperCase()
-    .regex(
-      /^[A-Z]{5}[A-Z0-9]{0,11}$/,
-      "Use 5-16 characters, beginning with five letters."
-    ),
+    .min(1, "Axi Account ID is required.")
+    .min(5, "Axi Account ID must be at least 5 characters.")
+    .max(16, "Axi Account ID cannot exceed 16 characters.")
+    .regex(/^[A-Z]{5}/, "The first 5 characters must be letters.")
+    .regex(/^[A-Z0-9]+$/, "Only letters and numbers are allowed."),
   country: z.string().trim().max(60),
   state: z.string().trim().max(50),
   address: z.string().trim().max(500),
   contactPersonName: z.string().trim().max(50),
   taxNo: z.string().trim().max(30),
-  mobileNo: z.string().trim().max(20),
+  mobileNo: z
+    .string()
+    .trim()
+    .regex(/^[0-9+\-\s]{7,20}$|^$/, "Please enter a valid mobile number."),
 });
 
 type CompanyForm = z.infer<typeof companySchema>;

@@ -133,6 +133,11 @@ export const bff = {
       requestedBy,
       packages,
     }),
+  packageStatus: (schemaName: string, packageName: string) =>
+    request<{ status?: "NEW" | "IN_PROGRESS" | "ALREADY_INSTALLED"; message?: string }>(
+      "package/check-status",
+      { schemaName, packageName }
+    ),
 };
 
 export type Schema = {
