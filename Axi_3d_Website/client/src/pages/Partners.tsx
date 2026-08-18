@@ -32,19 +32,21 @@ import {
   Check
 } from "lucide-react";
 
-import raLogo from "../../public/partners/ra-innovative.jpg";
-import littleFoxLogo from "../../public/partners/little-fox.jpg";
-import pentagonLogo from "../../public/partners/pentagon.jpg";
-import iihtLogo from "../../public/partners/iiht.jpg";
-import spectaLogo from "../../public/partners/specta.jpg";
-import enstrappLogo from "../../public/partners/enstrapp.png";
-import tecwinkLogo from "../../public/partners/tecwink.png";
-import infolifeLogo from "../../public/partners/infolife.png";
-import mayuraLogo from "../../public/partners/mayura.jpg";
-import itechLogo from "../../public/partners/itech.jpg";
-import suffixtreeLogo from "../../public/partners/suffixtree.jpg";
-import kritLogo from "../../public/partners/krit.jpg";
-import transworldLogo from "../../public/partners/transworld.jpg";
+const partnerAsset = (fileName: string) => `/partners/${fileName}`;
+
+const raLogo = partnerAsset("ra-innovative.jpg");
+const littleFoxLogo = partnerAsset("little-fox.jpg");
+const pentagonLogo = partnerAsset("pentagon.jpg");
+const iihtLogo = partnerAsset("iiht.jpg");
+const spectaLogo = partnerAsset("specta.jpg");
+const enstrappLogo = partnerAsset("enstrapp.png");
+const tecwinkLogo = partnerAsset("tecwink.png");
+const infolifeLogo = partnerAsset("infolife.png");
+const mayuraLogo = partnerAsset("mayura.jpg");
+const itechLogo = partnerAsset("itech.jpg");
+const suffixtreeLogo = partnerAsset("suffixtree.jpg");
+const kritLogo = partnerAsset("krit.jpg");
+const transworldLogo = partnerAsset("transworld.jpg");
 
 interface PartnerLogo {
   name: string;
