@@ -5,6 +5,8 @@ import {
   readSelectedPackages,
 } from "@/lib/package-selection";
 import PackageInstallModal from "./PackageInstallModal";
+import { getSchemaValidationError } from "@/lib/schema-validation";
+import RedirectingModal from "./RedirectingModal";
 
 export default function SchemaSelectionModal({
   schemas,
@@ -26,9 +28,19 @@ export default function SchemaSelectionModal({
   const [installing, setInstalling] = useState(false);
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [installationInProgress, setInstallationInProgress] = useState(false);
+  const [redirecting, setRedirecting] = useState<{
+    url: string;
+    message: string;
+  }>();
   const continueToApp = async () => {
     const schema = schemas.find(item => item.axiaccid === selected);
     if (!schema) return;
+    const schemaError = getSchemaValidationError(schema);
+    if (schemaError) {
+      setError(schemaError);
+      return;
+    }
     if (requirePassword && !password) {
       setError("Enter your password to continue.");
       return;
@@ -56,7 +68,10 @@ export default function SchemaSelectionModal({
       );
       if (!result.redirectUrl)
         throw new Error("The BFF did not return a redirect URL.");
-      window.location.assign(result.redirectUrl);
+      setRedirecting({
+        url: result.redirectUrl,
+        message: `Loading ${schema.axiaccid}...`,
+      });
     } catch (error) {
       setError(error instanceof Error ? error.message : "Unable to continue.");
       setLoading(false);
@@ -65,6 +80,12 @@ export default function SchemaSelectionModal({
   const schema = schemas.find(item => item.axiaccid === selected);
   return (
     <>
+      {redirecting && (
+        <RedirectingModal
+          redirectUrl={redirecting.url}
+          message={redirecting.message}
+        />
+      )}
       {installing && schema ? (
         <PackageInstallModal
           schema={schema}
@@ -77,6 +98,7 @@ export default function SchemaSelectionModal({
             clearSelectedPackages();
             setInstalling(false);
           }}
+          onInstallationStateChange={setInstallationInProgress}
         />
       ) : null}
       <div className="fixed inset-0 z-[210] flex items-center justify-center p-4 bg-black/70">
@@ -86,7 +108,14 @@ export default function SchemaSelectionModal({
           </h2>
           <select
             value={selected}
-            onChange={e => setSelected(e.target.value)}
+            onChange={e => {
+              setSelected(e.target.value);
+              setError(
+                getSchemaValidationError(
+                  schemas.find(schema => schema.axiaccid === e.target.value)
+                ) || ""
+              );
+            }}
             className="w-full rounded-xl border p-3"
           >
             {schemas.map(schema => (
@@ -115,7 +144,7 @@ export default function SchemaSelectionModal({
           )}
           <button
             onClick={continueToApp}
-            disabled={loading}
+            disabled={loading || installationInProgress}
             className="w-full rounded-xl bg-[#210062] py-3 font-bold text-white"
           >
             {loading ? "Opening..." : "Continue"}

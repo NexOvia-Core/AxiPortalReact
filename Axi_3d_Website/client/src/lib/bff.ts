@@ -47,19 +47,17 @@ function normalizePackageProgress(value: unknown): PackageProgress[] {
       ? response.statuses
       : [];
 
-  return statuses.filter(
-    (item: unknown): item is PackageProgress => {
-      const progress =
-        item && typeof item === "object"
-          ? (item as Record<string, unknown>)
-          : undefined;
-      return Boolean(
-        progress &&
-          typeof progress.packageName === "string" &&
-          typeof progress.status === "string"
-      );
-    }
-  );
+  return statuses.filter((item: unknown): item is PackageProgress => {
+    const progress =
+      item && typeof item === "object"
+        ? (item as Record<string, unknown>)
+        : undefined;
+    return Boolean(
+      progress &&
+        typeof progress.packageName === "string" &&
+        typeof progress.status === "string"
+    );
+  });
 }
 
 function normalizeRememberedAccounts(value: unknown): string[] {
@@ -72,7 +70,9 @@ function normalizeRememberedAccounts(value: unknown): string[] {
     : response && Array.isArray(response.profiles)
       ? response.profiles
       : [];
-  return profiles.filter((profile): profile is string => typeof profile === "string");
+  return profiles.filter(
+    (profile): profile is string => typeof profile === "string"
+  );
 }
 
 export const bff = {
@@ -146,10 +146,10 @@ export const bff = {
       ssoKey,
       ssoProvider,
     }),
-  directLogin: () =>
+  directLogin: (sessionId?: string) =>
     request<{ success: boolean; redirectUrl?: string; error?: string }>(
       "auth/direct-login",
-      {}
+      { sessionId: sessionId || "" }
     ),
   rememberSignIn: (brId: string, userName: string) =>
     request<{ redirectUrl?: string }>("auth/keepme-signin", { brId, userName }),
@@ -175,10 +175,10 @@ export const bff = {
       packages,
     }),
   packageStatus: (schemaName: string, packageName: string) =>
-    request<{ status?: "NEW" | "IN_PROGRESS" | "ALREADY_INSTALLED"; message?: string }>(
-      "package/check-status",
-      { schemaName, packageName }
-    ),
+    request<{
+      status?: "NEW" | "IN_PROGRESS" | "ALREADY_INSTALLED";
+      message?: string;
+    }>("package/check-status", { schemaName, packageName }),
 };
 
 export type Schema = {

@@ -23,12 +23,14 @@ import CaseStudyStateInsurance from "@/pages/CaseStudyStateInsurance";
 import CaseStudyOckham from "@/pages/CaseStudyOckham";
 import CaseStudyKSBC from "@/pages/CaseStudyKSBC";
 import CaseStudyMetro from "@/pages/CaseStudyMetro";
+import PackageSetup from "@/pages/PackageSetup";
 
 function Router() {
   return (
     <Switch>
       <Route path={"/"} component={Home} />
       <Route path={"/modules"} component={Modules} />
+      <Route path={"/packages/setup"} component={PackageSetup} />
       <Route path={"/packages"} component={Modules} />
       <Route path={"/about"} component={About} />
       <Route path={"/about-us"} component={About} />

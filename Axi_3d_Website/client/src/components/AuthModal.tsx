@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Check } from "lucide-react";
 import { useAuthModal } from "@/contexts/AuthContext";
@@ -7,11 +7,13 @@ import { bff } from "@/lib/bff";
 import AccountProvisionModal from "./AccountProvisionModal";
 import type { Schema } from "@/lib/bff";
 import { getBrowserId } from "@/lib/browser-id";
-import PackageInstallModal from "./PackageInstallModal";
 import { readSelectedPackages } from "@/lib/package-selection";
 import ProvisionProgressModal from "./ProvisionProgressModal";
-import SignupPackagesPage from "./SignupPackagesPage";
 import PasswordModal from "./PasswordModal";
+import { savePackageSetupFlow } from "@/lib/package-setup-flow";
+import { getSchemaValidationError } from "@/lib/schema-validation";
+import RedirectingModal from "./RedirectingModal";
+import { useLocation } from "wouter";
 
 // ── External OAuth URLs ────────────────────────────────────────────────────
 const GOOGLE_AUTH_URL =
@@ -21,6 +23,7 @@ const MICROSOFT_AUTH_URL =
   "https://login.live.com/oauth20_authorize.srf?client_id=3fa91358-6f74-4525-b5df-da149652be36&scope=openid+profile+User.Read+email+offline_access&redirect_uri=https%3a%2f%2fwww.linkedin.com%2fmicrosoft-login%2fhandler&response_type=code&response_mode=form_post&uaid=b61353ce817e416c9169c2472339511c&msproxy=1&issuer=mso&tenant=consumers&ui_locales=en-US&epctrc=Z7GFDkyBolbmYfGapWNQv%2f9o7pCv0CtoaDVuxFdfKaw%3d9%3a1%3aCANARY%3abBvK%2bbI3A6LvRplnEb9orfOjPkAxsvK9%2btn5nf2ynUY%3d&epct=PAQABDgEAAAAdDD7nC9b5Q7JPd_okEQRFRXZvU3RzQXJ0aWZhY3RzCAAAAAAAw9HjIV01x20ZGYBv1bAfHI7EqFOL9y0ZU4NJ5cIMQKvPXqlpu-A3p0P2Ug9E9qqL-kmUKN_-liA-opeiz1P1qtf2duOjiHUdTFLIiARXkQQpldTaHeHk4ENhtPpbfuFU1z4WQV3yqOfvHVmpaXVfpdniQ1cOO4xoismLKBgjmCqGYoOUbN46S519UDNSqJWPAehFt1DDJ6Ej_fuv4JXDUyAA&jshs=0#";
 
 export default function AuthModal() {
+  const [, setLocation] = useLocation();
   const {
     isOpen,
     mode,
@@ -48,6 +51,12 @@ export default function AuthModal() {
   const [showAccountProvision, setShowAccountProvision] = useState(false);
   const [schemas, setSchemas] = useState<Schema[]>([]);
   const [rememberedAccounts, setRememberedAccounts] = useState<string[]>([]);
+  const [showRememberedAccounts, setShowRememberedAccounts] = useState(false);
+  const [rememberedAccountLoading, setRememberedAccountLoading] = useState("");
+  const [redirecting, setRedirecting] = useState<{
+    url: string;
+    message: string;
+  }>();
   const [browserId, setBrowserId] = useState("");
   const [secondaryAuth, setSecondaryAuth] = useState<{
     email: string;
@@ -63,14 +72,8 @@ export default function AuthModal() {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [isSsoAuthenticated, setIsSsoAuthenticated] = useState(false);
   const [selectedSchemaId, setSelectedSchemaId] = useState("");
-  const [showPackageInstall, setShowPackageInstall] = useState(false);
-  const [packageSchema, setPackageSchema] = useState<Schema>();
-  const [pendingRedirectUrl, setPendingRedirectUrl] = useState("");
   const [provisioningSchema, setProvisioningSchema] = useState<Schema>();
-  const [signupPackages, setSignupPackages] = useState<{
-    schema: Schema;
-    redirectUrl: string;
-  }>();
+  const directLoginStarted = useRef(false);
 
   const dismiss = () => {
     setEmail("");
@@ -85,11 +88,10 @@ export default function AuthModal() {
     setShowPasswordModal(false);
     setIsSsoAuthenticated(false);
     setSelectedSchemaId("");
-    setShowPackageInstall(false);
-    setPackageSchema(undefined);
-    setPendingRedirectUrl("");
+    setShowRememberedAccounts(false);
+    setRememberedAccountLoading("");
+    setRedirecting(undefined);
     setProvisioningSchema(undefined);
-    setSignupPackages(undefined);
     setError("");
     clearSelectedPackage();
     closeModal();
@@ -121,12 +123,19 @@ export default function AuthModal() {
       });
     if (result.schemas?.length) {
       setSchemas(result.schemas);
-      setSelectedSchemaId(result.schemas[0].axiaccid);
+      setSelectedSchemaId(
+        result.schemas.length === 1 ? result.schemas[0].axiaccid : ""
+      );
+      if (result.schemas.length === 1) {
+        const schemaError = getSchemaValidationError(result.schemas[0]);
+        if (schemaError) setError(schemaError);
+      }
     }
   };
 
   // Reset useOtp & showOtpModal when switching between login and signup modes
   useEffect(() => {
+    setKeepSignedIn(false);
     setUseOtp(false);
     setShowOtpModal(false);
     setError("");
@@ -137,6 +146,14 @@ export default function AuthModal() {
   }, [mode]);
 
   useEffect(() => {
+    const search = new URLSearchParams(window.location.search);
+    if (
+      search.has("sessionId") ||
+      search.has("key") ||
+      window.location.hash.includes("access_token")
+    )
+      return;
+
     let active = true;
     void getBrowserId()
       .then(async id => {
@@ -145,13 +162,61 @@ export default function AuthModal() {
         const accounts = await bff.rememberedAccounts(id);
         if (!active) return;
         setRememberedAccounts(accounts);
-        if (accounts.length > 0) openLogin();
+        if (accounts.length > 0) setShowRememberedAccounts(true);
       })
       .catch(() => setRememberedAccounts([]));
     return () => {
       active = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (directLoginStarted.current) return;
+
+    const search = new URLSearchParams(window.location.search);
+    // The legacy portal accepts sessionId. Accept key as a compatibility alias
+    // for existing email links, while preserving the BFF's SessionId contract.
+    const sessionId = search.get("sessionId") || search.get("key");
+    if (!sessionId) return;
+
+    directLoginStarted.current = true;
+    window.history.replaceState(null, "", window.location.pathname);
+
+    const timer = window.setTimeout(() => {
+      void bff
+        .directLogin(sessionId)
+        .then(result => {
+          if (result.success && result.redirectUrl) {
+            setRedirecting({
+              url: result.redirectUrl,
+              message: "Opening your AXI application...",
+            });
+            return;
+          }
+
+          const message =
+            result.error === "UNDER_PROVISION"
+              ? "Account setup is in progress. Please try again shortly or check your email for confirmation."
+              : result.error === "PROVISION_FAILED"
+                ? "Login failed, please check your email."
+                : result.error === "UNAUTHORIZED"
+                  ? "Session expired. Please log in again."
+                  : "Something went wrong, please contact support.";
+          setError(message);
+          openLogin();
+        })
+        .catch(requestError => {
+          setError(
+            requestError instanceof Error
+              ? requestError.message
+              : "Something went wrong, please contact support."
+          );
+          openLogin();
+        });
+    }, 500);
+
+    return () => window.clearTimeout(timer);
+  }, [openLogin]);
 
   useEffect(() => {
     if (!window.location.hash.includes("access_token")) return;
@@ -220,19 +285,26 @@ export default function AuthModal() {
   }, []);
 
   const loginRememberedAccount = async (userName: string) => {
+    setRememberedAccountLoading(userName);
+    setError("");
     try {
       const id = browserId || (await getBrowserId());
       setBrowserId(id);
       const result = await bff.rememberSignIn(id, userName);
       if (!result.redirectUrl)
         throw new Error("The remembered session has expired.");
-      window.location.assign(result.redirectUrl);
+      setRedirecting({
+        url: result.redirectUrl,
+        message: `Signing in as ${userName}...`,
+      });
     } catch (error) {
       setError(
         error instanceof Error
           ? error.message
           : "Unable to sign in with this account."
       );
+    } finally {
+      setRememberedAccountLoading("");
     }
   };
 
@@ -242,8 +314,8 @@ export default function AuthModal() {
     showPasswordModal ||
     showAccountProvision ||
     Boolean(provisioningSchema) ||
-    Boolean(signupPackages) ||
-    showPackageInstall;
+    showRememberedAccounts ||
+    Boolean(redirecting);
   if (!hasActivePortalFlow) return null;
 
   const showAuthCard =
@@ -252,8 +324,7 @@ export default function AuthModal() {
     !showPasswordModal &&
     !showAccountProvision &&
     !provisioningSchema &&
-    !signupPackages &&
-    !showPackageInstall;
+    !showRememberedAccounts;
 
   // ── Helper: log the social provider attempt then redirect ──────
   const handleSocialLogin = async (
@@ -448,14 +519,28 @@ export default function AuthModal() {
           );
         }
         setSchemas(result.schemas);
-        setSelectedSchemaId(result.schemas[0].axiaccid);
-        if (!useOtp && result.schemas.length === 1) setShowPasswordModal(true);
+        setSelectedSchemaId(
+          result.schemas.length === 1 ? result.schemas[0].axiaccid : ""
+        );
+        if (result.schemas.length === 1) {
+          const schemaError = getSchemaValidationError(result.schemas[0]);
+          if (schemaError) throw new Error(schemaError);
+          if (useOtp) {
+            const challengeResult = await bff.checkAndSendOtp(email, "login");
+            setChallenge(challengeResult);
+            setShowOtpModal(true);
+          } else {
+            setShowPasswordModal(true);
+          }
+        }
         return;
       }
 
       if (mode === "login") {
         const schema = schemas.find(item => item.axiaccid === selectedSchemaId);
         if (!schema) throw new Error("Please select an application first.");
+        const schemaError = getSchemaValidationError(schema);
+        if (schemaError) throw new Error(schemaError);
 
         if (isSsoAuthenticated) {
           await completeLogin(schema);
@@ -494,10 +579,16 @@ export default function AuthModal() {
       setShowAccountProvision(true);
       return;
     }
-    const schema = schemas.find(item => item.axiaccid === selectedSchemaId)
-      ?? result.schemas?.[0];
+    const schema =
+      schemas.find(item => item.axiaccid === selectedSchemaId) ??
+      result.schemas?.[0];
     if (!schema) {
       setError("No active applications are available for this account.");
+      return;
+    }
+    const schemaError = getSchemaValidationError(schema);
+    if (schemaError) {
+      setError(schemaError);
       return;
     }
     void completeLogin(schema);
@@ -507,6 +598,8 @@ export default function AuthModal() {
     setLoading(true);
     setError("");
     try {
+      const schemaError = getSchemaValidationError(schema);
+      if (schemaError) throw new Error(schemaError);
       if (secondaryAuth)
         await bff.authUpdate(
           secondaryAuth.email,
@@ -529,12 +622,15 @@ export default function AuthModal() {
       const packages = readSelectedPackages();
       if (schema.isprimary === "T" && packages.length > 0) {
         setShowPasswordModal(false);
-        setPackageSchema(schema);
-        setPendingRedirectUrl(result.redirectUrl);
-        setShowPackageInstall(true);
+        savePackageSetupFlow({ schema, redirectUrl: result.redirectUrl });
+        closeModal();
+        setLocation("/packages/setup");
         return;
       }
-      window.location.assign(result.redirectUrl);
+      setRedirecting({
+        url: result.redirectUrl,
+        message: `Loading ${schema.axiaccid}...`,
+      });
     } catch (requestError) {
       setError(
         requestError instanceof Error
@@ -546,297 +642,433 @@ export default function AuthModal() {
     }
   };
 
+  const showSsoSchemaStep =
+    mode === "login" && isSsoAuthenticated && schemas.length > 0;
+
   return (
     <>
+      {redirecting && (
+        <RedirectingModal
+          redirectUrl={redirecting.url}
+          message={redirecting.message}
+        />
+      )}
+      {showRememberedAccounts && (
+        <div className="fixed inset-0 z-[230] flex items-center justify-center bg-slate-950/75 p-4">
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="remembered-accounts-title"
+            className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"
+          >
+            <h2
+              id="remembered-accounts-title"
+              className="text-xl font-bold text-[#1E1B4B]"
+            >
+              Continue to AXI
+            </h2>
+            <p className="mt-2 text-sm text-slate-600">
+              Choose an account to continue without entering your credentials.
+            </p>
+            {error && (
+              <p
+                role="alert"
+                className="mt-4 rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+              >
+                {error}
+              </p>
+            )}
+            <div className="mt-5 space-y-2">
+              {rememberedAccounts.map(userName => (
+                <button
+                  key={userName}
+                  type="button"
+                  disabled={Boolean(rememberedAccountLoading)}
+                  onClick={() => void loginRememberedAccount(userName)}
+                  className="w-full rounded-lg border border-slate-200 px-4 py-3 text-left text-sm font-semibold text-slate-700 hover:border-[#5c1380] disabled:cursor-wait disabled:opacity-60"
+                >
+                  {rememberedAccountLoading === userName
+                    ? "Signing in..."
+                    : `Continue as ${userName}`}
+                </button>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setShowRememberedAccounts(false);
+                setError("");
+                openLogin();
+              }}
+              className="mt-5 w-full text-sm font-semibold text-[#210062]"
+            >
+              Login with another account
+            </button>
+          </section>
+        </div>
+      )}
       <AnimatePresence>
         {showAuthCard && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
-          {/* Backdrop */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={dismiss}
-            className="fixed inset-0 bg-[#0a0c1a]/70 backdrop-blur-md transition-opacity"
-          />
-
-          {/* Modal Card */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 15 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 15 }}
-            transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
-            className="relative w-full max-w-[460px] bg-white rounded-3xl shadow-2xl shadow-indigo-950/30 border border-slate-100 overflow-hidden z-10 p-6 sm:p-8"
-          >
-            {/* Close Button */}
-            <button
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               onClick={dismiss}
-              className="absolute top-5 right-5 w-9 h-9 flex items-center justify-center rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900 transition-colors focus:outline-none"
-              aria-label="Close modal"
+              className="fixed inset-0 bg-[#0a0c1a]/70 backdrop-blur-md transition-opacity"
+            />
+
+            {/* Modal Card */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+              className="relative w-full max-w-[460px] bg-white rounded-3xl shadow-2xl shadow-indigo-950/30 border border-slate-100 overflow-hidden z-10 p-6 sm:p-8"
             >
-              <X size={18} />
-            </button>
-
-            {/* Top Pill Badge */}
-            <div className="text-center mb-3">
-              <span className="inline-block px-4 py-1 text-[11px] font-extrabold tracking-wider text-[#d6573c] uppercase bg-[#d6573c]/10 rounded-full">
-                START YOUR JOURNEY
-              </span>
-            </div>
-
-            {/* Logo & Header Title */}
-            <div className="text-center mb-6">
-              {mode === "signup" && (
-                <img
-                  src="/AXI_LOGO_AXPERT.png"
-                  alt="Axi Logo"
-                  className="h-10 mx-auto mb-3 object-contain"
-                />
-              )}
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-[#1E1B4B] tracking-tight">
-                {mode === "login"
-                  ? "Welcome Back to Axi"
-                  : "Account Registration"}
-              </h2>
-              <p className="text-xs text-slate-500 mt-1 font-medium">
-                {mode === "login"
-                  ? "Sign in to access your intelligent enterprise platform"
-                  : "Register your account to experience living intelligence"}
-              </p>
-            </div>
-
-            {selectedPackage && (
-              <p className="mb-5 rounded-lg border border-[#d6573c]/20 bg-[#d6573c]/10 px-3 py-2 text-center text-sm text-[#7a2a1b]">
-                Selected package: <strong>{selectedPackage.packageName}</strong>
-              </p>
-            )}
-
-            {/* Social Auth Buttons */}
-            {mode === "login" && rememberedAccounts.length > 0 && (
-              <div className="space-y-2 mb-5">
-                {rememberedAccounts.map(userName => (
-                  <button
-                    key={userName}
-                    type="button"
-                    onClick={() => loginRememberedAccount(userName)}
-                    className="w-full py-3 px-4 rounded-full border border-slate-200 bg-white font-semibold text-slate-700 text-sm"
-                  >
-                    Continue as {userName}
-                  </button>
-                ))}
-              </div>
-            )}
-            <div className="space-y-3 mb-5">
-              {/* Google */}
+              {/* Close Button */}
               <button
-                type="button"
-                id="auth-google-btn"
-                onClick={() => handleSocialLogin("google", GOOGLE_AUTH_URL)}
-                disabled={loading}
-                className="w-full py-3 px-4 rounded-full border border-slate-200 bg-white hover:bg-slate-50/80 transition-all font-semibold text-slate-700 text-sm flex items-center justify-center gap-3 shadow-xs hover:border-slate-300 active:scale-[0.99]"
+                onClick={dismiss}
+                className="absolute top-5 right-5 w-9 h-9 flex items-center justify-center rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900 transition-colors focus:outline-none"
+                aria-label="Close modal"
               >
-                <svg className="w-5 h-5" viewBox="0 0 24 24">
-                  <path
-                    fill="#4285F4"
-                    d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"
-                  />
-                  <path
-                    fill="#34A853"
-                    d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.27v3.15C3.25 21.3 7.31 24 12 24z"
-                  />
-                  <path
-                    fill="#FBBC05"
-                    d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.27C.46 8.2.01 10.04.01 12c0 1.96.45 3.8 1.26 5.42l4.01-3.15z"
-                  />
-                  <path
-                    fill="#EA4335"
-                    d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.25 2.7 1.27 6.58l4.01 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
-                  />
-                </svg>
-                <span>Continue with Google</span>
+                <X size={18} />
               </button>
 
-              {/* Office 365 */}
-              <button
-                type="button"
-                id="auth-office365-btn"
-                onClick={() =>
-                  handleSocialLogin("office365", MICROSOFT_AUTH_URL)
-                }
-                disabled={loading}
-                className="w-full py-3 px-4 rounded-full border border-slate-200 bg-white hover:bg-slate-50/80 transition-all font-semibold text-slate-700 text-sm flex items-center justify-center gap-3 shadow-xs hover:border-slate-300 active:scale-[0.99]"
-              >
-                <svg className="w-5 h-5" viewBox="0 0 23 23">
-                  <path fill="#f35325" d="M1 1h10v10H1z" />
-                  <path fill="#81bc06" d="M12 1h10v10H12z" />
-                  <path fill="#05a6f0" d="M1 12h10v10H1z" />
-                  <path fill="#ffba08" d="M12 12h10v10H12z" />
-                </svg>
-                <span>Continue with Office 365</span>
-              </button>
-
-              {/* LinkedIn */}
-              <button
-                type="button"
-                id="auth-linkedin-btn"
-                onClick={() =>
-                  handleSocialLogin(
-                    "linkedin",
-                    "https://www.linkedin.com/login"
-                  )
-                }
-                disabled={loading}
-                className="w-full py-3 px-4 rounded-full border border-slate-200 bg-white hover:bg-slate-50/80 transition-all font-semibold text-slate-700 text-sm flex items-center justify-center gap-3 shadow-xs hover:border-slate-300 active:scale-[0.99]"
-              >
-                <svg className="w-5 h-5" fill="#0A66C2" viewBox="0 0 24 24">
-                  <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 10.9v8.37H9.25V10.9H6.46M7.86 6.6a1.62 1.62 0 1 0 0 3.24 1.62 1.62 0 0 0 0-3.24z" />
-                </svg>
-                <span>Continue with LinkedIn</span>
-              </button>
-            </div>
-
-            {/* Divider */}
-            <div className="relative my-5 text-center">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-slate-200" />
-              </div>
-              <span className="relative bg-white px-4 text-xs font-bold text-slate-400 uppercase tracking-widest">
-                OR
-              </span>
-            </div>
-
-            {/* Email Form */}
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={e => {
-                    setEmail(e.target.value);
-                    setError("");
-                    setSchemas([]);
-                    setSelectedSchemaId("");
-                    setShowPasswordModal(false);
-                    setIsSsoAuthenticated(false);
-                  }}
-                  placeholder="Enter your work email"
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-[#FAF8F5] text-slate-800 text-sm font-medium placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#5c1380] focus:border-transparent transition-all"
-                />
+              {/* Top Pill Badge */}
+              <div className="text-center mb-3">
+                <span className="inline-block px-4 py-1 text-[11px] font-extrabold tracking-wider text-[#d6573c] uppercase bg-[#d6573c]/10 rounded-full">
+                  START YOUR JOURNEY
+                </span>
               </div>
 
-              {/* Login mode options */}
-              {mode === "login" && (
-                <div className="space-y-2.5 pt-1">
-                  <label className="flex items-center gap-2.5 text-xs text-slate-600 font-medium cursor-pointer select-none">
-                    <div
-                      onClick={() => setKeepSignedIn(!keepSignedIn)}
-                      className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${
-                        keepSignedIn
-                          ? "bg-[#00007f] border-[#00007f] text-white"
-                          : "border-slate-300 bg-white"
-                      }`}
-                    >
-                      {keepSignedIn && <Check size={12} strokeWidth={3} />}
-                    </div>
-                    <span>Keep me signed in</span>
-                  </label>
+              {/* Logo & Header Title */}
+              <div className="text-center mb-6">
+                {mode === "signup" && (
+                  <img
+                    src="/AXI_LOGO_AXPERT.png"
+                    alt="Axi Logo"
+                    className="h-10 mx-auto mb-3 object-contain"
+                  />
+                )}
+                <h2 className="text-2xl sm:text-3xl font-extrabold text-[#1E1B4B] tracking-tight">
+                  {showSsoSchemaStep
+                    ? "Choose your application"
+                    : mode === "login"
+                      ? "Welcome Back to Axi"
+                      : "Account Registration"}
+                </h2>
+                <p className="text-xs text-slate-500 mt-1 font-medium">
+                  {showSsoSchemaStep
+                    ? "Select the application you want to open"
+                    : mode === "login"
+                      ? "Sign in to access your intelligent enterprise platform"
+                      : "Register your account to experience living intelligence"}
+                </p>
+              </div>
 
-                  <label className="flex items-center gap-2.5 text-xs text-slate-600 font-medium cursor-pointer select-none">
-                    <div
-                      onClick={handleOtpToggle}
-                      className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${
-                        useOtp
-                          ? "bg-[#00007f] border-[#00007f] text-white"
-                          : "border-slate-300 bg-white"
-                      }`}
-                    >
-                      {useOtp && <Check size={12} strokeWidth={3} />}
-                    </div>
-                    <span>Use OTP authentication</span>
-                  </label>
-                </div>
-              )}
-
-              {mode === "login" && schemas.length > 0 && (
-                <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
-                  <label className="block text-xs font-semibold text-slate-700">
-                    Select your application
-                    <select
-                      value={selectedSchemaId}
-                      onChange={event => {
-                        setSelectedSchemaId(event.target.value);
-                        setShowPasswordModal(false);
-                        setError("");
-                      }}
-                      className="mt-2 w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-[#5c1380]"
-                    >
-                      {schemas.map(schema => (
-                        <option key={schema.axiaccid} value={schema.axiaccid}>
-                          {schema.axiaccid}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
-              )}
-
-              {error && (
-                <p
-                  role="alert"
-                  className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
-                >
-                  {error}
+              {selectedPackage && (
+                <p className="mb-5 rounded-lg border border-[#d6573c]/20 bg-[#d6573c]/10 px-3 py-2 text-center text-sm text-[#7a2a1b]">
+                  Selected package:{" "}
+                  <strong>{selectedPackage.packageName}</strong>
                 </p>
               )}
 
-              {/* Submit Button */}
-              <button
-                type="submit"
-                id="auth-submit-btn"
-                disabled={loading}
-                className="w-full mt-2 py-3.5 px-6 rounded-xl font-bold text-white text-sm tracking-wider uppercase bg-gradient-to-r from-[#210062] via-[#5c1380] to-[#d6573c] shadow-lg hover:shadow-xl hover:opacity-95 transition-all transform active:scale-[0.99] disabled:opacity-50"
-              >
-                {loading
-                  ? "PROCESSING..."
-                  : mode === "login"
-                    ? useOtp
-                      ? "CONTINUE WITH OTP →"
-                      : "NEXT"
-                    : "REGISTER NOW →"}
-              </button>
-            </form>
+              {/* Social Auth Buttons */}
+              {!showSsoSchemaStep && (
+                <div className="space-y-3 mb-5">
+                  {/* Google */}
+                  <button
+                    type="button"
+                    id="auth-google-btn"
+                    onClick={() => handleSocialLogin("google", GOOGLE_AUTH_URL)}
+                    disabled={loading}
+                    className="w-full py-3 px-4 rounded-full border border-slate-200 bg-white hover:bg-slate-50/80 transition-all font-semibold text-slate-700 text-sm flex items-center justify-center gap-3 shadow-xs hover:border-slate-300 active:scale-[0.99]"
+                  >
+                    <svg className="w-5 h-5" viewBox="0 0 24 24">
+                      <path
+                        fill="#4285F4"
+                        d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"
+                      />
+                      <path
+                        fill="#34A853"
+                        d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.27v3.15C3.25 21.3 7.31 24 12 24z"
+                      />
+                      <path
+                        fill="#FBBC05"
+                        d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.27C.46 8.2.01 10.04.01 12c0 1.96.45 3.8 1.26 5.42l4.01-3.15z"
+                      />
+                      <path
+                        fill="#EA4335"
+                        d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.25 2.7 1.27 6.58l4.01 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
+                      />
+                    </svg>
+                    <span>Continue with Google</span>
+                  </button>
 
-            {/* Bottom Link */}
-            <div className="text-center mt-5 pt-2">
-              <p className="text-xs text-slate-600 font-medium">
-                {mode === "login" ? (
-                  <>
-                    Don't have an account?{" "}
-                    <button
-                      type="button"
-                      onClick={() => setMode("signup")}
-                      className="text-[#00007f] font-bold underline hover:text-[#5c1380] transition-colors"
-                    >
-                      Create Here!
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    Already have an account?{" "}
-                    <button
-                      type="button"
-                      onClick={() => setMode("login")}
-                      className="text-[#00007f] font-bold underline hover:text-[#5c1380] transition-colors"
-                    >
-                      Login Here!
-                    </button>
-                  </>
+                  {/* Office 365 */}
+                  <button
+                    type="button"
+                    id="auth-office365-btn"
+                    onClick={() =>
+                      handleSocialLogin("office365", MICROSOFT_AUTH_URL)
+                    }
+                    disabled={loading}
+                    className="w-full py-3 px-4 rounded-full border border-slate-200 bg-white hover:bg-slate-50/80 transition-all font-semibold text-slate-700 text-sm flex items-center justify-center gap-3 shadow-xs hover:border-slate-300 active:scale-[0.99]"
+                  >
+                    <svg className="w-5 h-5" viewBox="0 0 23 23">
+                      <path fill="#f35325" d="M1 1h10v10H1z" />
+                      <path fill="#81bc06" d="M12 1h10v10H12z" />
+                      <path fill="#05a6f0" d="M1 12h10v10H1z" />
+                      <path fill="#ffba08" d="M12 12h10v10H12z" />
+                    </svg>
+                    <span>Continue with Office 365</span>
+                  </button>
+
+                  {/* LinkedIn */}
+                  <button
+                    type="button"
+                    id="auth-linkedin-btn"
+                    onClick={() =>
+                      handleSocialLogin(
+                        "linkedin",
+                        "https://www.linkedin.com/login"
+                      )
+                    }
+                    disabled={loading}
+                    className="w-full py-3 px-4 rounded-full border border-slate-200 bg-white hover:bg-slate-50/80 transition-all font-semibold text-slate-700 text-sm flex items-center justify-center gap-3 shadow-xs hover:border-slate-300 active:scale-[0.99]"
+                  >
+                    <svg className="w-5 h-5" fill="#0A66C2" viewBox="0 0 24 24">
+                      <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 10.9v8.37H9.25V10.9H6.46M7.86 6.6a1.62 1.62 0 1 0 0 3.24 1.62 1.62 0 0 0 0-3.24z" />
+                    </svg>
+                    <span>Continue with LinkedIn</span>
+                  </button>
+                </div>
+              )}
+
+              {/* Divider */}
+              {!showSsoSchemaStep && (
+                <div className="relative my-5 text-center">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-slate-200" />
+                  </div>
+                  <span className="relative bg-white px-4 text-xs font-bold text-slate-400 uppercase tracking-widest">
+                    OR
+                  </span>
+                </div>
+              )}
+
+              {/* Email Form */}
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {!showSsoSchemaStep && (
+                  <div>
+                    <input
+                      type="email"
+                      required
+                      value={email}
+                      onChange={e => {
+                        setEmail(e.target.value);
+                        setError("");
+                        setSchemas([]);
+                        setSelectedSchemaId("");
+                        setShowPasswordModal(false);
+                        setIsSsoAuthenticated(false);
+                      }}
+                      placeholder="Enter your work email"
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-[#FAF8F5] text-slate-800 text-sm font-medium placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#5c1380] focus:border-transparent transition-all"
+                    />
+                  </div>
                 )}
-              </p>
-            </div>
-          </motion.div>
-        </div>
+
+                {/* Login mode options */}
+                {mode === "login" && !showSsoSchemaStep && (
+                  <div className="space-y-2.5 pt-1">
+                    <button
+                      type="button"
+                      role="checkbox"
+                      aria-checked={keepSignedIn}
+                      onClick={() => setKeepSignedIn(value => !value)}
+                      className="flex items-center gap-2.5 text-xs text-slate-600 font-medium cursor-pointer select-none"
+                    >
+                      <span
+                        className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${
+                          keepSignedIn
+                            ? "bg-[#00007f] border-[#00007f] text-white"
+                            : "border-slate-300 bg-white"
+                        }`}
+                      >
+                        {keepSignedIn && <Check size={12} strokeWidth={3} />}
+                      </span>
+                      <span>Keep me signed in</span>
+                    </button>
+
+                    <label className="flex items-center gap-2.5 text-xs text-slate-600 font-medium cursor-pointer select-none">
+                      <div
+                        onClick={handleOtpToggle}
+                        className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${
+                          useOtp
+                            ? "bg-[#00007f] border-[#00007f] text-white"
+                            : "border-slate-300 bg-white"
+                        }`}
+                      >
+                        {useOtp && <Check size={12} strokeWidth={3} />}
+                      </div>
+                      <span>Use OTP authentication</span>
+                    </label>
+                  </div>
+                )}
+
+                {showSsoSchemaStep && (
+                  <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
+                    <label className="block text-xs font-semibold text-slate-700">
+                      Application
+                      <select
+                        value={selectedSchemaId}
+                        disabled={schemas.length === 1}
+                        onChange={event => {
+                          setSelectedSchemaId(event.target.value);
+                          setError(
+                            getSchemaValidationError(
+                              schemas.find(
+                                schema => schema.axiaccid === event.target.value
+                              )
+                            ) || ""
+                          );
+                        }}
+                        className="mt-2 w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-[#5c1380] disabled:cursor-not-allowed disabled:bg-slate-100"
+                      >
+                        {schemas.length > 1 && (
+                          <option value="" disabled>
+                            Select an application
+                          </option>
+                        )}
+                        {schemas.map(schema => (
+                          <option key={schema.axiaccid} value={schema.axiaccid}>
+                            {schema.axiaccid}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <button
+                      type="button"
+                      role="checkbox"
+                      aria-checked={keepSignedIn}
+                      onClick={() => setKeepSignedIn(value => !value)}
+                      className="flex items-center gap-2.5 text-xs font-medium text-slate-600"
+                    >
+                      <span
+                        className={`flex h-4 w-4 items-center justify-center rounded border ${
+                          keepSignedIn
+                            ? "border-[#00007f] bg-[#00007f] text-white"
+                            : "border-slate-300 bg-white"
+                        }`}
+                      >
+                        {keepSignedIn && <Check size={12} strokeWidth={3} />}
+                      </span>
+                      <span>Keep me signed in</span>
+                    </button>
+                  </div>
+                )}
+
+                {mode === "login" &&
+                  !showSsoSchemaStep &&
+                  schemas.length > 1 && (
+                    <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
+                      <label className="block text-xs font-semibold text-slate-700">
+                        Select your application
+                        <select
+                          value={selectedSchemaId}
+                          onChange={event => {
+                            setSelectedSchemaId(event.target.value);
+                            setShowPasswordModal(false);
+                            setError(
+                              getSchemaValidationError(
+                                schemas.find(
+                                  schema =>
+                                    schema.axiaccid === event.target.value
+                                )
+                              ) || ""
+                            );
+                          }}
+                          className="mt-2 w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-[#5c1380]"
+                        >
+                          <option value="" disabled>
+                            Select an application
+                          </option>
+                          {schemas.map(schema => (
+                            <option
+                              key={schema.axiaccid}
+                              value={schema.axiaccid}
+                            >
+                              {schema.axiaccid}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    </div>
+                  )}
+
+                {error && (
+                  <p
+                    role="alert"
+                    className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+                  >
+                    {error}
+                  </p>
+                )}
+
+                {/* Submit Button */}
+                <button
+                  type="submit"
+                  id="auth-submit-btn"
+                  disabled={loading}
+                  className="w-full mt-2 py-3.5 px-6 rounded-xl font-bold text-white text-sm tracking-wider uppercase bg-gradient-to-r from-[#210062] via-[#5c1380] to-[#d6573c] shadow-lg hover:shadow-xl hover:opacity-95 transition-all transform active:scale-[0.99] disabled:opacity-50"
+                >
+                  {loading
+                    ? "PROCESSING..."
+                    : showSsoSchemaStep
+                      ? "CONTINUE"
+                      : mode === "login"
+                        ? useOtp
+                          ? "CONTINUE WITH OTP →"
+                          : "NEXT"
+                        : "REGISTER NOW →"}
+                </button>
+              </form>
+
+              {/* Bottom Link */}
+              {!showSsoSchemaStep && (
+                <div className="text-center mt-5 pt-2">
+                  <p className="text-xs text-slate-600 font-medium">
+                    {mode === "login" ? (
+                      <>
+                        Don't have an account?{" "}
+                        <button
+                          type="button"
+                          onClick={() => setMode("signup")}
+                          className="text-[#00007f] font-bold underline hover:text-[#5c1380] transition-colors"
+                        >
+                          Create Here!
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        Already have an account?{" "}
+                        <button
+                          type="button"
+                          onClick={() => setMode("login")}
+                          className="text-[#00007f] font-bold underline hover:text-[#5c1380] transition-colors"
+                        >
+                          Login Here!
+                        </button>
+                      </>
+                    )}
+                  </p>
+                </div>
+              )}
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
 
@@ -884,41 +1116,14 @@ export default function AuthModal() {
       {provisioningSchema && (
         <ProvisionProgressModal
           onReady={redirectUrl => {
-            setSignupPackages({ schema: provisioningSchema, redirectUrl });
+            savePackageSetupFlow({ schema: provisioningSchema, redirectUrl });
             setProvisioningSchema(undefined);
+            closeModal();
+            setLocation("/packages/setup");
           }}
           onDismiss={() => {
             setProvisioningSchema(undefined);
             dismiss();
-          }}
-        />
-      )}
-      {signupPackages && (
-        <SignupPackagesPage
-          schema={signupPackages.schema}
-          redirectUrl={signupPackages.redirectUrl}
-          selectedPackage={selectedPackage}
-          onContinue={() => {
-            clearSelectedPackage();
-            setSignupPackages(undefined);
-            closeModal();
-          }}
-        />
-      )}
-      {showPackageInstall && packageSchema && (
-        <PackageInstallModal
-          schema={packageSchema}
-          packages={readSelectedPackages()}
-          onComplete={() => {
-            clearSelectedPackage();
-            window.location.assign(pendingRedirectUrl);
-          }}
-          onClose={() => {
-            clearSelectedPackage();
-            if (pendingRedirectUrl) window.location.assign(pendingRedirectUrl);
-            setShowPackageInstall(false);
-            setPackageSchema(undefined);
-            setPendingRedirectUrl("");
           }}
         />
       )}

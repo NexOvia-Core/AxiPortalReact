@@ -2,38 +2,85 @@ import { useEffect, useState } from "react";
 import { Check, Loader2, PackageCheck } from "lucide-react";
 import { bff, type Schema } from "@/lib/bff";
 import { packageCatalog } from "@/lib/package-catalog";
-import type { SelectedPackage } from "@/lib/package-selection";
+import {
+  clearSelectedPackages,
+  readSelectedPackages,
+  type SelectedPackage,
+} from "@/lib/package-selection";
 import PackageInstallModal from "./PackageInstallModal";
+import RedirectingModal from "./RedirectingModal";
 
 export default function SignupPackagesPage({
   schema,
   redirectUrl,
-  selectedPackage,
   onContinue,
 }: {
   schema: Schema;
   redirectUrl: string;
-  selectedPackage?: SelectedPackage;
   onContinue: () => void;
 }) {
+  const [landingPackage] = useState(() => readSelectedPackages()[0]);
   const [selectedPackages, setSelectedPackages] = useState<SelectedPackage[]>(
-    selectedPackage ? [selectedPackage] : []
+    landingPackage ? [landingPackage] : []
   );
-  const [showConfirmation, setShowConfirmation] = useState(Boolean(selectedPackage));
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [initialized, setInitialized] = useState(!landingPackage);
+  const [pendingLandingConfirmation, setPendingLandingConfirmation] =
+    useState(false);
+  const [installationInProgress, setInstallationInProgress] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
   const [checkingPackage, setCheckingPackage] = useState("");
   const [error, setError] = useState("");
 
   useEffect(() => {
-    setSelectedPackages(selectedPackage ? [selectedPackage] : []);
-    setShowConfirmation(Boolean(selectedPackage));
-  }, [selectedPackage]);
+    if (!landingPackage) return;
+
+    let active = true;
+    void bff
+      .packageStatus(schema.axiaccid, landingPackage.packageName)
+      .then(result => {
+        if (!active) return;
+        if (result.status === "NEW") setPendingLandingConfirmation(true);
+        else
+          setError(
+            result.message ||
+              `${landingPackage.packageName} is already installed or being installed.`
+          );
+      })
+      .catch(requestError => {
+        if (!active) return;
+        setError(
+          requestError instanceof Error
+            ? requestError.message
+            : "Unable to check the selected package."
+        );
+      })
+      .finally(() => {
+        if (active) setInitialized(true);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [landingPackage, schema.axiaccid]);
+
+  useEffect(() => {
+    if (!initialized || !pendingLandingConfirmation) return;
+
+    // The legacy page opens confirmation after its page-load work completes.
+    // Wait for the initialized page to commit before showing the modal.
+    const frame = requestAnimationFrame(() => setShowConfirmation(true));
+    return () => cancelAnimationFrame(frame);
+  }, [initialized, pendingLandingConfirmation]);
 
   const continueToAxi = () => {
-    window.location.assign(redirectUrl);
+    clearSelectedPackages();
     onContinue();
+    setRedirecting(true);
   };
 
   const togglePackage = async (packageData: SelectedPackage) => {
+    if (installationInProgress) return;
     const isSelected = selectedPackages.some(
       item => item.packageName === packageData.packageName
     );
@@ -72,8 +119,14 @@ export default function SignupPackagesPage({
 
   return (
     <>
-      <div className="fixed inset-0 z-[220] overflow-y-auto bg-slate-950/75 p-4 sm:p-8">
-        <main className="mx-auto min-h-full max-w-3xl rounded-lg bg-white p-6 shadow-2xl sm:p-10">
+      {redirecting && (
+        <RedirectingModal
+          redirectUrl={redirectUrl}
+          message={`Loading ${schema.axiaccid}...`}
+        />
+      )}
+      <div className="min-h-screen bg-slate-50 px-4 py-10 sm:px-8">
+        <main className="mx-auto max-w-3xl rounded-lg bg-white p-6 shadow-sm sm:p-10">
           <p className="text-xs font-bold uppercase tracking-wide text-[#d6573c]">
             Package setup
           </p>
@@ -94,6 +147,13 @@ export default function SignupPackagesPage({
             </p>
           )}
 
+          {!initialized && (
+            <p className="mt-5 flex items-center gap-2 text-sm text-slate-600">
+              <Loader2 size={16} className="animate-spin" /> Preparing package
+              setup...
+            </p>
+          )}
+
           <div className="mt-7 grid gap-3 sm:grid-cols-2">
             {packageCatalog.map(packageData => {
               const selected = selectedPackages.some(
@@ -105,7 +165,11 @@ export default function SignupPackagesPage({
                   key={packageData.packageName}
                   type="button"
                   aria-pressed={selected}
-                  disabled={Boolean(checkingPackage)}
+                  disabled={
+                    Boolean(checkingPackage) ||
+                    !initialized ||
+                    installationInProgress
+                  }
                   onClick={() => void togglePackage(packageData)}
                   className={`flex min-h-32 items-start gap-3 rounded-lg border p-4 text-left transition disabled:opacity-60 ${
                     selected
@@ -143,14 +207,17 @@ export default function SignupPackagesPage({
             {selectedPackages.length > 0 && (
               <button
                 type="button"
+                disabled={!initialized || installationInProgress}
                 onClick={() => setShowConfirmation(true)}
                 className="inline-flex items-center gap-2 rounded bg-[#210062] px-5 py-3 text-sm font-bold uppercase tracking-wide text-white"
               >
-                <PackageCheck size={17} /> Install selected ({selectedPackages.length})
+                <PackageCheck size={17} /> Install selected (
+                {selectedPackages.length})
               </button>
             )}
             <button
               type="button"
+              disabled={installationInProgress}
               onClick={continueToAxi}
               className="rounded bg-[#d6573c] px-5 py-3 text-sm font-bold uppercase tracking-wide text-white"
             >
@@ -166,6 +233,7 @@ export default function SignupPackagesPage({
           packages={selectedPackages}
           onComplete={continueToAxi}
           onClose={() => setShowConfirmation(false)}
+          onInstallationStateChange={setInstallationInProgress}
         />
       )}
     </>
