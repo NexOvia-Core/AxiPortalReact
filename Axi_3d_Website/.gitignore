@@ -6,7 +6,6 @@ node_modules/
 dist/
 build/
 *.dist
-.manus-logs
 # Environment variables
 .env
 .env.local
@@ -107,10 +106,6 @@ temp/
 
 # Webdev artifacts (checkpoint zips, migrations, etc.)
 .webdev/
-
-# Manus version file (auto-generated, not part of source)
-client/public/__manus__/version.json
-.project-config.json
 
 videos_for_AXI/
 AXI_LIVE-Photoroom.png
