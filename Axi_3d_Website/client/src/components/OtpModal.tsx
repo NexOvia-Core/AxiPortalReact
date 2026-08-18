@@ -1,5 +1,5 @@
 import { type ClipboardEvent, useEffect, useRef, useState } from "react";
-import { Loader2, RefreshCw, X } from "lucide-react";
+import { Loader2, MailCheck, X } from "lucide-react";
 import { bff, type Schema } from "@/lib/bff";
 
 type Challenge = {
@@ -147,40 +147,47 @@ export default function OtpModal({
     >
       <form
         onSubmit={verify}
-        className="relative w-full max-w-[550px] overflow-hidden rounded-lg bg-[#210062] px-6 py-9 text-white shadow-2xl sm:px-10"
+        className="relative w-full max-w-[550px] overflow-hidden rounded-2xl border border-slate-200 bg-white px-6 py-7 text-slate-800 shadow-2xl sm:px-10 sm:py-9"
       >
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-4 top-4 p-2 text-white/70 hover:text-white"
+          className="absolute right-4 top-4 rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
           aria-label="Close verification"
         >
           <X size={18} />
         </button>
-        <img
-          src="/AXI_LOGO_AXPERT.png"
-          alt="Axi"
-          className="mx-auto mb-5 h-9 object-contain brightness-0 invert"
-        />
-        <h2 id="otp-title" className="text-center text-2xl font-bold">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-[#210062] text-white shadow-sm">
+          <MailCheck size={23} />
+        </div>
+        <p className="mt-5 text-center text-xs font-bold uppercase tracking-[0.16em] text-[#5c1380]">
+          Security check
+        </p>
+        <h2
+          id="otp-title"
+          className="mt-1 text-center text-2xl font-bold tracking-tight text-[#210062]"
+        >
           Verify your email
         </h2>
-        <p className="mt-2 text-center text-sm text-white/75">
+        <p className="mt-2 text-center text-sm leading-6 text-slate-600">
           Enter the code sent to {email}.
         </p>
-        <p className="mt-5 text-center text-sm text-white/75">
+        <p className="mx-auto mt-5 w-fit rounded-full bg-[#FAF8F5] px-4 py-2 text-xs font-medium text-slate-600">
           Code expires in{" "}
-          <strong className="text-white">{formatTime(expiry)}</strong>
+          <strong className="text-[#210062]">{formatTime(expiry)}</strong>
         </p>
         {error && (
           <div
             role="alert"
-            className="mt-4 rounded border border-red-300/70 bg-red-950/40 px-3 py-2 text-sm text-red-100"
+            className="mt-5 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-700"
           >
             {error}
           </div>
         )}
-        <div className="mt-6 flex justify-between gap-2" onPaste={pasteOtp}>
+        <div
+          className="mt-7 flex justify-between gap-2 sm:gap-3"
+          onPaste={pasteOtp}
+        >
           {digits.map((digit, index) => (
             <input
               key={index}
@@ -196,17 +203,17 @@ export default function OtpModal({
               inputMode="numeric"
               autoComplete={index === 0 ? "one-time-code" : "off"}
               maxLength={1}
-              className="h-12 min-w-0 flex-1 rounded border border-white/40 bg-white/10 text-center text-xl font-bold outline-none focus:border-white focus:bg-white/20"
+              className="h-12 min-w-0 flex-1 rounded-xl border border-slate-200 bg-[#FAF8F5] text-center text-xl font-bold text-[#210062] outline-none transition focus:border-[#5c1380] focus:bg-white focus:ring-2 focus:ring-[#5c1380]/20"
             />
           ))}
         </div>
-        <p className="mt-5 text-center text-sm text-white/75">
+        <p className="mt-5 text-center text-sm text-slate-600">
           Didn't receive the code?{" "}
           <button
             type="button"
             onClick={resend}
             disabled={loading || resendWait > 0}
-            className="font-semibold text-white underline disabled:no-underline disabled:opacity-50"
+            className="font-semibold text-[#5c1380] underline decoration-[#5c1380]/40 underline-offset-2 transition hover:text-[#210062] disabled:no-underline disabled:opacity-50"
           >
             {resendWait > 0 ? `Resend (${resendWait}s)` : "Resend"}
           </button>
@@ -214,7 +221,7 @@ export default function OtpModal({
         <button
           type="submit"
           disabled={loading || expiry === 0}
-          className="mt-6 flex w-full items-center justify-center gap-2 rounded bg-[#d6573c] px-5 py-3 font-bold uppercase tracking-wide transition hover:bg-[#e66a51] disabled:opacity-50"
+          className="mt-7 flex w-full items-center justify-center gap-2 rounded-xl bg-[#210062] px-5 py-3.5 text-sm font-bold uppercase tracking-wide text-white shadow-lg shadow-[#210062]/20 transition hover:bg-[#3a087d] disabled:cursor-not-allowed disabled:opacity-50"
         >
           {loading && <Loader2 size={16} className="animate-spin" />} Verify
         </button>

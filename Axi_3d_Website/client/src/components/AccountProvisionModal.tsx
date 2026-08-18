@@ -2,7 +2,7 @@ import { type ReactNode, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Loader2, X } from "lucide-react";
+import { Building2, Loader2, ShieldCheck, X } from "lucide-react";
 import { bff, type Schema } from "@/lib/bff";
 
 const companySchema = z.object({
@@ -121,39 +121,48 @@ export default function AccountProvisionModal({
       aria-modal="true"
       aria-labelledby="company-details-title"
     >
-      <div className="relative max-h-[92vh] w-full max-w-[550px] overflow-y-auto rounded-lg bg-[#210062] p-6 text-white shadow-2xl sm:p-8">
+      <div className="relative max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-slate-200 bg-white p-5 text-slate-800 shadow-2xl sm:p-8">
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-4 top-4 p-2 text-white/70 hover:text-white"
+          className="absolute right-4 top-4 rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
           aria-label="Close company details"
         >
           <X size={18} />
         </button>
-        <img
-          src="/AXI_LOGO_AXPERT.png"
-          alt="Axi"
-          className="mx-auto mb-5 h-9 object-contain brightness-0 invert"
-        />
         <form onSubmit={submit} noValidate>
+          <div className="pr-9">
+            <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-[#210062] text-white shadow-sm">
+              <Building2 size={21} />
+            </div>
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#5c1380]">
+              Account setup
+            </p>
             <h2
               id="company-details-title"
-              className="text-center text-2xl font-bold"
+              className="mt-1 text-2xl font-bold tracking-tight text-[#210062]"
             >
               Company details
             </h2>
-            <p className="mt-2 text-center text-sm text-white/75">
-              Complete your account setup.
+            <p className="mt-2 max-w-xl text-sm leading-6 text-slate-600">
+              Enter the details for your AXI organization. Your account will be
+              prepared after you continue.
             </p>
-            {error && (
-              <p
-                role="alert"
-                className="mt-5 rounded border border-red-300/60 bg-red-950/30 px-3 py-2 text-sm text-red-100"
-              >
-                {error}
-              </p>
-            )}
-            <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          </div>
+          {error && (
+            <p
+              role="alert"
+              className="mt-5 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-700"
+            >
+              {error}
+            </p>
+          )}
+          <div className="mt-7 border-t border-slate-100 pt-6">
+            <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-slate-700">
+              <ShieldCheck size={16} className="text-[#5c1380]" />
+              Organization profile
+            </div>
+            <div className="grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-2">
               <Field
                 label="Username"
                 error={form.formState.errors.userName?.message}
@@ -217,14 +226,14 @@ export default function AccountProvisionModal({
                 <input {...form.register("address")} />
               </Field>
             </div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="mt-6 flex w-full items-center justify-center gap-2 rounded bg-[#d6573c] px-5 py-3 font-bold uppercase tracking-wide disabled:opacity-50"
-            >
-              {loading && <Loader2 size={16} className="animate-spin" />}{" "}
-              Continue
-            </button>
+          </div>
+          <button
+            type="submit"
+            disabled={loading}
+            className="mt-7 flex w-full items-center justify-center gap-2 rounded-xl bg-[#210062] px-5 py-3.5 text-sm font-bold uppercase tracking-wide text-white shadow-lg shadow-[#210062]/20 transition hover:bg-[#3a087d] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {loading && <Loader2 size={16} className="animate-spin" />} Continue
+          </button>
         </form>
       </div>
     </div>
@@ -244,11 +253,13 @@ function Field({
 }) {
   return (
     <label className={`block ${className}`}>
-      <span className="mb-1 block text-xs font-medium text-white/80">
+      <span className="mb-1.5 block text-xs font-semibold text-slate-700">
         {label}
       </span>
-      {children}
-      <span className="mt-1 block min-h-4 text-xs text-red-200">{error}</span>
+      <div className="[&_input]:w-full [&_input]:rounded-xl [&_input]:border [&_input]:border-slate-200 [&_input]:bg-[#FAF8F5] [&_input]:px-3 [&_input]:py-2.5 [&_input]:text-sm [&_input]:text-slate-800 [&_input]:outline-none [&_input]:transition [&_input]:placeholder:text-slate-400 [&_input]:focus:border-[#5c1380] [&_input]:focus:bg-white [&_input]:focus:ring-2 [&_input]:focus:ring-[#5c1380]/20">
+        {children}
+      </div>
+      <span className="mt-1.5 block min-h-4 text-xs text-red-600">{error}</span>
     </label>
   );
 }
