@@ -89,6 +89,15 @@ try
         app.UseHsts();
     app.UseHttpsRedirection();
 
+    app.Use(async (context, next) =>
+    {
+        context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
+        context.Response.Headers.Append("X-Frame-Options", "SAMEORIGIN");
+        context.Response.Headers.Append("Referrer-Policy", "strict-origin-when-cross-origin");
+        context.Response.Headers.Append("Permissions-Policy", "camera=(), geolocation=(), microphone=()");
+        await next();
+    });
+
     // Production hosts the portal below /axiportal while the BFF routes remain /api/*.
     // app.UsePathBase("/axiportal");
 
@@ -122,7 +131,17 @@ try
     // 8. SPA fallback:
     //    Any route that doesn't match /api/* → serve index.html
     //    This lets your frontend handle its own client-side routes
-    app.MapFallbackToFile("index.html");
+    app.MapFallback(async context =>
+    {
+        if (context.Request.Path.StartsWithSegments("/api"))
+        {
+            context.Response.StatusCode = StatusCodes.Status404NotFound;
+            return;
+        }
+
+        context.Response.ContentType = "text/html; charset=utf-8";
+        await context.Response.SendFileAsync(Path.Combine(app.Environment.WebRootPath, "index.html"));
+    });
 
     // 9. Swagger (dev only)
     app.UseAxiSwagger();

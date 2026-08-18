@@ -44,6 +44,11 @@ export default defineConfig({
         secure: false,
         rewrite: requestPath => requestPath.replace(/^\/axiportal/, ""),
       },
+      "/assets/js/fingerprintjs": {
+        target: bffOrigin,
+        changeOrigin: true,
+        secure: false,
+      },
     },
   },
 });

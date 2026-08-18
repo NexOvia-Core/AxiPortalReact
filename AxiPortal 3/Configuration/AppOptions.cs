@@ -13,6 +13,7 @@ public sealed class SessionConfig
     public const string Section = "Session";
     public int    IdleTimeoutMinutes { get; init; } = 30;
     public string CookieName         { get; init; } = "__axi_sess";
+    public bool?  CookieSecure       { get; init; }
 }
 
 public sealed class SwaggerConfig

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { bff, type Schema } from "@/lib/bff";
 import {
   clearSelectedPackages,
@@ -24,15 +24,32 @@ export default function PackageInstallModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [existingStatus, setExistingStatus] = useState("");
+  const [startFailures, setStartFailures] = useState<Record<string, string>>(
+    {}
+  );
+  const completed = useRef(false);
+  const packageNames = useMemo(
+    () => packages.map(item => item.packageName),
+    [packages]
+  );
+  const packageSignature = packageNames.join("|");
   const progress = usePackageProgress(
     schema.axiaccid,
     schema.username,
-    packages.map(item => item.packageName),
+    packageNames,
     started
   );
+  const progressItems = Array.isArray(progress.data) ? progress.data : [];
   const statuses = Object.fromEntries(
-    (progress.data ?? []).map(item => [item.packageName, item.status])
+    progressItems.map(item => [item.packageName, item.status])
   );
+  Object.keys(startFailures).forEach(packageName => {
+    statuses[packageName] = "FAILED";
+  });
+  const packageStates = packages.map(item => ({
+    packageName: item.packageName,
+    status: statuses[item.packageName] || "QUEUED",
+  }));
   useEffect(() => {
     if (packages.length !== 1) return;
     let active = true;
@@ -48,26 +65,49 @@ export default function PackageInstallModal({
     return () => {
       active = false;
     };
-  }, [packages, schema.axiaccid]);
+  }, [packageSignature, schema.axiaccid]);
   useEffect(() => {
-    if (!started || !progress.data || progress.data.length !== packages.length)
+    if (
+      !started ||
+      completed.current ||
+      packageStates.length !== packages.length
+    )
       return;
-    if (!progress.data.every(item => isTerminalPackageStatus(item.status)))
+    if (!packageStates.every(item => isTerminalPackageStatus(item.status)))
       return;
-    if (progress.data.some(item => item.status === "FAILED")) {
+    if (packageStates.some(item => item.status === "FAILED")) {
       setError(
         "One or more packages failed to install. Main-app access remains blocked."
       );
       return;
     }
+    completed.current = true;
     clearSelectedPackages();
     onComplete();
-  }, [onComplete, packages.length, progress.data, started]);
+  }, [onComplete, packageStates, packages.length, started]);
   const start = async () => {
+    completed.current = false;
     setLoading(true);
     setError("");
     try {
-      await bff.installPackages(schema.axiaccid, schema.username, packages);
+      const result = await bff.installPackages(
+        schema.axiaccid,
+        schema.username,
+        packages
+      );
+      const failures = Object.fromEntries(
+        (result.results ?? [])
+          .filter(item => item.success === false)
+          .map(item => [
+            item.packageName,
+            item.message || "Installation could not be queued.",
+          ])
+      );
+      setStartFailures(failures);
+      if (Object.keys(failures).length === packages.length) {
+        setError("None of the selected packages could be queued for installation.");
+        return;
+      }
       setStarted(true);
     } catch (error) {
       setError(

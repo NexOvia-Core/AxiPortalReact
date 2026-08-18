@@ -3,7 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Loader2, X } from "lucide-react";
-import { bff } from "@/lib/bff";
+import { bff, type Schema } from "@/lib/bff";
 
 const companySchema = z.object({
   userName: z
@@ -51,15 +51,16 @@ type CompanyForm = z.infer<typeof companySchema>;
 export default function AccountProvisionModal({
   email,
   onClose,
+  onProvisioningStarted,
   sso,
 }: {
   email: string;
   onClose: () => void;
+  onProvisioningStarted: (schema: Schema) => void;
   sso?: { provider: string; id: string; isEmailVerified: boolean };
 }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [provisioned, setProvisioned] = useState(false);
   const form = useForm<CompanyForm>({
     resolver: zodResolver(companySchema),
     defaultValues: {
@@ -95,7 +96,13 @@ export default function AccountProvisionModal({
         isVerified: sso?.isEmailVerified ? "T" : "F",
       });
       form.reset();
-      setProvisioned(true);
+      onProvisioningStarted({
+        axiaccid: accountId,
+        username: values.userName,
+        email,
+        isprimary: "T",
+        isverified: "T",
+      });
     } catch (requestError) {
       setError(
         requestError instanceof Error
@@ -106,37 +113,6 @@ export default function AccountProvisionModal({
       setLoading(false);
     }
   });
-
-  const directLogin = async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const result = await bff.directLogin();
-      if (result.redirectUrl) {
-        window.location.assign(result.redirectUrl);
-        return;
-      }
-      if (result.error === "UNDER_PROVISION") {
-        setError(
-          "Your account is still being provisioned. Use the secure link from your account email once it is ready."
-        );
-        return;
-      }
-      throw new Error(
-        result.error === "PROVISION_FAILED"
-          ? "Account provisioning failed. Please contact support."
-          : "A direct login link is not available yet."
-      );
-    } catch (requestError) {
-      setError(
-        requestError instanceof Error
-          ? requestError.message
-          : "Unable to start direct login."
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div
@@ -159,42 +135,7 @@ export default function AccountProvisionModal({
           alt="Axi"
           className="mx-auto mb-5 h-9 object-contain brightness-0 invert"
         />
-        {provisioned ? (
-          <div className="text-center">
-            <h2 id="company-details-title" className="text-2xl font-bold">
-              Your account is being prepared
-            </h2>
-            <p className="mt-4 text-sm leading-6 text-white/80">
-              We have started provisioning your AXI account. Account details and
-              a secure login link will be sent to {email}.
-            </p>
-            {error && (
-              <p
-                role="alert"
-                className="mt-5 rounded border border-red-300/60 bg-red-950/30 px-3 py-2 text-sm text-red-100"
-              >
-                {error}
-              </p>
-            )}
-            <button
-              type="button"
-              onClick={directLogin}
-              disabled={loading}
-              className="mt-6 flex w-full items-center justify-center gap-2 rounded bg-[#d6573c] px-5 py-3 font-bold uppercase tracking-wide disabled:opacity-50"
-            >
-              {loading && <Loader2 size={16} className="animate-spin" />} Login
-              to AXI
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="mt-4 text-sm text-white/75 underline hover:text-white"
-            >
-              Close
-            </button>
-          </div>
-        ) : (
-          <form onSubmit={submit} noValidate>
+        <form onSubmit={submit} noValidate>
             <h2
               id="company-details-title"
               className="text-center text-2xl font-bold"
@@ -284,8 +225,7 @@ export default function AccountProvisionModal({
               {loading && <Loader2 size={16} className="animate-spin" />}{" "}
               Continue
             </button>
-          </form>
-        )}
+        </form>
       </div>
     </div>
   );

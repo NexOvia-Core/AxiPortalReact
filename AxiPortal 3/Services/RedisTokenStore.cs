@@ -29,6 +29,7 @@ public sealed class RedisTokenStore(
     IHttpContextAccessor accessor,
     IOptions<SessionConfig> sessionOpts,
     IOptions<RedisConfig> redisOpts,
+    IHostEnvironment environment,
     ILogger<RedisTokenStore> logger) : ITokenStore
 {
     private static readonly JsonSerializerOptions _json =
@@ -59,7 +60,7 @@ public sealed class RedisTokenStore(
         Ctx.Response.Cookies.Append(sessionOpts.Value.CookieName, sessionId, new CookieOptions
         {
             HttpOnly = true,
-            Secure = true,
+            Secure = UseSecureCookies,
             SameSite = SameSiteMode.Strict,
             MaxAge = _ttl,
             Path = "/"
@@ -130,7 +131,7 @@ public sealed class RedisTokenStore(
         Ctx.Response.Cookies.Append(sessionOpts.Value.CookieName, string.Empty, new CookieOptions
         {
             HttpOnly = true,
-            Secure = true,
+            Secure = UseSecureCookies,
             SameSite = SameSiteMode.Strict,
             MaxAge = TimeSpan.Zero,
             Path = "/"
@@ -158,6 +159,9 @@ public sealed class RedisTokenStore(
     // ── Helpers ───────────────────────────────────────────────────────────────
     private HttpContext Ctx =>
         accessor.HttpContext ?? throw new InvalidOperationException("No active HTTP context.");
+
+    private bool UseSecureCookies =>
+        sessionOpts.Value.CookieSecure ?? !environment.IsDevelopment();
 
     /// <summary>
     /// 256-bit cryptographically secure random session ID.

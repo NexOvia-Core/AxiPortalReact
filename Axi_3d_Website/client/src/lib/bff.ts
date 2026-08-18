@@ -36,6 +36,45 @@ async function request<T>(path: string, body?: unknown): Promise<T> {
   return payload.data as T;
 }
 
+function normalizePackageProgress(value: unknown): PackageProgress[] {
+  const response =
+    value && typeof value === "object"
+      ? (value as Record<string, unknown>)
+      : undefined;
+  const statuses = Array.isArray(value)
+    ? value
+    : response && Array.isArray(response.statuses)
+      ? response.statuses
+      : [];
+
+  return statuses.filter(
+    (item: unknown): item is PackageProgress => {
+      const progress =
+        item && typeof item === "object"
+          ? (item as Record<string, unknown>)
+          : undefined;
+      return Boolean(
+        progress &&
+          typeof progress.packageName === "string" &&
+          typeof progress.status === "string"
+      );
+    }
+  );
+}
+
+function normalizeRememberedAccounts(value: unknown): string[] {
+  const response =
+    value && typeof value === "object"
+      ? (value as Record<string, unknown>)
+      : undefined;
+  const profiles = Array.isArray(value)
+    ? value
+    : response && Array.isArray(response.profiles)
+      ? response.profiles
+      : [];
+  return profiles.filter((profile): profile is string => typeof profile === "string");
+}
+
 export const bff = {
   checkAndSendOtp: (email: string, mode: "login" | "signup") =>
     request<{
@@ -80,7 +119,9 @@ export const bff = {
   verifyEmailSchemas: (email: string) =>
     request<{ schemas?: Schema[] }>("auth/verify-email-schemas", { email }),
   rememberedAccounts: (brId: string) =>
-    request<string[]>("auth/keepme-signin-list", { brId }),
+    request<unknown>("auth/keepme-signin-list", { brId }).then(
+      normalizeRememberedAccounts
+    ),
   oauth: (
     provider: "google" | "microsoft" | "supabase",
     accessToken: string,
@@ -118,17 +159,17 @@ export const bff = {
     username: string,
     packageNames: string[]
   ) =>
-    request<PackageProgress[]>("package/progress", {
+    request<unknown>("package/progress", {
       schemaName,
       username,
       packageNames,
-    }),
+    }).then(normalizePackageProgress),
   installPackages: (
     schemaName: string,
     requestedBy: string,
     packages: { packageName: string; packageVersion: string }[]
   ) =>
-    request<unknown>("package/install-bulk", {
+    request<PackageInstallResult>("package/install-bulk", {
       schemaName,
       requestedBy,
       packages,
@@ -153,6 +194,13 @@ export type PackageProgress = {
   packageName: string;
   status: string;
   message?: string;
+};
+export type PackageInstallResult = {
+  results?: Array<{
+    packageName: string;
+    success: boolean;
+    message?: string;
+  }>;
 };
 export type OAuthConfig = Record<string, string | undefined>;
 export type OAuthResult = {

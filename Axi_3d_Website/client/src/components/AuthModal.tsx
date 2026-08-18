@@ -9,6 +9,9 @@ import type { Schema } from "@/lib/bff";
 import { getBrowserId } from "@/lib/browser-id";
 import PackageInstallModal from "./PackageInstallModal";
 import { readSelectedPackages } from "@/lib/package-selection";
+import ProvisionProgressModal from "./ProvisionProgressModal";
+import SignupPackagesPage from "./SignupPackagesPage";
+import PasswordModal from "./PasswordModal";
 
 // ── External OAuth URLs ────────────────────────────────────────────────────
 const GOOGLE_AUTH_URL =
@@ -57,13 +60,17 @@ export default function AuthModal() {
     isEmailVerified: boolean;
   }>();
   const [error, setError] = useState("");
-  const [requiresPassword, setRequiresPassword] = useState(false);
-  const [password, setPassword] = useState("");
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [isSsoAuthenticated, setIsSsoAuthenticated] = useState(false);
   const [selectedSchemaId, setSelectedSchemaId] = useState("");
   const [showPackageInstall, setShowPackageInstall] = useState(false);
   const [packageSchema, setPackageSchema] = useState<Schema>();
   const [pendingRedirectUrl, setPendingRedirectUrl] = useState("");
+  const [provisioningSchema, setProvisioningSchema] = useState<Schema>();
+  const [signupPackages, setSignupPackages] = useState<{
+    schema: Schema;
+    redirectUrl: string;
+  }>();
 
   const dismiss = () => {
     setEmail("");
@@ -75,13 +82,14 @@ export default function AuthModal() {
     setSchemas([]);
     setSecondaryAuth(undefined);
     setSignupSso(undefined);
-    setRequiresPassword(false);
-    setPassword("");
+    setShowPasswordModal(false);
     setIsSsoAuthenticated(false);
     setSelectedSchemaId("");
     setShowPackageInstall(false);
     setPackageSchema(undefined);
     setPendingRedirectUrl("");
+    setProvisioningSchema(undefined);
+    setSignupPackages(undefined);
     setError("");
     clearSelectedPackage();
     closeModal();
@@ -123,21 +131,26 @@ export default function AuthModal() {
     setShowOtpModal(false);
     setError("");
     setSchemas([]);
-    setRequiresPassword(false);
-    setPassword("");
+    setShowPasswordModal(false);
     setIsSsoAuthenticated(false);
     setSelectedSchemaId("");
   }, [mode]);
 
   useEffect(() => {
-    getBrowserId()
+    let active = true;
+    void getBrowserId()
       .then(async id => {
+        if (!active) return;
         setBrowserId(id);
         const accounts = await bff.rememberedAccounts(id);
+        if (!active) return;
         setRememberedAccounts(accounts);
         if (accounts.length > 0) openLogin();
       })
       .catch(() => setRememberedAccounts([]));
+    return () => {
+      active = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -208,7 +221,9 @@ export default function AuthModal() {
 
   const loginRememberedAccount = async (userName: string) => {
     try {
-      const result = await bff.rememberSignIn(browserId, userName);
+      const id = browserId || (await getBrowserId());
+      setBrowserId(id);
+      const result = await bff.rememberSignIn(id, userName);
       if (!result.redirectUrl)
         throw new Error("The remembered session has expired.");
       window.location.assign(result.redirectUrl);
@@ -221,7 +236,24 @@ export default function AuthModal() {
     }
   };
 
-  if (!isOpen) return null;
+  const hasActivePortalFlow =
+    isOpen ||
+    showOtpModal ||
+    showPasswordModal ||
+    showAccountProvision ||
+    Boolean(provisioningSchema) ||
+    Boolean(signupPackages) ||
+    showPackageInstall;
+  if (!hasActivePortalFlow) return null;
+
+  const showAuthCard =
+    isOpen &&
+    !showOtpModal &&
+    !showPasswordModal &&
+    !showAccountProvision &&
+    !provisioningSchema &&
+    !signupPackages &&
+    !showPackageInstall;
 
   // ── Helper: log the social provider attempt then redirect ──────
   const handleSocialLogin = async (
@@ -417,7 +449,7 @@ export default function AuthModal() {
         }
         setSchemas(result.schemas);
         setSelectedSchemaId(result.schemas[0].axiaccid);
-        setRequiresPassword(!useOtp && result.schemas.length === 1);
+        if (!useOtp && result.schemas.length === 1) setShowPasswordModal(true);
         return;
       }
 
@@ -437,12 +469,7 @@ export default function AuthModal() {
           return;
         }
 
-        if (!requiresPassword) {
-          setRequiresPassword(true);
-          return;
-        }
-        if (!password) throw new Error("Password is required.");
-        await completeLogin(schema, password);
+        setShowPasswordModal(true);
         return;
       }
 
@@ -462,6 +489,7 @@ export default function AuthModal() {
 
   // ── Called when OTP verification succeeds ─────────────────────
   const handleOtpSuccess = (result: { schemas?: Schema[] }) => {
+    setShowOtpModal(false);
     if (mode === "signup") {
       setShowAccountProvision(true);
       return;
@@ -487,17 +515,20 @@ export default function AuthModal() {
           secondaryAuth.ssoProvider
         );
 
+      const currentBrowserId = browserId || (await getBrowserId());
+      setBrowserId(currentBrowserId);
       const result = await bff.signinInfo(
         schema,
         keepSignedIn,
         currentPassword,
-        browserId
+        currentBrowserId
       );
       if (!result.redirectUrl)
         throw new Error("The BFF did not return a redirect URL.");
 
       const packages = readSelectedPackages();
       if (schema.isprimary === "T" && packages.length > 0) {
+        setShowPasswordModal(false);
         setPackageSchema(schema);
         setPendingRedirectUrl(result.redirectUrl);
         setShowPackageInstall(true);
@@ -511,7 +542,6 @@ export default function AuthModal() {
           : "Unable to continue to AXI."
       );
     } finally {
-      setPassword("");
       setLoading(false);
     }
   };
@@ -519,6 +549,7 @@ export default function AuthModal() {
   return (
     <>
       <AnimatePresence>
+        {showAuthCard && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
           {/* Backdrop */}
           <motion.div
@@ -686,8 +717,7 @@ export default function AuthModal() {
                     setError("");
                     setSchemas([]);
                     setSelectedSchemaId("");
-                    setRequiresPassword(false);
-                    setPassword("");
+                    setShowPasswordModal(false);
                     setIsSsoAuthenticated(false);
                   }}
                   placeholder="Enter your work email"
@@ -736,8 +766,7 @@ export default function AuthModal() {
                       value={selectedSchemaId}
                       onChange={event => {
                         setSelectedSchemaId(event.target.value);
-                        setRequiresPassword(false);
-                        setPassword("");
+                        setShowPasswordModal(false);
                         setError("");
                       }}
                       className="mt-2 w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-[#5c1380]"
@@ -749,19 +778,6 @@ export default function AuthModal() {
                       ))}
                     </select>
                   </label>
-                  {requiresPassword && (
-                    <input
-                      type="password"
-                      value={password}
-                      onChange={event => {
-                        setPassword(event.target.value);
-                        setError("");
-                      }}
-                      placeholder="Enter your password"
-                      autoComplete="current-password"
-                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-[#5c1380]"
-                    />
-                  )}
                 </div>
               )}
 
@@ -821,6 +837,7 @@ export default function AuthModal() {
             </div>
           </motion.div>
         </div>
+        )}
       </AnimatePresence>
 
       {/* OTP Sub-Modal */}
@@ -834,14 +851,57 @@ export default function AuthModal() {
         expiresInSeconds={challenge?.expiresInSeconds}
         resendInSeconds={challenge?.resendInSeconds}
       />
+      {showPasswordModal && (
+        <PasswordModal
+          applicationName={selectedSchemaId}
+          error={error}
+          loading={loading}
+          onClose={() => setShowPasswordModal(false)}
+          onSubmit={async password => {
+            const schema = schemas.find(
+              item => item.axiaccid === selectedSchemaId
+            );
+            if (!schema) throw new Error("Please select an application first.");
+            await completeLogin(schema, password);
+          }}
+        />
+      )}
       {showAccountProvision && (
         <AccountProvisionModal
           email={email}
           sso={signupSso}
+          onProvisioningStarted={schema => {
+            setShowAccountProvision(false);
+            setProvisioningSchema(schema);
+          }}
           onClose={() => {
             setShowAccountProvision(false);
             setSignupSso(undefined);
             dismiss();
+          }}
+        />
+      )}
+      {provisioningSchema && (
+        <ProvisionProgressModal
+          onReady={redirectUrl => {
+            setSignupPackages({ schema: provisioningSchema, redirectUrl });
+            setProvisioningSchema(undefined);
+          }}
+          onDismiss={() => {
+            setProvisioningSchema(undefined);
+            dismiss();
+          }}
+        />
+      )}
+      {signupPackages && (
+        <SignupPackagesPage
+          schema={signupPackages.schema}
+          redirectUrl={signupPackages.redirectUrl}
+          selectedPackage={selectedPackage}
+          onContinue={() => {
+            clearSelectedPackage();
+            setSignupPackages(undefined);
+            closeModal();
           }}
         />
       )}

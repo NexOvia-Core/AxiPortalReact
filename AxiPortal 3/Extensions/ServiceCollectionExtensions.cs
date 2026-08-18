@@ -145,9 +145,22 @@ public static class ServiceCollectionExtensions
 
         services.AddCors(o => o.AddPolicy("AxiPortalPolicy", p =>
         {
-            if (origins.Length == 0)
+            var configuredOrigins = origins
+                .Where(origin => Uri.TryCreate(origin, UriKind.Absolute, out _))
+                .Select(origin => origin.TrimEnd('/'))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToArray();
+
+            if (configuredOrigins.Length > 0)
             {
-                if (env.IsDevelopment())  // needs env injected
+                p.WithOrigins(configuredOrigins)
+                    .AllowAnyMethod()
+                    .AllowAnyHeader()
+                    .AllowCredentials();
+            }
+            else
+            {
+                if (env.IsDevelopment())
                     p.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
                 else
                     throw new InvalidOperationException("CORS: AllowedOrigins must be configured in production.");
