@@ -79,6 +79,7 @@ function AppRouter() {
         <Route path={"/404"} component={NotFound} />
         <Route component={NotFound} />
       </Switch>
+      <AuthModal />
     </WouterRouter>
   );
 }
@@ -101,7 +102,6 @@ function App() {
             <AuthModalProvider>
               <Toaster />
               <AppRouter />
-              <AuthModal />
             </AuthModalProvider>
           </TooltipProvider>
         </QueryClientProvider>
