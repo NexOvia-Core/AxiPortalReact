@@ -104,7 +104,10 @@ public sealed class PackageService(
 
             // Terminal states are one-shot: clear so future polls/installs start clean.
             if (status is "INSTALLED" or "FAILED")
+            {
                 await RedisDeleteKeyAsync(schema, redisKey, ct);
+                await RedisDeleteKeyAsync(schema, $"{schema}-inprogresspkg_{pkgKey}", ct);
+            }
         }
 
         return new PackageProgressResponse(true, statuses);
