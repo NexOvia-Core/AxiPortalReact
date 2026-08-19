@@ -11,6 +11,7 @@ import {
 } from "@/hooks/usePackageProgress";
 
 const packageStatusLabels: Record<string, string> = {
+  PREPARED: "Prepared",
   QUEUED: "Queued",
   PREPARING: "Preparing...",
   DOWNLOADING: "Downloading...",
@@ -61,7 +62,8 @@ export default function PackageInstallModal({
   });
   const packageStates = packages.map(item => ({
     packageName: item.packageName,
-    status: statuses[item.packageName] || "QUEUED",
+    // A landing-page selection is ready for confirmation, not yet queued.
+    status: statuses[item.packageName] || (started ? "QUEUED" : "PREPARED"),
   }));
   const completedCount = packageStates.filter(item =>
     isTerminalPackageStatus(item.status)

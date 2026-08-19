@@ -186,7 +186,7 @@ export default function SignupPackagesPage({
                     installationInProgress
                   }
                   onClick={() => void togglePackage(packageData)}
-                  className={`flex min-h-32 items-start gap-3 rounded-lg border p-4 text-left transition disabled:opacity-60 ${
+                  className={`flex min-h-32 items-start gap-3 rounded-lg border p-4 text-left transition disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:opacity-60 ${
                     selected
                       ? "border-[#210062] bg-[#210062]/5"
                       : "border-slate-200 bg-white hover:border-[#5c1380]/50"
@@ -236,7 +236,7 @@ export default function SignupPackagesPage({
                   hasUnavailableSelection
                 }
                 onClick={() => setShowConfirmation(true)}
-                className="inline-flex items-center gap-2 rounded bg-[#210062] px-5 py-3 text-sm font-bold uppercase tracking-wide text-white"
+                className="inline-flex items-center gap-2 rounded bg-[#210062] px-5 py-3 text-sm font-bold uppercase tracking-wide text-white transition disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 disabled:opacity-100"
               >
                 <PackageCheck size={17} /> Install selected (
                 {selectedPackages.length})
@@ -246,7 +246,7 @@ export default function SignupPackagesPage({
               type="button"
               disabled={installationInProgress}
               onClick={continueToAxi}
-              className="rounded bg-[#d6573c] px-5 py-3 text-sm font-bold uppercase tracking-wide text-white"
+              className="rounded bg-[#d6573c] px-5 py-3 text-sm font-bold uppercase tracking-wide text-white transition disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 disabled:opacity-100"
             >
               Continue to AXI
             </button>
