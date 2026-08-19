@@ -13,7 +13,8 @@ export function usePackageProgress(
   schemaName: string,
   username: string,
   packageNames: string[],
-  enabled: boolean
+  enabled: boolean,
+  attempt: string
 ) {
   const packageSignature = packageNames.join("|");
   const uniquePackageNames = useMemo(
@@ -26,7 +27,7 @@ export function usePackageProgress(
 
   useEffect(() => {
     setProgressByPackage({});
-  }, [schemaName, username, packageSignature]);
+  }, [schemaName, username, packageSignature, attempt]);
 
   const pendingPackageNames = uniquePackageNames.filter(
     packageName =>
@@ -40,6 +41,7 @@ export function usePackageProgress(
       schemaName,
       username,
       pendingPackageSignature,
+      attempt,
     ],
     queryFn: () =>
       bff.packageProgress(schemaName, username, pendingPackageNames),

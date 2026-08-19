@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronUp, Minus, X } from "lucide-react";
 import { bff, type Schema } from "@/lib/bff";
 import {
@@ -42,6 +42,10 @@ export default function PackageInstallModal({
     {}
   );
   const [minimized, setMinimized] = useState(false);
+  const attemptSeed = useRef(
+    `${Date.now()}-${Math.random().toString(36).slice(2)}`
+  );
+  const [installationAttempt, setInstallationAttempt] = useState("");
   const packageNames = useMemo(
     () => packages.map(item => item.packageName),
     [packages]
@@ -51,7 +55,8 @@ export default function PackageInstallModal({
     schema.axiaccid,
     schema.username,
     packageNames,
-    started
+    started,
+    installationAttempt
   );
   const progressItems = Array.isArray(progress.data) ? progress.data : [];
   const statuses = Object.fromEntries(
@@ -122,6 +127,12 @@ export default function PackageInstallModal({
     setLoading(true);
     setError("");
     setMinimized(false);
+    setStartFailures({});
+    setInstallationAttempt(
+      `${attemptSeed.current}-${Date.now()}-${Math.random()
+        .toString(36)
+        .slice(2)}`
+    );
     try {
       const result = await bff.installPackages(
         schema.axiaccid,
