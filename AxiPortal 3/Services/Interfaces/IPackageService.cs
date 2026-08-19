@@ -10,4 +10,5 @@ public interface IPackageService
     Task<GetRedirectUrlResult> GetRedirectUrlAsync(CancellationToken ct);
     Task<PackageProgressResponse> GetInstallProgressAsync(PackageProgressRequest req, CancellationToken ct);
     Task<InstallPackagesResponse> InstallPackagesAsync(InstallPackagesRequest req, CancellationToken ct);
+    Task<PackageLogDownload?> DownloadFailedPackageLogAsync(FailedPackageLogRequest req, CancellationToken ct);
 }

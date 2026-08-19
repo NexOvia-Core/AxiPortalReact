@@ -97,4 +97,18 @@ public sealed class PackageController(IPackageService packageService, ILogger<Pa
 
         return Ok(ApiResponse<object>.Ok(result));
     }
+
+    [HttpGet("installation-log")]
+    [ProducesResponseType(typeof(FileContentResult), 200)]
+    [ProducesResponseType(typeof(ApiResponse<object>), 404)]
+    public async Task<IActionResult> DownloadInstallationLog(
+        [FromQuery] FailedPackageLogRequest req,
+        CancellationToken ct)
+    {
+        var log = await packageService.DownloadFailedPackageLogAsync(req, ct);
+        if (log is null)
+            return NotFound(ApiResponse<object>.Fail("Installation log is not available.", "LOG_NOT_FOUND"));
+
+        return File(log.Contents, "application/octet-stream", log.FileName);
+    }
 }

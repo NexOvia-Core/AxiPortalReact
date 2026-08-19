@@ -126,6 +126,34 @@ public sealed class PackageService(
         return new GetRedirectUrlResult(true, session.RedirectUrl, "");
     }
 
+    public async Task<PackageLogDownload?> DownloadFailedPackageLogAsync(
+        FailedPackageLogRequest req,
+        CancellationToken ct)
+    {
+        await RequireSessionAsync(ct);
+
+        var schema = req.SchemaName.ToUpperInvariant();
+        var pkgKey = req.PackageName.Replace(" ", "_");
+        var fileName = await GetFailedPackageLogFileNameAsync(schema, req.Username, pkgKey, ct);
+        if (fileName is null || !Uri.TryCreate(_opts.ArmScriptUrl, UriKind.Absolute, out var scriptsBase))
+            return null;
+
+        var logDirectory = new Uri(scriptsBase.ToString().TrimEnd('/') + "/AxInstallerLogs/");
+        var logUrl = new Uri(logDirectory, Uri.EscapeDataString(fileName));
+        using var response = await httpClientFactory.CreateClient().GetAsync(logUrl, ct);
+        if (!response.IsSuccessStatusCode)
+        {
+            logger.LogWarning(
+                "Failed to retrieve installation log for {Schema}/{Package}. HTTP {StatusCode}",
+                schema,
+                req.PackageName,
+                response.StatusCode);
+            return null;
+        }
+
+        return new PackageLogDownload(await response.Content.ReadAsByteArrayAsync(ct), fileName);
+    }
+
     private async Task<bool> RedisFlagExistsAsync(string schema, string prefix, string pkgKey, CancellationToken ct)
     {
         var key = $"{schema}-{prefix}_{pkgKey}";
@@ -139,15 +167,9 @@ public sealed class PackageService(
         string pkgKey,
         CancellationToken ct)
     {
-        var failedKey = $"{schema}_{username}_{pkgKey}_FAILED";
-        var response = await RedisReadValueAsync(schema, failedKey, ct);
-        var fileName = GetString(response, "value") ?? GetString(response, "result");
-
-        if (string.IsNullOrWhiteSpace(fileName) ||
-            !string.Equals(fileName, Path.GetFileName(fileName), StringComparison.Ordinal))
-        {
+        var fileName = await GetFailedPackageLogFileNameAsync(schema, username, pkgKey, ct);
+        if (fileName is null)
             return null;
-        }
 
         if (!Uri.TryCreate(_opts.ArmScriptUrl, UriKind.Absolute, out var scriptsBase))
         {
@@ -155,8 +177,23 @@ public sealed class PackageService(
             return null;
         }
 
-        var logDirectory = new Uri(scriptsBase.ToString().TrimEnd('/') + "/AxInstallerLogs/");
-        return new Uri(logDirectory, Uri.EscapeDataString(fileName)).ToString();
+        return $"api/package/installation-log?schemaName={Uri.EscapeDataString(schema)}&username={Uri.EscapeDataString(username)}&packageName={Uri.EscapeDataString(pkgKey)}";
+    }
+
+    private async Task<string?> GetFailedPackageLogFileNameAsync(
+        string schema,
+        string username,
+        string pkgKey,
+        CancellationToken ct)
+    {
+        var failedKey = $"{schema}_{username}_{pkgKey}_FAILED";
+        var response = await RedisReadValueAsync(schema, failedKey, ct);
+        var fileName = GetString(response, "value") ?? GetString(response, "result");
+
+        return string.IsNullOrWhiteSpace(fileName) ||
+               !string.Equals(fileName, Path.GetFileName(fileName), StringComparison.Ordinal)
+            ? null
+            : fileName;
     }
 
     /// <summary>

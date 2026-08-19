@@ -62,6 +62,11 @@ export default function PackageInstallModal({
   const progressItemsByPackage = Object.fromEntries(
     progressItems.map(item => [item.packageName, item])
   );
+  const packageLogUrl = (logUrl: string) =>
+    new URL(
+      logUrl,
+      new URL(import.meta.env.BASE_URL, window.location.origin)
+    ).toString();
   const statuses = Object.fromEntries(
     progressItems.map(item => [item.packageName, item.status])
   );
@@ -288,9 +293,7 @@ export default function PackageInstallModal({
                   </div>
                   {item.status === "FAILED" && item.logUrl && (
                     <a
-                      href={item.logUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      href={packageLogUrl(item.logUrl)}
                       className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-[#210062] hover:underline"
                     >
                       <Download size={14} />

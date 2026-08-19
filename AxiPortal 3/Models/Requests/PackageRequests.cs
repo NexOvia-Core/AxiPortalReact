@@ -20,3 +20,9 @@ public sealed record PackageItem ( string PackageName, string PackageVersion );
 
 public sealed record PackageProgressRequest
 ( string SchemaName, string Username, List<string> PackageNames );
+
+public sealed record FailedPackageLogRequest(
+    [Required] string SchemaName,
+    [Required] string Username,
+    [Required] string PackageName
+);

@@ -19,6 +19,8 @@ public sealed record PackageProgressItem(
     string? LogUrl = null
 );
 
+public sealed record PackageLogDownload(byte[] Contents, string FileName);
+
 
 public sealed record PackageStatusResponse(
     bool Success,
