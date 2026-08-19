@@ -10,6 +10,8 @@ import { motion } from "framer-motion";
 import * as THREE from "three";
 import PartnerModal from "./PartnerModal";
 import { useAuthModal } from "@/contexts/AuthContext";
+import { Link } from "wouter";
+import { assetUrl } from "@/lib/paths";
 
 function ParticleField() {
   const meshRef = useRef<THREE.Points>(null);
@@ -40,10 +42,11 @@ function ParticleField() {
     return { positions, colors, sizes };
   }, []);
 
-  useFrame((state) => {
+  useFrame(state => {
     if (meshRef.current) {
       meshRef.current.rotation.y = state.clock.elapsedTime * 0.03;
-      meshRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.08) * 0.08;
+      meshRef.current.rotation.x =
+        Math.sin(state.clock.elapsedTime * 0.08) * 0.08;
       state.invalidate();
     }
   });
@@ -51,19 +54,41 @@ function ParticleField() {
   return (
     <points ref={meshRef}>
       <bufferGeometry>
-        <bufferAttribute attach="attributes-position" args={[particles.positions, 3]} />
-        <bufferAttribute attach="attributes-color" args={[particles.colors, 3]} />
+        <bufferAttribute
+          attach="attributes-position"
+          args={[particles.positions, 3]}
+        />
+        <bufferAttribute
+          attach="attributes-color"
+          args={[particles.colors, 3]}
+        />
         <bufferAttribute attach="attributes-size" args={[particles.sizes, 1]} />
       </bufferGeometry>
-      <pointsMaterial size={0.035} vertexColors transparent opacity={0.7} sizeAttenuation />
+      <pointsMaterial
+        size={0.035}
+        vertexColors
+        transparent
+        opacity={0.7}
+        sizeAttenuation
+      />
     </points>
   );
 }
 
-function OrbitRing({ radius, speed, color, tilt = 0 }: { radius: number; speed: number; color: string; tilt?: number }) {
+function OrbitRing({
+  radius,
+  speed,
+  color,
+  tilt = 0,
+}: {
+  radius: number;
+  speed: number;
+  color: string;
+  tilt?: number;
+}) {
   const ref = useRef<THREE.Mesh>(null);
 
-  useFrame((state) => {
+  useFrame(state => {
     if (ref.current) {
       ref.current.rotation.x = tilt + state.clock.elapsedTime * speed;
       ref.current.rotation.z = state.clock.elapsedTime * speed * 0.3;
@@ -74,7 +99,13 @@ function OrbitRing({ radius, speed, color, tilt = 0 }: { radius: number; speed: 
   return (
     <mesh ref={ref}>
       <torusGeometry args={[radius, 0.006, 12, 64]} />
-      <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.4} transparent opacity={0.6} />
+      <meshStandardMaterial
+        color={color}
+        emissive={color}
+        emissiveIntensity={0.4}
+        transparent
+        opacity={0.6}
+      />
     </mesh>
   );
 }
@@ -96,10 +127,21 @@ function FloatingDots() {
   return (
     <>
       {dots.map((dot, i) => (
-        <Float key={i} speed={dot.speed} rotationIntensity={0} floatIntensity={0.5}>
+        <Float
+          key={i}
+          speed={dot.speed}
+          rotationIntensity={0}
+          floatIntensity={0.5}
+        >
           <mesh position={dot.position}>
             <sphereGeometry args={[dot.size, 8, 8]} />
-            <meshStandardMaterial color={dot.color} emissive={dot.color} emissiveIntensity={0.5} transparent opacity={0.6} />
+            <meshStandardMaterial
+              color={dot.color}
+              emissive={dot.color}
+              emissiveIntensity={0.5}
+              transparent
+              opacity={0.6}
+            />
           </mesh>
         </Float>
       ))}
@@ -174,7 +216,11 @@ export default function HeroSection({ onContactClick }: HeroSectionProps) {
           <Suspense fallback={null}>
             <Canvas
               camera={{ position: [0, 0, 9], fov: 45 }}
-              gl={{ antialias: false, alpha: true, powerPreference: "high-performance" }}
+              gl={{
+                antialias: false,
+                alpha: true,
+                powerPreference: "high-performance",
+              }}
               style={{ background: "transparent" }}
               dpr={[1, 1.25]}
               frameloop="demand"
@@ -189,27 +235,37 @@ export default function HeroSection({ onContactClick }: HeroSectionProps) {
       <div className="w-full z-20">
         <nav className="w-full flex items-center justify-between px-6 md:px-12 pt-6 md:pt-8">
           {/* Brand Logo */}
-          <a href="/" className="flex items-center gap-3 group">
+          <Link href="/" className="flex items-center gap-3 group">
             <img
-              src="/AXI_LOGO_AXPERT.png"
+              src={assetUrl("AXI_LOGO_AXPERT.png")}
               alt="AXI Logo"
               className="h-9 sm:h-11 md:h-12 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
             />
-          </a>
+          </Link>
 
           {/* Center Nav Links (Image 1: Platform, AXI Modules, About Us, Agile Labs) */}
           <div className="hidden md:flex items-center space-x-8 lg:space-x-12">
-            {navItems.map((item) => (
-              <a
-                key={item.label}
-                href={item.href}
-                target={item.external ? "_blank" : undefined}
-                rel={item.external ? "noopener noreferrer" : undefined}
-                className="text-[#1E1B4B] font-medium text-sm md:text-base hover:text-[#fc8151] transition-colors duration-200"
-              >
-                {item.label}
-              </a>
-            ))}
+            {navItems.map(item =>
+              item.external ? (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#1E1B4B] font-medium text-sm md:text-base hover:text-[#fc8151] transition-colors duration-200"
+                >
+                  {item.label}
+                </a>
+              ) : (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  className="text-[#1E1B4B] font-medium text-sm md:text-base hover:text-[#fc8151] transition-colors duration-200"
+                >
+                  {item.label}
+                </Link>
+              )
+            )}
           </div>
 
           {/* Right Action Buttons */}
@@ -229,7 +285,9 @@ export default function HeroSection({ onContactClick }: HeroSectionProps) {
             </button>
 
             <button
-              onClick={() => openLogin("https://agile.axi-global.com/aspx/signin.aspx")}
+              onClick={() =>
+                openLogin("https://agile.axi-global.com/aspx/signin.aspx")
+              }
               className="bg-gradient-to-r from-[#210062] via-[#5c1380] to-[#d6573c] text-[#ffffff] shadow-md hover:shadow-xl rounded-full px-6 py-2.5 font-semibold text-sm transition-all duration-300 hover:scale-105 inline-block cursor-pointer"
             >
               Get Started
@@ -242,11 +300,26 @@ export default function HeroSection({ onContactClick }: HeroSectionProps) {
             className="md:hidden text-[#1E1B4B] p-2 focus:outline-none"
             aria-label="Toggle Navigation"
           >
-            <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg
+              className="w-7 h-7"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
               {navOpen ? (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
               )}
             </svg>
           </button>
@@ -255,18 +328,29 @@ export default function HeroSection({ onContactClick }: HeroSectionProps) {
         {/* Mobile Dropdown */}
         {navOpen && (
           <div className="md:hidden flex flex-col items-center gap-4 py-6 bg-[#fff6e5]/95 backdrop-blur-md border-b border-[#1E1B4B]/10 text-center">
-            {navItems.map((item) => (
-              <a
-                key={item.label}
-                href={item.href}
-                target={item.external ? "_blank" : undefined}
-                rel={item.external ? "noopener noreferrer" : undefined}
-                onClick={() => setNavOpen(false)}
-                className="text-[#1E1B4B] font-medium text-base hover:text-[#fc8151]"
-              >
-                {item.label}
-              </a>
-            ))}
+            {navItems.map(item =>
+              item.external ? (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => setNavOpen(false)}
+                  className="text-[#1E1B4B] font-medium text-base hover:text-[#fc8151]"
+                >
+                  {item.label}
+                </a>
+              ) : (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  onClick={() => setNavOpen(false)}
+                  className="text-[#1E1B4B] font-medium text-base hover:text-[#fc8151]"
+                >
+                  {item.label}
+                </Link>
+              )
+            )}
             <div className="flex flex-col items-center gap-2.5 w-full px-6 pt-2">
               <button
                 onClick={() => {
@@ -315,7 +399,11 @@ export default function HeroSection({ onContactClick }: HeroSectionProps) {
             transition={{ duration: 0.6, delay: 0.3 }}
             className="inline-flex items-center gap-2.5 px-5 py-2 rounded-full glass border border-[#00007f]/15 shadow-sm mb-6 bg-white/80"
           >
-            <img src="/us-flag.png" alt="US Flag" className="h-4 w-auto object-contain rounded-xs shadow-xs" />
+            <img
+              src={assetUrl("us-flag.png")}
+              alt="US Flag"
+              className="h-4 w-auto object-contain rounded-xs shadow-xs"
+            />
             <span className="font-[JetBrains_Mono] text-xs font-bold tracking-widest text-[#00007f] uppercase">
               PATENTED IN USA
             </span>
@@ -348,9 +436,8 @@ export default function HeroSection({ onContactClick }: HeroSectionProps) {
             transition={{ duration: 0.8, delay: 0.8 }}
             className="text-base sm:text-lg md:text-xl text-[#00007f]/75 max-w-3xl mx-auto mb-10 leading-relaxed font-normal"
           >
-            The one ERP that goes as deep as enterprise-grade systems —
-            without the cost or the cage.
-
+            The one ERP that goes as deep as enterprise-grade systems — without
+            the cost or the cage.
           </motion.p>
 
           {/* Centered Action Buttons (Get Started & Explore the Packages) */}
@@ -361,19 +448,20 @@ export default function HeroSection({ onContactClick }: HeroSectionProps) {
             className="flex flex-wrap items-center justify-center gap-4"
           >
             <button
-              onClick={() => openLogin("https://agile.axi-global.com/aspx/signin.aspx")}
+              onClick={() =>
+                openLogin("https://agile.axi-global.com/aspx/signin.aspx")
+              }
               className="bg-gradient-to-r from-[#210062] via-[#5c1380] to-[#d6573c] text-white shadow-xl hover:shadow-2xl rounded-full px-8 sm:px-10 py-3.5 sm:py-4 font-semibold text-sm sm:text-base transition-all duration-300 hover:scale-105 inline-block cursor-pointer"
             >
               Get Started
             </button>
 
-
-            <a
+            <Link
               href="/modules"
               className="border-2 border-[#1E1B4B]/30 hover:border-[#1E1B4B] text-[#1E1B4B] hover:bg-[#1E1B4B] hover:text-white shadow-md hover:shadow-xl rounded-full px-8 sm:px-10 py-3.5 sm:py-4 font-semibold text-sm sm:text-base transition-all duration-300 hover:scale-105 inline-block cursor-pointer bg-white/60 backdrop-blur-sm"
             >
               Explore Our Packages
-            </a>
+            </Link>
           </motion.div>
         </motion.div>
       </div>
@@ -394,12 +482,17 @@ export default function HeroSection({ onContactClick }: HeroSectionProps) {
             animate={{ y: [0, 14, 0], opacity: [1, 0.3, 1] }}
             transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
             className="w-1.5 h-1.5 rounded-full"
-            style={{ background: "linear-gradient(135deg, #00007f, #5c1380, #d6573c)" }}
+            style={{
+              background: "linear-gradient(135deg, #00007f, #5c1380, #d6573c)",
+            }}
           />
         </motion.div>
       </motion.div>
 
-      <PartnerModal isOpen={partnerOpen} onClose={() => setPartnerOpen(false)} />
+      <PartnerModal
+        isOpen={partnerOpen}
+        onClose={() => setPartnerOpen(false)}
+      />
     </section>
   );
 }

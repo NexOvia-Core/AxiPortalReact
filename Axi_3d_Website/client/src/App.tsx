@@ -5,7 +5,7 @@ import NotFound from "@/pages/NotFound";
 import Modules from "@/pages/Modules";
 import About from "@/pages/About";
 import Partners from "@/pages/Partners";
-import { Route, Router as WouterRouter, Switch } from "wouter";
+import { Redirect, Route, Router as WouterRouter, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
@@ -25,7 +25,8 @@ import CaseStudyKSBC from "@/pages/CaseStudyKSBC";
 import CaseStudyMetro from "@/pages/CaseStudyMetro";
 import PackageSetup from "@/pages/PackageSetup";
 
-const APP_BASE_PATH = "/axi-global/AxiPortal";
+const APP_BASE_PATH =
+  import.meta.env.VITE_APP_BASE_PATH || "/axi-global/AxiPortal";
 
 function AppRouter() {
   return (
@@ -34,7 +35,9 @@ function AppRouter() {
         <Route path={"/"} component={Home} />
         <Route path={"/modules"} component={Modules} />
         <Route path={"/packages/setup"} component={PackageSetup} />
-        <Route path={"/packages"} component={Modules} />
+        <Route path={"/packages"}>
+          <Redirect to={"/packages/setup"} />
+        </Route>
         <Route path={"/about"} component={About} />
         <Route path={"/about-us"} component={About} />
         <Route path={"/partners"} component={Partners} />

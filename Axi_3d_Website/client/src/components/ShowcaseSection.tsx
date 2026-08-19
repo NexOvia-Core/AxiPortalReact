@@ -5,9 +5,15 @@
  * and continuous infinite auto-scrolling loop covering all 11 Agile Labs leaders.
  * Theme: Signature Warm Cream (#fff6e5) matching AXI platform design system.
  */
-import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
+import {
+  motion,
+  useScroll,
+  useTransform,
+  AnimatePresence,
+} from "framer-motion";
 import { useRef, useState } from "react";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
+import { assetUrl } from "@/lib/paths";
 import {
   Sparkles,
   ChevronLeft,
@@ -16,7 +22,7 @@ import {
   Info,
   Award,
   ShieldCheck,
-  UserCheck
+  UserCheck,
 } from "lucide-react";
 
 interface TeamMember {
@@ -42,12 +48,13 @@ const teamMembers: TeamMember[] = [
     image: "/team/sabarish.png",
     experience: "25+ Years Experience",
     highlight: "Architected US Patent #8539460",
-    shortBio: "Envisaged and developed the core US-Patented Axpert™ platform from desktop to high-scale cloud environments.",
+    shortBio:
+      "Envisaged and developed the core US-Patented Axpert™ platform from desktop to high-scale cloud environments.",
     details: [
       "Architected US Patent RAD Platform",
       "25+ Years Enterprise Low-Code Innovation",
-      "Spearheaded Axpert Cloud Engine"
-    ]
+      "Spearheaded Axpert Cloud Engine",
+    ],
   },
   {
     id: "jayavanth",
@@ -58,12 +65,13 @@ const teamMembers: TeamMember[] = [
     image: "/team/jayavanth.png",
     experience: "25+ Years Experience",
     highlight: "Strategic Executive Pillar & Growth",
-    shortBio: "Key strategic pillar driving enterprise business expansion, brand equity, and commercial growth.",
+    shortBio:
+      "Key strategic pillar driving enterprise business expansion, brand equity, and commercial growth.",
     details: [
       "Co-Founder of Agile Labs",
       "Director at Kwality Confectionery Group",
-      "EdTech & Software Business Pioneer"
-    ]
+      "EdTech & Software Business Pioneer",
+    ],
   },
   {
     id: "chandrashekar",
@@ -74,12 +82,13 @@ const teamMembers: TeamMember[] = [
     image: "/team/chandrashekar.png",
     experience: "30+ Years Experience",
     highlight: "Governance & Social Education",
-    shortBio: "Majority shareholder driving corporate governance, strategic expansion, and educational philanthropy.",
+    shortBio:
+      "Majority shareholder driving corporate governance, strategic expansion, and educational philanthropy.",
     details: [
       "Majority Shareholder & Director",
       "Enterprise Strategy & Governance",
-      "Philanthropist & Social Educator"
-    ]
+      "Philanthropist & Social Educator",
+    ],
   },
   {
     id: "vishwanatha",
@@ -90,12 +99,13 @@ const teamMembers: TeamMember[] = [
     image: "/team/vishwanatha.png",
     experience: "20+ Years Experience",
     highlight: "Heads Enterprise ERP Delivery",
-    shortBio: "Techno-commercial leader who established Axpert as dominant ERP software across African & international markets.",
+    shortBio:
+      "Techno-commercial leader who established Axpert as dominant ERP software across African & international markets.",
     details: [
       "Heads Enterprise ERP Delivery",
       "Established Axpert across African Markets",
-      "Expert in Trading, Mfg & Supply Chain"
-    ]
+      "Expert in Trading, Mfg & Supply Chain",
+    ],
   },
   {
     id: "bijaya",
@@ -106,12 +116,13 @@ const teamMembers: TeamMember[] = [
     image: "/team/bijaya.png",
     experience: "15+ Years Experience",
     highlight: "SKOCH Smart Governance Winner",
-    shortBio: "Instituted Agile's public sector division managing government procurements and state skill tracking.",
+    shortBio:
+      "Instituted Agile's public sector division managing government procurements and state skill tracking.",
     details: [
       "Instituted E-Gov Practice at Agile",
       "SKOCH Award Winner for Smart Governance",
-      "Public Sector Procurement Specialist"
-    ]
+      "Public Sector Procurement Specialist",
+    ],
   },
   {
     id: "vaidhees",
@@ -122,12 +133,13 @@ const teamMembers: TeamMember[] = [
     image: "/team/vaidhees.png",
     experience: "25+ Years Experience",
     highlight: "Strategic Defence Systems Architect",
-    shortBio: "25+ years engineering mission-critical software for high-security defence, manufacturing, and inventory systems.",
+    shortBio:
+      "25+ years engineering mission-critical software for high-security defence, manufacturing, and inventory systems.",
     details: [
       "Heads Strategic Defence Vertical",
       "Mission-Critical Software Expert",
-      "High-Security Systems Architect"
-    ]
+      "High-Security Systems Architect",
+    ],
   },
   {
     id: "unni",
@@ -138,12 +150,13 @@ const teamMembers: TeamMember[] = [
     image: "/team/unni.png",
     experience: "25+ Years Experience",
     highlight: "Axpert Kernel & Mobile Teams Lead",
-    shortBio: "Leads Web and Mobile engineering teams delivering Axpert standard presentation layer, REST services & microservices.",
+    shortBio:
+      "Leads Web and Mobile engineering teams delivering Axpert standard presentation layer, REST services & microservices.",
     details: [
       "Manages Axpert Kernel & Presentation",
       "Leads Web & Mobile Engineering Teams",
-      "Microservices Architecture Lead"
-    ]
+      "Microservices Architecture Lead",
+    ],
   },
   {
     id: "dhurga",
@@ -154,12 +167,13 @@ const teamMembers: TeamMember[] = [
     image: "/team/dhurga.png",
     experience: "18+ Years Experience",
     highlight: "Axpert Core Engine Chief Developer",
-    shortBio: "Chief full-stack developer responsible for Axpert core engine, Object-Oriented Design, and developer toolkits.",
+    shortBio:
+      "Chief full-stack developer responsible for Axpert core engine, Object-Oriented Design, and developer toolkits.",
     details: [
       "Chief Developer for Axpert Core",
       "18+ Yrs Full-Stack Engineering Mastery",
-      "Architect of Axpert Developer Tools"
-    ]
+      "Architect of Axpert Developer Tools",
+    ],
   },
   {
     id: "jeyram",
@@ -170,12 +184,13 @@ const teamMembers: TeamMember[] = [
     image: "/team/jeyram.png",
     experience: "20+ Years Experience",
     highlight: "Architected Solutions for 50+ MNCs",
-    shortBio: "Applications Solution Architect with 20+ years experience architecting ERP, supply chain, and HR solutions globally.",
+    shortBio:
+      "Applications Solution Architect with 20+ years experience architecting ERP, supply chain, and HR solutions globally.",
     details: [
       "Architected Solutions for 50+ MNCs",
       "Expert in Supply Chain & Enterprise Systems",
-      "20+ Years Domain & Database Mastery"
-    ]
+      "20+ Years Domain & Database Mastery",
+    ],
   },
   {
     id: "senthil",
@@ -186,12 +201,13 @@ const teamMembers: TeamMember[] = [
     image: "/team/senthil.png",
     experience: "12+ Years Experience",
     highlight: "Cloud & Mobile Solution Architect",
-    shortBio: "12+ years experience delivering cloud and on-premise solutions across manufacturing, banking, and e-governance.",
+    shortBio:
+      "12+ years experience delivering cloud and on-premise solutions across manufacturing, banking, and e-governance.",
     details: [
       "12+ Years Application Architecture",
       "Cloud & Mobile Deployment Lead",
-      "Cross-Industry Database Architect"
-    ]
+      "Cross-Industry Database Architect",
+    ],
   },
   {
     id: "pandi",
@@ -202,13 +218,14 @@ const teamMembers: TeamMember[] = [
     image: "/team/pandi.png",
     experience: "10+ Years Experience",
     highlight: "Process Mfg, POS & Inventory Lead",
-    shortBio: "Builds domain-specific solutions in process manufacturing, retail POS, inventory management, and sales distribution.",
+    shortBio:
+      "Builds domain-specific solutions in process manufacturing, retail POS, inventory management, and sales distribution.",
     details: [
       "Specialist in Process Mfg & POS",
       "10+ Years Solution Engineering",
-      "Inventory & Distribution Architect"
-    ]
-  }
+      "Inventory & Distribution Architect",
+    ],
+  },
 ];
 
 export default function ShowcaseSection() {
@@ -224,7 +241,11 @@ export default function ShowcaseSection() {
   });
 
   const parallaxY = useTransform(scrollYProgress, [0, 1], [15, -15]);
-  const scaleProgress = useTransform(scrollYProgress, [0, 0.5, 1], [0.98, 1, 0.99]);
+  const scaleProgress = useTransform(
+    scrollYProgress,
+    [0, 0.5, 1],
+    [0.98, 1, 0.99]
+  );
   const { ref, isVisible } = useScrollAnimation(0.1);
 
   // Triple array for infinite ticker loop
@@ -237,7 +258,7 @@ export default function ShowcaseSection() {
       const scrollAmount = direction === "left" ? -340 : 340;
       scrollTrackRef.current.scrollBy({
         left: scrollAmount,
-        behavior: "smooth"
+        behavior: "smooth",
       });
     }
   };
@@ -259,12 +280,13 @@ export default function ShowcaseSection() {
           transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
           className="text-center mb-8 md:mb-10"
         >
-
           <h2 className="text-3xl md:text-5xl font-extrabold font-display text-[#00007f] tracking-tight mb-3">
             The Visionaries Behind Agile Labs
           </h2>
           <p className="text-sm md:text-base text-[#00007f]/70 max-w-2xl mx-auto font-medium">
-            20+ years of US-Patented engineering mastery, domain leadership, and enterprise low-code innovation. Hover over any person to inspect bio overlay.
+            20+ years of US-Patented engineering mastery, domain leadership, and
+            enterprise low-code innovation. Hover over any person to inspect bio
+            overlay.
           </p>
         </motion.div>
 
@@ -310,8 +332,8 @@ export default function ShowcaseSection() {
                   repeat: Infinity,
                   repeatType: "loop",
                   duration: 40,
-                  ease: "linear"
-                }
+                  ease: "linear",
+                },
               }}
               className="flex items-center gap-6 whitespace-nowrap"
               style={{ willChange: "transform" }}
@@ -352,7 +374,7 @@ export default function ShowcaseSection() {
                         <div className="relative w-24 h-24 mx-auto mb-4 rounded-full p-1 bg-gradient-to-tr from-[#00007f] via-[#5c1380] to-[#d6573c] shadow-lg group-hover/card:rotate-3 transition-transform duration-500">
                           <div className="w-full h-full rounded-full overflow-hidden bg-white">
                             <img
-                              src={member.image}
+                              src={assetUrl(member.image)}
                               alt={member.name}
                               loading="lazy"
                               className="w-full h-full object-cover object-top group-hover/card:scale-110 transition-transform duration-700"
@@ -387,7 +409,10 @@ export default function ShowcaseSection() {
                             initial={{ opacity: 0, scale: 0.96 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.96 }}
-                            transition={{ duration: 0.25, ease: [0.23, 1, 0.32, 1] }}
+                            transition={{
+                              duration: 0.25,
+                              ease: [0.23, 1, 0.32, 1],
+                            }}
                             className="absolute inset-0 z-30 p-5 rounded-2xl bg-gradient-to-b from-[#00007f]/95 via-[#00007f]/95 to-[#00007f]/98 backdrop-blur-2xl text-white border border-[#fc8151]/50 shadow-2xl flex flex-col justify-between whitespace-normal"
                           >
                             {/* Glass Overlay Top Header */}
@@ -396,7 +421,7 @@ export default function ShowcaseSection() {
                                 <div className="flex items-center gap-2">
                                   <div className="w-8 h-8 rounded-full p-0.5 bg-[#fc8151] shrink-0 overflow-hidden">
                                     <img
-                                      src={member.image}
+                                      src={assetUrl(member.image)}
                                       alt={member.name}
                                       className="w-full h-full object-cover object-top rounded-full"
                                     />
@@ -422,9 +447,14 @@ export default function ShowcaseSection() {
                               {/* Key Highlights List */}
                               <div className="space-y-1.5">
                                 {member.details.map((detail, idx) => (
-                                  <div key={idx} className="flex items-start gap-1.5 text-[10px] text-white/90">
+                                  <div
+                                    key={idx}
+                                    className="flex items-start gap-1.5 text-[10px] text-white/90"
+                                  >
                                     <CheckCircle2 className="w-3 h-3 text-[#fc8151] shrink-0 mt-0.5" />
-                                    <span className="leading-tight">{detail}</span>
+                                    <span className="leading-tight">
+                                      {detail}
+                                    </span>
                                   </div>
                                 ))}
                               </div>
@@ -432,8 +462,12 @@ export default function ShowcaseSection() {
 
                             {/* Glass Overlay Bottom Footer */}
                             <div className="pt-2 border-t border-white/15 flex items-center justify-between text-[10px]">
-                              <span className="text-white/60 font-medium">Experience</span>
-                              <span className="font-bold text-[#fc8151]">{member.experience}</span>
+                              <span className="text-white/60 font-medium">
+                                Experience
+                              </span>
+                              <span className="font-bold text-[#fc8151]">
+                                {member.experience}
+                              </span>
                             </div>
                           </motion.div>
                         )}

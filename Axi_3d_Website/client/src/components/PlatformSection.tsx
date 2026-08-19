@@ -3,46 +3,66 @@
  * Split layout with text, glassy transparent sliding quote card, and clean video container
  */
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from "framer-motion";
+import {
+  motion,
+  AnimatePresence,
+  useMotionValue,
+  useSpring,
+  useTransform,
+} from "framer-motion";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
-import { ShieldCheck, Layers, Server, DollarSign, Brain, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  ShieldCheck,
+  Layers,
+  Server,
+  DollarSign,
+  Brain,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { useIsMobile } from "@/hooks/useMobile";
+import { assetUrl } from "@/lib/paths";
 
 const whyAxiCards = [
   {
     icon: ShieldCheck,
     title: "Cloud & Security",
     badge: "SECURITY",
-    description: "Hosting on a secure cloud with compliance to ISO, CMM, and SOC2 standards ensures data safety and privacy. The scalability of the platform is a big plus for businesses looking to grow without worrying about infrastructure limitations."
+    description:
+      "Hosting on a secure cloud with compliance to ISO, CMM, and SOC2 standards ensures data safety and privacy. The scalability of the platform is a big plus for businesses looking to grow without worrying about infrastructure limitations.",
   },
   {
     icon: Layers,
     title: "Comprehensive Functionality",
     badge: "CORE SUITE",
-    description: "Axi offers integrated management across key business functions, like inventory, assets, accounting, sales, and more. It's great that it can handle both standard and complex, non-standard business processes."
+    description:
+      "Axi offers integrated management across key business functions, like inventory, assets, accounting, sales, and more. It's great that it can handle both standard and complex, non-standard business processes.",
   },
   {
     icon: Server,
     title: "On-Premise Option",
     badge: "DEPLOYMENT",
-    description: "The option to deploy Axi on-premise caters to businesses that have strict data control requirements, offering flexibility for organizations with specific security or compliance needs."
+    description:
+      "The option to deploy Axi on-premise caters to businesses that have strict data control requirements, offering flexibility for organizations with specific security or compliance needs.",
   },
   {
     icon: DollarSign,
     title: "Cost Efficiency",
     badge: "PAY-AS-YOU-GO",
-    description: "The 'pay-for-usage' model is appealing for businesses that want to manage costs based on their actual use of the platform, rather than paying for unused capacity."
+    description:
+      "The 'pay-for-usage' model is appealing for businesses that want to manage costs based on their actual use of the platform, rather than paying for unused capacity.",
   },
   {
     icon: Brain,
     title: "AI Integration",
     badge: "AI / ML",
-    description: "The inclusion of AI, with the flexibility to choose which AI to use, is a powerful feature. The ability to automate tasks based on AI responses or simply use AI for enhanced decision-making adds a lot of value."
-  }
+    description:
+      "The inclusion of AI, with the flexibility to choose which AI to use, is a powerful feature. The ability to automate tasks based on AI responses or simply use AI for enhanced decision-making adds a lot of value.",
+  },
 ];
 
 interface WhyAxi3DCardProps {
-  activeCard: typeof whyAxiCards[0];
+  activeCard: (typeof whyAxiCards)[0];
   slideIndex: number;
   totalSlides: number;
   onSelectSlide: (index: number) => void;
@@ -134,10 +154,16 @@ function WhyAxi3DCard({
         {/* TOP 3D LAYER: Content floating with 3D Depth */}
         <div
           className="relative z-30 flex flex-col justify-between h-full space-y-4"
-          style={{ transform: "translateZ(30px)", transformStyle: "preserve-3d" }}
+          style={{
+            transform: "translateZ(30px)",
+            transformStyle: "preserve-3d",
+          }}
         >
           {/* Header Row */}
-          <div className="flex items-center justify-between gap-4" style={{ transform: "translateZ(10px)" }}>
+          <div
+            className="flex items-center justify-between gap-4"
+            style={{ transform: "translateZ(10px)" }}
+          >
             <div className="flex items-center gap-3">
               <div
                 className="w-11 h-11 rounded-2xl bg-[#00007f]/10 backdrop-blur-md flex items-center justify-center text-[#00007f] border border-white/60 shadow-xs group-hover:scale-105 transition-transform duration-300"
@@ -186,12 +212,14 @@ function WhyAxi3DCard({
               {Array.from({ length: totalSlides }).map((_, idx) => (
                 <button
                   key={idx}
-                  onClick={(e) => {
+                  onClick={e => {
                     e.stopPropagation();
                     onSelectSlide(idx);
                   }}
                   className={`h-2 rounded-full transition-all duration-300 ${
-                    idx === slideIndex ? "w-6 bg-[#fc8151]" : "w-2 bg-[#00007f]/20 hover:bg-[#00007f]/40"
+                    idx === slideIndex
+                      ? "w-6 bg-[#fc8151]"
+                      : "w-2 bg-[#00007f]/20 hover:bg-[#00007f]/40"
                   }`}
                   aria-label={`Go to slide ${idx + 1}`}
                 />
@@ -200,7 +228,7 @@ function WhyAxi3DCard({
 
             <div className="flex items-center gap-2">
               <button
-                onClick={(e) => {
+                onClick={e => {
                   e.stopPropagation();
                   onPrev();
                 }}
@@ -210,7 +238,7 @@ function WhyAxi3DCard({
                 <ChevronLeft size={16} />
               </button>
               <button
-                onClick={(e) => {
+                onClick={e => {
                   e.stopPropagation();
                   onNext();
                 }}
@@ -288,10 +316,15 @@ function Video3DCard({
         <div
           ref={videoContainerRef}
           className="w-full h-full relative"
-          style={{ transform: "translateZ(20px)", transformStyle: "preserve-3d" }}
+          style={{
+            transform: "translateZ(20px)",
+            transformStyle: "preserve-3d",
+          }}
         >
           <video
-            src={videoLoaded ? "/videos/TITLE SCREEN_axi.mp4" : undefined}
+            src={
+              videoLoaded ? assetUrl("videos/TITLE SCREEN_axi.mp4") : undefined
+            }
             autoPlay
             loop
             muted
@@ -327,11 +360,11 @@ export default function PlatformSection() {
   const [videoLoaded, setVideoLoaded] = useState(false);
 
   const handleNext = useCallback(() => {
-    setSlideIndex((prev) => (prev + 1) % whyAxiCards.length);
+    setSlideIndex(prev => (prev + 1) % whyAxiCards.length);
   }, []);
 
   const handlePrev = useCallback(() => {
-    setSlideIndex((prev) => (prev - 1 + whyAxiCards.length) % whyAxiCards.length);
+    setSlideIndex(prev => (prev - 1 + whyAxiCards.length) % whyAxiCards.length);
   }, []);
 
   useEffect(() => {
@@ -360,14 +393,17 @@ export default function PlatformSection() {
   const activeCard = whyAxiCards[slideIndex];
 
   return (
-    <section id="platform" ref={ref} className="py-10 md:py-14 px-5 sm:px-8 md:px-10 relative overflow-hidden bg-[#fff6e5] text-[#1E1B4B]">
+    <section
+      id="platform"
+      ref={ref}
+      className="py-10 md:py-14 px-5 sm:px-8 md:px-10 relative overflow-hidden bg-[#fff6e5] text-[#1E1B4B]"
+    >
       {/* Ambient decorative glow */}
       <div className="ambient-glow ambient-glow-coral w-[500px] h-[500px] top-1/2 left-0 -translate-y-1/2 -translate-x-1/3 pointer-events-none" />
       <div className="ambient-glow ambient-glow-blue w-[400px] h-[400px] top-1/3 right-0 translate-x-1/3 pointer-events-none" />
 
       <div className="max-w-7xl mx-auto relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-
           {/* LEFT 6 COLS: Text & Sliding Solution Quote Card */}
           <motion.div
             initial={{ opacity: 0, x: -50 }}
@@ -384,7 +420,11 @@ export default function PlatformSection() {
                 <span className="gradient-text">Keeps Moving</span>
               </h2>
               <p className="text-sm sm:text-base text-[#00007f] leading-relaxed font-normal mb-6 max-w-xl">
-                New forms, fields, and approval rules configured in house, in days One connected system — sales, stock, production, and finance update together Changes are additive: low-code structures don't fight each other Analytics, search, and 360° views are native to every record
+                New forms, fields, and approval rules configured in house, in
+                days One connected system — sales, stock, production, and
+                finance update together Changes are additive: low-code
+                structures don't fight each other Analytics, search, and 360°
+                views are native to every record
               </p>
             </div>
 
@@ -412,7 +452,6 @@ export default function PlatformSection() {
               videoContainerRef={videoContainerRef}
             />
           </motion.div>
-
         </div>
       </div>
     </section>

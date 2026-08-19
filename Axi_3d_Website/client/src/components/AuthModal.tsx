@@ -14,6 +14,7 @@ import { savePackageSetupFlow } from "@/lib/package-setup-flow";
 import { getSchemaValidationError } from "@/lib/schema-validation";
 import RedirectingModal from "./RedirectingModal";
 import { useLocation } from "wouter";
+import { assetUrl } from "@/lib/paths";
 
 // ── External OAuth URLs ────────────────────────────────────────────────────
 const GOOGLE_AUTH_URL =
@@ -747,7 +748,7 @@ export default function AuthModal() {
               <div className="text-center mb-6">
                 {mode === "signup" && (
                   <img
-                    src="/AXI_LOGO_AXPERT.png"
+                    src={assetUrl("AXI_LOGO_AXPERT.png")}
                     alt="Axi Logo"
                     className="h-10 mx-auto mb-3 object-contain"
                   />
