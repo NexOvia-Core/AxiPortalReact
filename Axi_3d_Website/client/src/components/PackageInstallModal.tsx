@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ChevronUp, Minus } from "lucide-react";
+import { ChevronUp, Minus, X } from "lucide-react";
 import { bff, type Schema } from "@/lib/bff";
 import {
   clearSelectedPackages,
@@ -76,6 +76,23 @@ export default function PackageInstallModal({
     packageStates.length === packages.length &&
     packageStates.every(item => isTerminalPackageStatus(item.status));
   const installationRunning = started && !allPackagesTerminal;
+  const installationActive = loading || installationRunning;
+  const installedCount = packageStates.filter(
+    item => item.status === "INSTALLED"
+  ).length;
+  const failedCount = packageStates.filter(
+    item => item.status === "FAILED"
+  ).length;
+  const completionMessage =
+    failedCount === 0
+      ? `All ${packages.length} selected package${
+          packages.length === 1 ? " was" : "s were"
+        } installed successfully.`
+      : installedCount === 0
+        ? `All ${packages.length} selected package${
+            packages.length === 1 ? " failed" : "s failed"
+          } to install.`
+        : `${installedCount} of ${packages.length} packages were installed successfully. ${failedCount} failed.`;
   useEffect(() => {
     if (packages.length !== 1) return;
     let active = true;
@@ -93,18 +110,12 @@ export default function PackageInstallModal({
     };
   }, [packageSignature, schema.axiaccid]);
   useEffect(() => {
-    if (!started || !allPackagesTerminal) return;
-    if (packageStates.some(item => item.status === "FAILED")) {
-      setError(
-        "One or more packages failed to install. Main-app access remains blocked."
-      );
-      return;
-    }
-  }, [allPackagesTerminal, packageStates, started]);
-  useEffect(() => {
-    onInstallationStateChange?.(installationRunning);
+    onInstallationStateChange?.(installationActive);
     return () => onInstallationStateChange?.(false);
-  }, [installationRunning, onInstallationStateChange]);
+  }, [installationActive, onInstallationStateChange]);
+  useEffect(() => {
+    if (allPackagesTerminal) setMinimized(false);
+  }, [allPackagesTerminal]);
   const start = async () => {
     setLoading(true);
     setError("");
@@ -124,12 +135,6 @@ export default function PackageInstallModal({
           ])
       );
       setStartFailures(failures);
-      if (Object.keys(failures).length === packages.length) {
-        setError(
-          "None of the selected packages could be queued for installation."
-        );
-        return;
-      }
       setStarted(true);
     } catch (error) {
       setError(
@@ -140,24 +145,20 @@ export default function PackageInstallModal({
     }
   };
   const close = () => {
-    if (installationRunning) return;
-    clearSelectedPackages();
+    if (installationActive) return;
+    if (started) clearSelectedPackages();
     onClose();
   };
 
   const continueToAxi = () => {
-    if (
-      !allPackagesTerminal ||
-      packageStates.some(item => item.status === "FAILED")
-    )
-      return;
+    if (installationActive || (started && !allPackagesTerminal)) return;
     clearSelectedPackages();
     onComplete();
   };
 
   return (
     <>
-      {minimized && started && (
+      {minimized && installationRunning && (
         <button
           type="button"
           onClick={() => setMinimized(false)}
@@ -170,7 +171,7 @@ export default function PackageInstallModal({
                   packageStatusLabels[currentPackage.status] ||
                   currentPackage.status
                 }`
-              : "Package installation complete"}
+              : "Installation is running in the background"}
           </span>
           <span className="flex items-center gap-2 font-bold">
             {progressPercentage}% <ChevronUp size={17} />
@@ -184,6 +185,17 @@ export default function PackageInstallModal({
               <h2 className="text-xl font-bold text-[#1E1B4B]">
                 {started ? "Installing packages" : "Confirm package setup"}
               </h2>
+              {!started && (
+                <button
+                  type="button"
+                  onClick={close}
+                  className="rounded p-1 text-slate-500 hover:bg-slate-100"
+                  aria-label="Close package confirmation"
+                  title="Close"
+                >
+                  <X size={20} />
+                </button>
+              )}
               {installationRunning && (
                 <button
                   type="button"
@@ -201,7 +213,7 @@ export default function PackageInstallModal({
                 Your selected package is ready to be installed for this account.
               </p>
             )}
-            {started && (
+            {started && !allPackagesTerminal && (
               <section aria-live="polite" className="space-y-3">
                 <div className="flex items-baseline justify-between text-sm text-slate-600">
                   <span>
@@ -261,16 +273,29 @@ export default function PackageInstallModal({
                 </div>
               ))}
             </div>
-            {(error || progress.error || existingStatus) && (
+            {started && allPackagesTerminal && (
               <p
-                role="alert"
-                className="rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+                role="status"
+                className={`rounded border px-3 py-2 text-sm font-medium ${
+                  failedCount === 0
+                    ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+                    : "border-amber-200 bg-amber-50 text-amber-800"
+                }`}
               >
-                {error ||
-                  existingStatus ||
-                  "Unable to retrieve package progress."}
+                {completionMessage}
               </p>
             )}
+            {(error || progress.error || existingStatus) &&
+              !allPackagesTerminal && (
+                <p
+                  role="alert"
+                  className="rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+                >
+                  {error ||
+                    existingStatus ||
+                    "Unable to retrieve package progress."}
+                </p>
+              )}
             {!started ? (
               <button
                 disabled={loading || Boolean(existingStatus)}
@@ -279,13 +304,18 @@ export default function PackageInstallModal({
               >
                 {loading ? "Starting..." : "Confirm installation"}
               </button>
-            ) : (
+            ) : installationRunning ? (
               <p className="text-sm text-slate-600">
                 Installation is in progress. Progress updates automatically.
               </p>
-            )}
+            ) : null}
             {!started && (
-              <button onClick={close} className="w-full text-sm text-slate-500">
+              <button
+                type="button"
+                disabled={loading}
+                onClick={continueToAxi}
+                className="w-full text-sm text-slate-500 disabled:cursor-not-allowed disabled:opacity-50"
+              >
                 Continue to AXI
               </button>
             )}
@@ -298,15 +328,13 @@ export default function PackageInstallModal({
                 >
                   Close
                 </button>
-                {!packageStates.some(item => item.status === "FAILED") && (
-                  <button
-                    type="button"
-                    onClick={continueToAxi}
-                    className="flex-1 rounded-xl bg-[#210062] py-3 text-sm font-bold text-white"
-                  >
-                    Continue to AXI
-                  </button>
-                )}
+                <button
+                  type="button"
+                  onClick={continueToAxi}
+                  className="flex-1 rounded-xl bg-[#210062] py-3 text-sm font-bold text-white"
+                >
+                  Continue to AXI
+                </button>
               </div>
             )}
           </div>

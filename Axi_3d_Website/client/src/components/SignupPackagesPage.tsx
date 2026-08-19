@@ -30,7 +30,13 @@ export default function SignupPackagesPage({
   const [installationInProgress, setInstallationInProgress] = useState(false);
   const [redirecting, setRedirecting] = useState(false);
   const [checkingPackage, setCheckingPackage] = useState("");
-  const [error, setError] = useState("");
+  const [pageError, setPageError] = useState("");
+  const [packageMessages, setPackageMessages] = useState<
+    Record<string, string>
+  >({});
+  const hasUnavailableSelection = selectedPackages.some(item =>
+    Boolean(packageMessages[item.packageName])
+  );
 
   useEffect(() => {
     if (!landingPackage) return;
@@ -41,15 +47,17 @@ export default function SignupPackagesPage({
       .then(result => {
         if (!active) return;
         if (result.status === "NEW") setPendingLandingConfirmation(true);
-        else
-          setError(
-            result.message ||
-              `${landingPackage.packageName} is already installed or being installed.`
-          );
+        else {
+          setPackageMessages({
+            [landingPackage.packageName]:
+              result.message ||
+              `${landingPackage.packageName} is already installed or being installed.`,
+          });
+        }
       })
       .catch(requestError => {
         if (!active) return;
-        setError(
+        setPageError(
           requestError instanceof Error
             ? requestError.message
             : "Unable to check the selected package."
@@ -92,22 +100,29 @@ export default function SignupPackagesPage({
     }
 
     setCheckingPackage(packageData.packageName);
-    setError("");
+    setPageError("");
+    setPackageMessages(current => {
+      const next = { ...current };
+      delete next[packageData.packageName];
+      return next;
+    });
     try {
       const result = await bff.packageStatus(
         schema.axiaccid,
         packageData.packageName
       );
       if (result.status && result.status !== "NEW") {
-        setError(
-          result.message ||
-            `${packageData.packageName} is already installed or being installed.`
-        );
+        setPackageMessages(current => ({
+          ...current,
+          [packageData.packageName]:
+            result.message ||
+            `${packageData.packageName} is already installed or being installed.`,
+        }));
         return;
       }
       setSelectedPackages(current => [...current, packageData]);
     } catch (requestError) {
-      setError(
+      setPageError(
         requestError instanceof Error
           ? requestError.message
           : "Unable to check the selected package."
@@ -125,8 +140,8 @@ export default function SignupPackagesPage({
           message={`Loading ${schema.axiaccid}...`}
         />
       )}
-      <div className="min-h-screen bg-slate-50 px-4 py-10 sm:px-8">
-        <main className="mx-auto max-w-3xl rounded-lg bg-white p-6 shadow-sm sm:p-10">
+      <div className="min-h-screen bg-slate-50 px-4 py-8 sm:px-8 lg:px-12">
+        <main className="mx-auto w-full max-w-7xl rounded-lg bg-white p-6 shadow-sm sm:p-8 lg:p-10">
           <p className="text-xs font-bold uppercase tracking-wide text-[#d6573c]">
             Package setup
           </p>
@@ -138,12 +153,12 @@ export default function SignupPackagesPage({
             installing a package now.
           </p>
 
-          {error && (
+          {pageError && (
             <p
               role="alert"
               className="mt-5 rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
             >
-              {error}
+              {pageError}
             </p>
           )}
 
@@ -154,7 +169,7 @@ export default function SignupPackagesPage({
             </p>
           )}
 
-          <div className="mt-7 grid gap-3 sm:grid-cols-2">
+          <div className="mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {packageCatalog.map(packageData => {
               const selected = selectedPackages.some(
                 item => item.packageName === packageData.packageName
@@ -190,13 +205,21 @@ export default function SignupPackagesPage({
                       <Check size={13} strokeWidth={3} />
                     ) : null}
                   </span>
-                  <span>
+                  <span className="min-w-0">
                     <span className="block text-sm font-bold text-[#1E1B4B]">
                       {packageData.packageName}
                     </span>
                     <span className="mt-1 block text-xs leading-5 text-slate-600">
                       {packageData.description}
                     </span>
+                    {packageMessages[packageData.packageName] && (
+                      <span
+                        role="status"
+                        className="mt-2 block text-xs font-medium text-amber-700"
+                      >
+                        {packageMessages[packageData.packageName]}
+                      </span>
+                    )}
                   </span>
                 </button>
               );
@@ -207,7 +230,11 @@ export default function SignupPackagesPage({
             {selectedPackages.length > 0 && (
               <button
                 type="button"
-                disabled={!initialized || installationInProgress}
+                disabled={
+                  !initialized ||
+                  installationInProgress ||
+                  hasUnavailableSelection
+                }
                 onClick={() => setShowConfirmation(true)}
                 className="inline-flex items-center gap-2 rounded bg-[#210062] px-5 py-3 text-sm font-bold uppercase tracking-wide text-white"
               >
