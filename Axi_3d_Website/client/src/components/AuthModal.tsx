@@ -13,7 +13,7 @@ import PasswordModal from "./PasswordModal";
 import { savePackageSetupFlow } from "@/lib/package-setup-flow";
 import { getSchemaValidationError } from "@/lib/schema-validation";
 import RedirectingModal from "./RedirectingModal";
-import { useLocation } from "wouter";
+import { useLocation, useRouter, useSearch } from "wouter";
 import { assetUrl } from "@/lib/paths";
 
 // ── External OAuth URLs ────────────────────────────────────────────────────
@@ -24,7 +24,9 @@ const MICROSOFT_AUTH_URL =
   "https://login.live.com/oauth20_authorize.srf?client_id=3fa91358-6f74-4525-b5df-da149652be36&scope=openid+profile+User.Read+email+offline_access&redirect_uri=https%3a%2f%2fwww.linkedin.com%2fmicrosoft-login%2fhandler&response_type=code&response_mode=form_post&uaid=b61353ce817e416c9169c2472339511c&msproxy=1&issuer=mso&tenant=consumers&ui_locales=en-US&epctrc=Z7GFDkyBolbmYfGapWNQv%2f9o7pCv0CtoaDVuxFdfKaw%3d9%3a1%3aCANARY%3abBvK%2bbI3A6LvRplnEb9orfOjPkAxsvK9%2btn5nf2ynUY%3d&epct=PAQABDgEAAAAdDD7nC9b5Q7JPd_okEQRFRXZvU3RzQXJ0aWZhY3RzCAAAAAAAw9HjIV01x20ZGYBv1bAfHI7EqFOL9y0ZU4NJ5cIMQKvPXqlpu-A3p0P2Ug9E9qqL-kmUKN_-liA-opeiz1P1qtf2duOjiHUdTFLIiARXkQQpldTaHeHk4ENhtPpbfuFU1z4WQV3yqOfvHVmpaXVfpdniQ1cOO4xoismLKBgjmCqGYoOUbN46S519UDNSqJWPAehFt1DDJ6Ej_fuv4JXDUyAA&jshs=0#";
 
 export default function AuthModal() {
-  const [, setLocation] = useLocation();
+  const [currentPath, setLocation] = useLocation();
+  const searchString = useSearch();
+  const router = useRouter();
   const {
     isOpen,
     mode,
@@ -75,6 +77,15 @@ export default function AuthModal() {
   const [selectedSchemaId, setSelectedSchemaId] = useState("");
   const [provisioningSchema, setProvisioningSchema] = useState<Schema>();
   const directLoginStarted = useRef(false);
+
+  const getCurrentUrl = () => {
+    const url = new URL(
+      router.hrefs(router.base + currentPath, router),
+      window.location.origin
+    );
+    url.search = searchString;
+    return url.href;
+  };
 
   const dismiss = () => {
     setEmail("");
@@ -147,7 +158,7 @@ export default function AuthModal() {
   }, [mode]);
 
   useEffect(() => {
-    const search = new URLSearchParams(window.location.search);
+    const search = new URLSearchParams(searchString);
     if (
       search.has("sessionId") ||
       search.has("key") ||
@@ -169,19 +180,19 @@ export default function AuthModal() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [searchString]);
 
   useEffect(() => {
     if (directLoginStarted.current) return;
 
-    const search = new URLSearchParams(window.location.search);
+    const search = new URLSearchParams(searchString);
     // The legacy portal accepts sessionId. Accept key as a compatibility alias
     // for existing email links, while preserving the BFF's SessionId contract.
     const sessionId = search.get("sessionId") || search.get("key");
     if (!sessionId) return;
 
     directLoginStarted.current = true;
-    window.history.replaceState(null, "", window.location.pathname);
+    setLocation(currentPath);
 
     const timer = window.setTimeout(() => {
       void bff
@@ -217,7 +228,7 @@ export default function AuthModal() {
     }, 500);
 
     return () => window.clearTimeout(timer);
-  }, [openLogin]);
+  }, [currentPath, openLogin, searchString, setLocation]);
 
   useEffect(() => {
     if (!window.location.hash.includes("access_token")) return;
@@ -274,16 +285,12 @@ export default function AuthModal() {
           error instanceof Error ? error.message : "LinkedIn sign-in failed."
         );
       } finally {
-        window.history.replaceState(
-          {},
-          document.title,
-          window.location.pathname
-        );
+        setLocation(currentPath);
         sessionStorage.removeItem("axi_oauth_mode");
       }
     };
     void finishLinkedIn();
-  }, []);
+  }, [currentPath, openLogin, openSignUp, setLocation]);
 
   const loginRememberedAccount = async (userName: string) => {
     setRememberedAccountLoading(userName);
@@ -490,7 +497,7 @@ export default function AuthModal() {
         .supabase!.createClient(url, publicKey)
         .auth.signInWithOAuth({
           provider: "linkedin_oidc",
-          options: { redirectTo: window.location.href },
+          options: { redirectTo: getCurrentUrl() },
         });
       return;
     }
