@@ -289,46 +289,68 @@ public sealed class AuthService(
             session = await RequireSessionAsync(ct);
         }
 
-        if (session is null || string.IsNullOrWhiteSpace(session?.Token))
-            return new DirectLoginResult(false, null, "UNAUTHORIZED");
+        var result = await BuildSessionRedirectUrlAsync(
+            session,
+            string.IsNullOrWhiteSpace(req.BrId) ? "" : req.BrId,
+            ct);
 
-        if (!string.IsNullOrWhiteSpace(session?.Error))
-            return new DirectLoginResult(false, null, "PROVISION_FAILED");
-        //return new DirectLoginResult(false, null, session.Error);
+        return new DirectLoginResult(result.Success, result.RedirectUrl, result.Error);
+    }
 
-        if (string.IsNullOrWhiteSpace(session.Email)) //||
-                                                      //string.IsNullOrWhiteSpace(session.AxiAccId) ||
-                                                      //string.IsNullOrWhiteSpace(session.UserName) ||
-                                                      //string.IsNullOrWhiteSpace(session.IsPrimary))
-        {
-            return new DirectLoginResult(
-                false,
-                null,
-                "UNDER_PROVISION");
-        }
+    public async Task<GetRedirectUrlResult> GetCurrentSessionRedirectUrlAsync(CancellationToken ct)
+    {
+        var session = await RequireSessionAsync(ct);
+        return await BuildSessionRedirectUrlAsync(session, "", ct);
+    }
 
-        // 3. Call AxiInfoToSignin
+    private async Task<GetRedirectUrlResult> BuildSessionRedirectUrlAsync(
+        SessionData session,
+        string brId,
+        CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(session.Token))
+            return new GetRedirectUrlResult(false, null, "UNAUTHORIZED");
+
+        if (!string.IsNullOrWhiteSpace(session.Error))
+            return new GetRedirectUrlResult(false, null, "PROVISION_FAILED");
+
+        if (string.IsNullOrWhiteSpace(session.Email))
+            return new GetRedirectUrlResult(false, null, "UNDER_PROVISION");
+
         var (signinSuccess, redirectUrl, signinError) = await BuildSigninUrlAsync(
-        schemaName: session.AxiAccId,
-        userName: session.UserName,
-        email: session.Email,
-        isPrimary: session.IsPrimary,
-        password: "",
-        keepMeSignIn: "",
-        brId: string.IsNullOrWhiteSpace(req.BrId) ? "" : req.BrId,
-        token: session.Token,
-        installedPackages: "",
-        ct: ct);
+            schemaName: session.AxiAccId,
+            userName: session.UserName,
+            email: session.Email,
+            isPrimary: session.IsPrimary,
+            password: "",
+            keepMeSignIn: "",
+            brId: brId,
+            token: session.Token,
+            installedPackages: "",
+            ct: ct);
 
         if (!signinSuccess)
         {
-            logger.LogWarning("DirectLogin: signin URL build failed for {Email}: {Msg}",
+            logger.LogWarning("Session redirect URL build failed for {Email}: {Msg}",
                 Mask(session.Email), signinError);
-            return new DirectLoginResult(false, null, signinError);
+            return new GetRedirectUrlResult(false, null, signinError);
         }
 
-        logger.LogInformation("DirectLogin: redirect URL generated for {Email}", Mask(session.Email));
-        return new DirectLoginResult(true, redirectUrl, null);
+        logger.LogInformation("Redirect URL generated for {Email}", Mask(session.Email));
+        return new GetRedirectUrlResult(true, redirectUrl, null);
+    }
+
+    public async Task<ProvisioningStatusResult> GetProvisioningStatusAsync(CancellationToken ct)
+    {
+        var session = await RequireSessionAsync(ct);
+
+        if (!string.IsNullOrWhiteSpace(session.Error))
+            return new ProvisioningStatusResult(false, "PROVISION_FAILED");
+
+        if (string.IsNullOrWhiteSpace(session.Email))
+            return new ProvisioningStatusResult(false, "UNDER_PROVISION");
+
+        return new ProvisioningStatusResult(true, null);
     }
 
     // ── 11. Verify User & Send Schemas ───────────────────────────────────────────
@@ -1351,8 +1373,6 @@ public sealed class AuthService(
         // 5. Build redirect URL
         var redirectUrl = $"{_opts.AppLoginUrl.TrimEnd('/')}?axi={Uri.EscapeDataString(keyInfo)}";
         //var redirectUrl = $"{GetCurrentBaseUrl()}/aspx/signin.aspx?axi={Uri.EscapeDataString(keyInfo)}";
-
-        await tokenStore.UpdateAsync(s => { s.RedirectUrl = redirectUrl; }, ct); 
 
         return (true, redirectUrl, null);
     }

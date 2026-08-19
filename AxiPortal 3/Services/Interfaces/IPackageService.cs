@@ -7,7 +7,6 @@ public interface IPackageService
 {
     Task<InstallPackageResponse> InstallPackageAsync(InstallPackageRequest req, CancellationToken ct);
     Task<PackageStatusResponse> CheckPackageStatusAsync(PackageStatusRequest req, CancellationToken ct);
-    Task<GetRedirectUrlResult> GetRedirectUrlAsync(CancellationToken ct);
     Task<PackageProgressResponse> GetInstallProgressAsync(PackageProgressRequest req, CancellationToken ct);
     Task<InstallPackagesResponse> InstallPackagesAsync(InstallPackagesRequest req, CancellationToken ct);
     Task<PackageLogDownload?> DownloadFailedPackageLogAsync(FailedPackageLogRequest req, CancellationToken ct);

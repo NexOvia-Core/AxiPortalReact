@@ -36,7 +36,6 @@ export default function PackageSetup() {
   return (
     <SignupPackagesPage
       schema={flow.schema}
-      redirectUrl={flow.redirectUrl}
       onContinue={() => {
         clearPackageSetupFlow();
       }}

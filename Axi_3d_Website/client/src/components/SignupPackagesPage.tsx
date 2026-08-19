@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Check, Loader2, PackageCheck } from "lucide-react";
 import { bff, type Schema } from "@/lib/bff";
+import { getBrowserId } from "@/lib/browser-id";
 import { packageCatalog } from "@/lib/package-catalog";
 import {
   clearSelectedPackages,
@@ -12,11 +13,9 @@ import RedirectingModal from "./RedirectingModal";
 
 export default function SignupPackagesPage({
   schema,
-  redirectUrl,
   onContinue,
 }: {
   schema: Schema;
-  redirectUrl: string;
   onContinue: () => void;
 }) {
   const [landingPackage] = useState(() => readSelectedPackages()[0]);
@@ -28,7 +27,11 @@ export default function SignupPackagesPage({
   const [pendingLandingConfirmation, setPendingLandingConfirmation] =
     useState(false);
   const [installationInProgress, setInstallationInProgress] = useState(false);
-  const [redirecting, setRedirecting] = useState(false);
+  const [redirecting, setRedirecting] = useState<{
+    url: string;
+    message: string;
+  }>();
+  const [redirectLoading, setRedirectLoading] = useState(false);
   const [checkingPackage, setCheckingPackage] = useState("");
   const [pageError, setPageError] = useState("");
   const [packageMessages, setPackageMessages] = useState<
@@ -81,10 +84,30 @@ export default function SignupPackagesPage({
     return () => cancelAnimationFrame(frame);
   }, [initialized, pendingLandingConfirmation]);
 
-  const continueToAxi = () => {
-    clearSelectedPackages();
-    onContinue();
-    setRedirecting(true);
+  const continueToAxi = async () => {
+    if (redirectLoading || redirecting) return;
+    setPageError("");
+    setRedirectLoading(true);
+    try {
+      const browserId = await getBrowserId();
+      const result = await bff.signinInfo(schema, false, undefined, browserId);
+      if (!result.redirectUrl)
+        throw new Error("The BFF did not return a redirect URL.");
+      clearSelectedPackages();
+      onContinue();
+      setRedirecting({
+        url: result.redirectUrl,
+        message: `Loading ${schema.axiaccid}...`,
+      });
+    } catch (requestError) {
+      setPageError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Unable to continue to AXI."
+      );
+    } finally {
+      setRedirectLoading(false);
+    }
   };
 
   const togglePackage = async (packageData: SelectedPackage) => {
@@ -136,8 +159,8 @@ export default function SignupPackagesPage({
     <>
       {redirecting && (
         <RedirectingModal
-          redirectUrl={redirectUrl}
-          message={`Loading ${schema.axiaccid}...`}
+          redirectUrl={redirecting.url}
+          message={redirecting.message}
         />
       )}
       <div className="min-h-screen bg-slate-50 px-4 py-8 sm:px-8 lg:px-12">
@@ -183,7 +206,8 @@ export default function SignupPackagesPage({
                   disabled={
                     Boolean(checkingPackage) ||
                     !initialized ||
-                    installationInProgress
+                    installationInProgress ||
+                    redirectLoading
                   }
                   onClick={() => void togglePackage(packageData)}
                   className={`flex min-h-32 items-start gap-3 rounded-lg border p-4 text-left transition disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:opacity-60 ${
@@ -233,7 +257,8 @@ export default function SignupPackagesPage({
                 disabled={
                   !initialized ||
                   installationInProgress ||
-                  hasUnavailableSelection
+                  hasUnavailableSelection ||
+                  redirectLoading
                 }
                 onClick={() => setShowConfirmation(true)}
                 className="inline-flex items-center gap-2 rounded bg-[#210062] px-5 py-3 text-sm font-bold uppercase tracking-wide text-white transition disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 disabled:opacity-100"
@@ -244,11 +269,11 @@ export default function SignupPackagesPage({
             )}
             <button
               type="button"
-              disabled={installationInProgress}
+              disabled={installationInProgress || redirectLoading}
               onClick={continueToAxi}
               className="rounded bg-[#d6573c] px-5 py-3 text-sm font-bold uppercase tracking-wide text-white transition disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 disabled:opacity-100"
             >
-              Continue to AXI
+              {redirectLoading ? "Opening AXI..." : "Continue to AXI"}
             </button>
           </div>
         </main>

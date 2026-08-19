@@ -162,6 +162,17 @@ public sealed class AuthController(IAuthService authService, ILogger<AuthControl
         return Ok(ApiResponse<object>.Ok(data));
     }
 
+    // POST /api/auth/provision-status [SECURE]
+    // Checks provisioning state without generating an application redirect URL.
+    [HttpPost("provision-status")]
+    [ProducesResponseType(typeof(ApiResponse<object>), 200)]
+    [ProducesResponseType(typeof(ApiResponse<object>), 401)]
+    public async Task<IActionResult> ProvisionStatus(CancellationToken ct)
+    {
+        var data = await authService.GetProvisioningStatusAsync(ct);
+        return Ok(ApiResponse<object>.Ok(data));
+    }
+
     // POST /api/auth/keepme-signin [SECURE]
     // Returns AES-encrypted query with full URL for redirect to the main Axi app.
     [HttpPost("keepme-signin")]

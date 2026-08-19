@@ -13,16 +13,14 @@ function provisioningPollIntervalMs() {
 export function useProvisioningStatus(enabled: boolean) {
   return useQuery({
     queryKey: ["provisioning-status"],
-    queryFn: () => bff.directLogin(),
+    queryFn: () => bff.provisioningStatus(),
     enabled,
     retry: false,
     refetchInterval: query => {
       if (query.state.error) return false;
 
       const result = query.state.data;
-      return result?.success ||
-        result?.error === "PROVISION_FAILED" ||
-        result?.error === "UNAUTHORIZED"
+      return result?.success || result?.error === "PROVISION_FAILED"
         ? false
         : provisioningPollIntervalMs();
     },

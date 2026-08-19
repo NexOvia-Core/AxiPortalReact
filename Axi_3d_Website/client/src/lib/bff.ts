@@ -151,6 +151,8 @@ export const bff = {
       "auth/direct-login",
       { sessionId: sessionId || "" }
     ),
+  provisioningStatus: () =>
+    request<{ success: boolean; error?: string }>("auth/provision-status", {}),
   rememberSignIn: (brId: string, userName: string) =>
     request<{ redirectUrl?: string }>("auth/keepme-signin", { brId, userName }),
   oauthConfig: () => request<OAuthConfig>("oauth/config"),

@@ -4,9 +4,10 @@ import {
   clearSelectedPackages,
   readSelectedPackages,
 } from "@/lib/package-selection";
-import PackageInstallModal from "./PackageInstallModal";
 import { getSchemaValidationError } from "@/lib/schema-validation";
 import RedirectingModal from "./RedirectingModal";
+import { savePackageSetupFlow } from "@/lib/package-setup-flow";
+import { useLocation } from "wouter";
 
 export default function SchemaSelectionModal({
   schemas,
@@ -23,12 +24,11 @@ export default function SchemaSelectionModal({
   requirePassword?: boolean;
   browserId?: string;
 }) {
+  const [, setLocation] = useLocation();
   const [selected, setSelected] = useState(schemas[0]?.axiaccid || "");
   const [loading, setLoading] = useState(false);
-  const [installing, setInstalling] = useState(false);
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [installationInProgress, setInstallationInProgress] = useState(false);
   const [redirecting, setRedirecting] = useState<{
     url: string;
     message: string;
@@ -55,9 +55,11 @@ export default function SchemaSelectionModal({
           secondaryAuth.ssoKey,
           secondaryAuth.ssoProvider
         );
-      if (readSelectedPackages().length > 0) {
-        setInstalling(true);
-        setLoading(false);
+      const packages = readSelectedPackages();
+      if (schema.isprimary === "T" && packages.length > 0) {
+        savePackageSetupFlow({ schema });
+        onClose();
+        setLocation("/packages/setup");
         return;
       }
       const result = await bff.signinInfo(
@@ -86,21 +88,6 @@ export default function SchemaSelectionModal({
           message={redirecting.message}
         />
       )}
-      {installing && schema ? (
-        <PackageInstallModal
-          schema={schema}
-          packages={readSelectedPackages()}
-          onComplete={() => {
-            setInstalling(false);
-            continueToApp();
-          }}
-          onClose={() => {
-            clearSelectedPackages();
-            setInstalling(false);
-          }}
-          onInstallationStateChange={setInstallationInProgress}
-        />
-      ) : null}
       <div className="fixed inset-0 z-[210] flex items-center justify-center p-4 bg-black/70">
         <div className="w-full max-w-md rounded-2xl bg-white p-7 space-y-4">
           <h2 className="text-xl font-bold text-[#1E1B4B]">
@@ -144,7 +131,7 @@ export default function SchemaSelectionModal({
           )}
           <button
             onClick={continueToApp}
-            disabled={loading || installationInProgress}
+            disabled={loading}
             className="w-full rounded-xl bg-[#210062] py-3 font-bold text-white"
           >
             {loading ? "Opening..." : "Continue"}

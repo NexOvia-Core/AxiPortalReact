@@ -116,16 +116,6 @@ public sealed class PackageService(
         return new PackageProgressResponse(true, statuses);
     }
 
-    public async Task<GetRedirectUrlResult> GetRedirectUrlAsync(CancellationToken ct)
-    {
-        var session = await RequireSessionAsync(ct); // throws UnauthorizedException → real 401 case
-
-        if (string.IsNullOrWhiteSpace(session.RedirectUrl))
-            return new GetRedirectUrlResult(false, "", "REDIRECT_NOT_READY");
-
-        return new GetRedirectUrlResult(true, session.RedirectUrl, "");
-    }
-
     public async Task<PackageLogDownload?> DownloadFailedPackageLogAsync(
         FailedPackageLogRequest req,
         CancellationToken ct)

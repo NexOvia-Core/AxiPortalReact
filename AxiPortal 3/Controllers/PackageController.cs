@@ -16,7 +16,10 @@ namespace AxiPortal.BFF.Controllers;
 [Route("api/package")]
 [Produces("application/json")]
 
-public sealed class PackageController(IPackageService packageService, ILogger<PackageController> logger): ControllerBase
+public sealed class PackageController(
+    IPackageService packageService,
+    IAuthService authService,
+    ILogger<PackageController> logger) : ControllerBase
 {
     // POST /api/package/check-status
     // Checks the package status in redis
@@ -60,7 +63,7 @@ public sealed class PackageController(IPackageService packageService, ILogger<Pa
     {
         //logger.LogInformation("Processing package {PackageName} for {SchemaName}", req.PackageName, req.SchemaName);
 
-        var result = await packageService.GetRedirectUrlAsync(ct);
+        var result = await authService.GetCurrentSessionRedirectUrlAsync(ct);
 
         if (!result.Success)
             return BadRequest(ApiResponse<object>.Fail(result.Error ?? "Failed.", "SESSION_ERROR"));

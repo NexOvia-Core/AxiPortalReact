@@ -73,6 +73,8 @@ public interface IAuthService
     Task<object> GetSigninInfoAsync(SigninInfoRequest req, CancellationToken ct);
 
     Task<DirectLoginResult> DirectLoginAsync(DirectLoginRequest req, CancellationToken ct);
+    Task<GetRedirectUrlResult> GetCurrentSessionRedirectUrlAsync(CancellationToken ct);
+    Task<ProvisioningStatusResult> GetProvisioningStatusAsync(CancellationToken ct);
     Task<VerifyUserResult> VerifyAndSendSchemasAsync(VerifyAndSendSchemasRequest req, CancellationToken ct);
     Task<object> GetKeepMeSignin(KeepMeSigninListRequest req, CancellationToken ct);
     Task<EncryptUrlResult> KeepMeSignInAsync(KeepMeSignInRequest req, CancellationToken ct);

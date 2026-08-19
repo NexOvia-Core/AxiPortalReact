@@ -6,7 +6,7 @@ export default function ProvisionProgressModal({
   onReady,
   onDismiss,
 }: {
-  onReady: (redirectUrl: string) => void;
+  onReady: () => void;
   onDismiss: () => void;
 }) {
   const status = useProvisioningStatus(true);
@@ -18,10 +18,10 @@ export default function ProvisionProgressModal({
     result?.error === "UNAUTHORIZED";
 
   useEffect(() => {
-    if (hasCompleted.current || !result?.success || !result.redirectUrl) return;
+    if (hasCompleted.current || !result?.success) return;
     hasCompleted.current = true;
-    onReady(result.redirectUrl);
-  }, [onReady, result?.redirectUrl, result?.success]);
+    onReady();
+  }, [onReady, result?.success]);
 
   const errorMessage = status.error
     ? status.error instanceof Error
@@ -48,7 +48,9 @@ export default function ProvisionProgressModal({
           <Loader2 className="mx-auto h-10 w-10 animate-spin text-white" />
         )}
         <h2 id="provision-progress-title" className="mt-5 text-2xl font-bold">
-          {failed ? "Provisioning could not continue" : "Preparing your AXI account"}
+          {failed
+            ? "Provisioning could not continue"
+            : "Preparing your AXI account"}
         </h2>
         <p
           id="provision-progress-description"

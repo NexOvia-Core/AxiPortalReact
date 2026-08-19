@@ -5,6 +5,11 @@ public sealed record DirectLoginResult(
     string? RedirectUrl,
     string? Error
 );
+
+public sealed record ProvisioningStatusResult(
+    bool Success,
+    string? Error
+);
 public sealed record GetRedirectUrlResult(
     bool Success,
     string? RedirectUrl,

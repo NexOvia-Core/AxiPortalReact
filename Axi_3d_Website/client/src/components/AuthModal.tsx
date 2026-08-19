@@ -616,6 +616,15 @@ export default function AuthModal() {
           secondaryAuth.ssoProvider
         );
 
+      const packages = readSelectedPackages();
+      if (schema.isprimary === "T" && packages.length > 0) {
+        setShowPasswordModal(false);
+        savePackageSetupFlow({ schema });
+        closeModal();
+        setLocation("/packages/setup");
+        return;
+      }
+
       const currentBrowserId = browserId || (await getBrowserId());
       setBrowserId(currentBrowserId);
       const result = await bff.signinInfo(
@@ -627,14 +636,6 @@ export default function AuthModal() {
       if (!result.redirectUrl)
         throw new Error("The BFF did not return a redirect URL.");
 
-      const packages = readSelectedPackages();
-      if (schema.isprimary === "T" && packages.length > 0) {
-        setShowPasswordModal(false);
-        savePackageSetupFlow({ schema, redirectUrl: result.redirectUrl });
-        closeModal();
-        setLocation("/packages/setup");
-        return;
-      }
       setRedirecting({
         url: result.redirectUrl,
         message: `Loading ${schema.axiaccid}...`,
@@ -1123,8 +1124,8 @@ export default function AuthModal() {
       )}
       {provisioningSchema && (
         <ProvisionProgressModal
-          onReady={redirectUrl => {
-            savePackageSetupFlow({ schema: provisioningSchema, redirectUrl });
+          onReady={() => {
+            savePackageSetupFlow({ schema: provisioningSchema });
             setProvisioningSchema(undefined);
             closeModal();
             setLocation("/packages/setup");

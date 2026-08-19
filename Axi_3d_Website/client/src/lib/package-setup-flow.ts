@@ -4,7 +4,6 @@ const storageKey = "axi_package_setup_flow";
 
 export type PackageSetupFlow = {
   schema: Schema;
-  redirectUrl: string;
 };
 
 export function savePackageSetupFlow(flow: PackageSetupFlow) {
@@ -16,7 +15,7 @@ export function readPackageSetupFlow(): PackageSetupFlow | undefined {
     const flow = JSON.parse(
       sessionStorage.getItem(storageKey) || "null"
     ) as PackageSetupFlow | null;
-    if (!flow?.schema?.axiaccid || !flow.redirectUrl) return undefined;
+    if (!flow?.schema?.axiaccid) return undefined;
     return flow;
   } catch {
     return undefined;
