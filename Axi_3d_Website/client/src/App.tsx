@@ -5,7 +5,7 @@ import NotFound from "@/pages/NotFound";
 import Modules from "@/pages/Modules";
 import About from "@/pages/About";
 import Partners from "@/pages/Partners";
-import { Route, Switch } from "wouter";
+import { Route, Router as WouterRouter, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
@@ -25,54 +25,58 @@ import CaseStudyKSBC from "@/pages/CaseStudyKSBC";
 import CaseStudyMetro from "@/pages/CaseStudyMetro";
 import PackageSetup from "@/pages/PackageSetup";
 
-function Router() {
+const APP_BASE_PATH = "/axi-global/AxiPortal";
+
+function AppRouter() {
   return (
-    <Switch>
-      <Route path={"/"} component={Home} />
-      <Route path={"/modules"} component={Modules} />
-      <Route path={"/packages/setup"} component={PackageSetup} />
-      <Route path={"/packages"} component={Modules} />
-      <Route path={"/about"} component={About} />
-      <Route path={"/about-us"} component={About} />
-      <Route path={"/partners"} component={Partners} />
-      <Route path={"/case-studies"} component={CaseStudies} />
-      <Route
-        path={"/case-studies/axpert-healthcare-manufacturing"}
-        component={CaseStudySutures}
-      />
-      <Route
-        path={"/case-studies/bidhannagar-commissionerate"}
-        component={CaseStudyBidhannagar}
-      />
-      <Route
-        path={"/case-studies/kauvery-group-of-hospitals"}
-        component={CaseStudyKauvery}
-      />
-      <Route
-        path={"/case-studies/state-insurance-provident-fund"}
-        component={CaseStudyStateInsurance}
-      />
-      <Route
-        path={"/case-studies/axpert_ockham-oncology"}
-        component={CaseStudyOckham}
-      />
-      <Route
-        path={"/case-studies/karnataka-state-beverages"}
-        component={CaseStudyKSBC}
-      />
-      <Route
-        path={"/case-studies/axpert-metro-rail"}
-        component={CaseStudyMetro}
-      />
-      <Route path={"/news-events"} component={NewsEvents} />
-      <Route path={"/team"} component={Team} />
-      <Route path={"/careers"} component={Careers} />
-      <Route path={"/blog"} component={Blog} />
-      <Route path={"/contact-us"} component={ContactUs} />
-      <Route path={"/faq"} component={Faq} />
-      <Route path={"/404"} component={NotFound} />
-      <Route component={NotFound} />
-    </Switch>
+    <WouterRouter base={APP_BASE_PATH}>
+      <Switch>
+        <Route path={"/"} component={Home} />
+        <Route path={"/modules"} component={Modules} />
+        <Route path={"/packages/setup"} component={PackageSetup} />
+        <Route path={"/packages"} component={Modules} />
+        <Route path={"/about"} component={About} />
+        <Route path={"/about-us"} component={About} />
+        <Route path={"/partners"} component={Partners} />
+        <Route path={"/case-studies"} component={CaseStudies} />
+        <Route
+          path={"/case-studies/axpert-healthcare-manufacturing"}
+          component={CaseStudySutures}
+        />
+        <Route
+          path={"/case-studies/bidhannagar-commissionerate"}
+          component={CaseStudyBidhannagar}
+        />
+        <Route
+          path={"/case-studies/kauvery-group-of-hospitals"}
+          component={CaseStudyKauvery}
+        />
+        <Route
+          path={"/case-studies/state-insurance-provident-fund"}
+          component={CaseStudyStateInsurance}
+        />
+        <Route
+          path={"/case-studies/axpert_ockham-oncology"}
+          component={CaseStudyOckham}
+        />
+        <Route
+          path={"/case-studies/karnataka-state-beverages"}
+          component={CaseStudyKSBC}
+        />
+        <Route
+          path={"/case-studies/axpert-metro-rail"}
+          component={CaseStudyMetro}
+        />
+        <Route path={"/news-events"} component={NewsEvents} />
+        <Route path={"/team"} component={Team} />
+        <Route path={"/careers"} component={Careers} />
+        <Route path={"/blog"} component={Blog} />
+        <Route path={"/contact-us"} component={ContactUs} />
+        <Route path={"/faq"} component={Faq} />
+        <Route path={"/404"} component={NotFound} />
+        <Route component={NotFound} />
+      </Switch>
+    </WouterRouter>
   );
 }
 
@@ -93,7 +97,7 @@ function App() {
           <TooltipProvider>
             <AuthModalProvider>
               <Toaster />
-              <Router />
+              <AppRouter />
               <AuthModal />
             </AuthModalProvider>
           </TooltipProvider>

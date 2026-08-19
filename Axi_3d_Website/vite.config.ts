@@ -6,7 +6,7 @@ import { defineConfig } from "vite";
 const bffOrigin = process.env.VITE_BFF_ORIGIN || "http://localhost/AxiPortalBFF";
 
 export default defineConfig({
-  base: process.env.VITE_APP_BASE_PATH || "/",
+  base: process.env.VITE_APP_BASE_PATH || "/axi-global/AxiPortal/",
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
