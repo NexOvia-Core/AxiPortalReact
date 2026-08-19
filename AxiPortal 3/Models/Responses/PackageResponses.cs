@@ -13,8 +13,11 @@ public sealed record InstallPackageResult(
 
 public sealed record PackageProgressResponse ( bool Success, List<PackageProgressItem> Statuses ); 
 
-public sealed record PackageProgressItem
-( string PackageName, string Status );
+public sealed record PackageProgressItem(
+    string PackageName,
+    string Status,
+    string? LogUrl = null
+);
 
 
 public sealed record PackageStatusResponse(

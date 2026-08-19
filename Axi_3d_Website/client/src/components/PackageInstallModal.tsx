@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronUp, Minus, X } from "lucide-react";
+import { ChevronUp, Download, Minus, X } from "lucide-react";
 import { bff, type Schema } from "@/lib/bff";
 import {
   clearSelectedPackages,
@@ -59,6 +59,9 @@ export default function PackageInstallModal({
     installationAttempt
   );
   const progressItems = Array.isArray(progress.data) ? progress.data : [];
+  const progressItemsByPackage = Object.fromEntries(
+    progressItems.map(item => [item.packageName, item])
+  );
   const statuses = Object.fromEntries(
     progressItems.map(item => [item.packageName, item.status])
   );
@@ -69,6 +72,7 @@ export default function PackageInstallModal({
     packageName: item.packageName,
     // A landing-page selection is ready for confirmation, not yet queued.
     status: statuses[item.packageName] || (started ? "QUEUED" : "PREPARED"),
+    logUrl: progressItemsByPackage[item.packageName]?.logUrl,
   }));
   const completedCount = packageStates.filter(item =>
     isTerminalPackageStatus(item.status)
@@ -265,24 +269,34 @@ export default function PackageInstallModal({
             )}
             <div className="max-h-52 space-y-2 overflow-y-auto">
               {packageStates.map(item => (
-                <div
-                  key={item.packageName}
-                  className="flex justify-between gap-4 border-b pb-2 text-sm"
-                >
-                  <span className="font-medium text-slate-800">
-                    {item.packageName}
-                  </span>
-                  <span
-                    className={
-                      item.status === "FAILED"
-                        ? "text-red-700"
-                        : item.status === "INSTALLED"
-                          ? "text-emerald-700"
-                          : "text-slate-600"
-                    }
-                  >
-                    {packageStatusLabels[item.status] || item.status}
-                  </span>
+                <div key={item.packageName} className="border-b pb-2 text-sm">
+                  <div className="flex justify-between gap-4">
+                    <span className="font-medium text-slate-800">
+                      {item.packageName}
+                    </span>
+                    <span
+                      className={
+                        item.status === "FAILED"
+                          ? "text-red-700"
+                          : item.status === "INSTALLED"
+                            ? "text-emerald-700"
+                            : "text-slate-600"
+                      }
+                    >
+                      {packageStatusLabels[item.status] || item.status}
+                    </span>
+                  </div>
+                  {item.status === "FAILED" && item.logUrl && (
+                    <a
+                      href={item.logUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-[#210062] hover:underline"
+                    >
+                      <Download size={14} />
+                      Download installation log
+                    </a>
+                  )}
                 </div>
               ))}
             </div>

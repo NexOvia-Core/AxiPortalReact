@@ -20,6 +20,7 @@ public sealed class AxiOptions
     public int HttpTimeoutSecs { get; init; } = 30;
     public int RetryCount { get; init; } = 3;
     [Required, Url] public string ArmUrl { get; init; } = string.Empty;
+    public string ArmScriptUrl { get; init; } = string.Empty;
     [Required, Url] public string AppLoginUrl { get; init; } = string.Empty;
     [Required, Url] public string AppWebDomain { get; init; } = string.Empty;
 }

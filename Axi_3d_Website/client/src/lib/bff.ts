@@ -194,6 +194,7 @@ export type PackageProgress = {
   packageName: string;
   status: string;
   message?: string;
+  logUrl?: string;
 };
 export type PackageInstallResult = {
   results?: Array<{

@@ -100,7 +100,10 @@ public sealed class PackageService(
             var response = await RedisReadValueAsync(schema, redisKey, ct);
 
             string status = GetString(response, "result") ?? "QUEUED";
-            statuses.Add(new PackageProgressItem(packageName, status));
+            var logUrl = status == "FAILED"
+                ? await GetFailedPackageLogUrlAsync(schema, req.Username, pkgKey, ct)
+                : null;
+            statuses.Add(new PackageProgressItem(packageName, status, logUrl));
 
             // Terminal states are one-shot: clear so future polls/installs start clean.
             if (status is "INSTALLED" or "FAILED")
@@ -128,6 +131,32 @@ public sealed class PackageService(
         var key = $"{schema}-{prefix}_{pkgKey}";
         var resp = await RedisReadValueAsync(schema, key, ct);
         return resp.TryGetProperty("success", out var s) && s.GetBoolean();
+    }
+
+    private async Task<string?> GetFailedPackageLogUrlAsync(
+        string schema,
+        string username,
+        string pkgKey,
+        CancellationToken ct)
+    {
+        var failedKey = $"{schema}_{username}_{pkgKey}_FAILED";
+        var response = await RedisReadValueAsync(schema, failedKey, ct);
+        var fileName = GetString(response, "value") ?? GetString(response, "result");
+
+        if (string.IsNullOrWhiteSpace(fileName) ||
+            !string.Equals(fileName, Path.GetFileName(fileName), StringComparison.Ordinal))
+        {
+            return null;
+        }
+
+        if (!Uri.TryCreate(_opts.ArmScriptUrl, UriKind.Absolute, out var scriptsBase))
+        {
+            logger.LogWarning("ArmScriptUrl is not configured; failed package log links are unavailable.");
+            return null;
+        }
+
+        var logDirectory = new Uri(scriptsBase.ToString().TrimEnd('/') + "/AxInstallerLogs/");
+        return new Uri(logDirectory, Uri.EscapeDataString(fileName)).ToString();
     }
 
     /// <summary>
