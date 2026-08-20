@@ -159,6 +159,7 @@ export default function AuthModal() {
 
   useEffect(() => {
     const search = new URLSearchParams(searchString);
+
     if (
       search.has("sessionId") ||
       search.has("key") ||
@@ -192,12 +193,14 @@ export default function AuthModal() {
     if (!sessionId) return;
 
     directLoginStarted.current = true;
-    setLocation(currentPath);
 
     const timer = window.setTimeout(() => {
       void bff
         .directLogin(sessionId)
         .then(result => {
+          // Remove sessionId/key from the URL only after processing
+          setLocation(currentPath);
+
           if (result.success && result.redirectUrl) {
             setRedirecting({
               url: result.redirectUrl,
@@ -218,6 +221,8 @@ export default function AuthModal() {
           openLogin();
         })
         .catch(requestError => {
+          setLocation(currentPath);
+
           setError(
             requestError instanceof Error
               ? requestError.message
