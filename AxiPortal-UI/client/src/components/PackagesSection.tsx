@@ -1,6 +1,6 @@
 import React, { useRef, useState } from "react";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
-import { useAuthModal } from "@/contexts/AuthContext";
+import { useLocation } from "wouter";
 import {
   ShoppingCart,
   CircleDollarSign,
@@ -11,10 +11,16 @@ import {
   ArrowUpRight,
   Sparkles,
   CheckCircle2,
+  Download,
   type LucideIcon,
 } from "lucide-react";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import { useIsMobile } from "@/hooks/useMobile";
+import { useAuthModal } from "@/contexts/AuthContext";
+
+interface PackagesSectionProps {
+  onInstallClick?: (packageName?: string) => void;
+}
 
 interface PackageItem {
   id: string;
@@ -105,13 +111,28 @@ const packagesList: PackageItem[] = [
   },
 ];
 
-function GlassKpiCard({ pkg, index }: { pkg: PackageItem; index: number }) {
+function GlassKpiCard({
+  pkg,
+  index,
+  onInstallClick,
+}: {
+  pkg: PackageItem;
+  index: number;
+  onInstallClick?: (name: string) => void;
+}) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
-  const { openSignUp, selectPackage } = useAuthModal();
+  const [, setLocation] = useLocation();
   const isMobile = useIsMobile();
 
-  const handleSelectPackage = (e: React.MouseEvent) => {
+  const { openSignUp, selectPackage } = useAuthModal();
+
+  const handleExplore = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setLocation(`/modules#${pkg.targetModuleId}`);
+  };
+
+  const handleInstall = (e: React.MouseEvent) => {
     e.stopPropagation();
     selectPackage(pkg.title, "1.0");
     openSignUp();
@@ -255,22 +276,35 @@ function GlassKpiCard({ pkg, index }: { pkg: PackageItem; index: number }) {
           </div>
         </div>
 
-        {/* BOTTOM LAYER: 3D Action Button (Only this button triggers navigation) */}
+        {/* BOTTOM LAYER: 3D Action Buttons */}
         <div
-          className="relative z-20 pt-3 mt-2 flex items-center justify-start"
+          className="relative z-20 pt-3 mt-2 flex items-center justify-start gap-2.5"
           style={{ transform: "translateZ(22px)" }}
         >
           <motion.button
-            onClick={handleSelectPackage}
+            onClick={handleExplore}
             whileHover={{ scale: 1.04 }}
             whileTap={{ scale: 0.96 }}
             className="px-4 py-1.5 rounded-lg font-bold text-xs text-[#00007f] bg-white/70 hover:bg-white backdrop-blur-md border border-white shadow-2xs transition-all flex items-center gap-1 group/btn cursor-pointer z-30"
           >
-            <span>Select package</span>
+            <span>{pkg.actionText}</span>
             <ArrowUpRight
               size={14}
               className="text-[#00007f] group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform"
             />
+          </motion.button>
+
+          <motion.button
+            onClick={handleInstall}
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.96 }}
+            className="px-3.5 py-1.5 rounded-lg font-bold text-xs text-[#00007f] hover:text-[#fc8151] bg-white/70 hover:bg-white backdrop-blur-md border border-white shadow-2xs transition-all flex items-center gap-1.5 group/install cursor-pointer z-30"
+          >
+            <Download
+              size={13}
+              className="text-[#00007f] group-hover/install:text-[#fc8151] transition-colors"
+            />
+            <span>Install</span>
           </motion.button>
         </div>
       </motion.div>
@@ -278,7 +312,9 @@ function GlassKpiCard({ pkg, index }: { pkg: PackageItem; index: number }) {
   );
 }
 
-export default function PackagesSection() {
+export default function PackagesSection({
+  onInstallClick,
+}: PackagesSectionProps) {
   const { ref, isVisible } = useScrollAnimation(0.15);
 
   return (
@@ -327,7 +363,12 @@ export default function PackagesSection() {
         {/* 3D REALISTIC RECTANGULAR KPI CARDS GRID */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-7 items-stretch">
           {packagesList.map((pkg, index) => (
-            <GlassKpiCard key={pkg.id} pkg={pkg} index={index} />
+            <GlassKpiCard
+              key={pkg.id}
+              pkg={pkg}
+              index={index}
+              onInstallClick={onInstallClick}
+            />
           ))}
         </div>
       </div>

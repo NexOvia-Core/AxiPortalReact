@@ -5,8 +5,7 @@ import { defineConfig } from "vite";
 
 const bffOrigin = "/";
 // const bffOrigin = process.env.VITE_BFF_ORIGIN || "https://localhost:7180";
-// const bffOrigin =
-// process.env.VITE_BFF_ORIGIN || "http://localhost/axi-global/AxiPortal";
+// const bffOrigin = process.env.VITE_BFF_ORIGIN || "https://axi-global.app";
 
 export default defineConfig({
   base: process.env.VITE_APP_BASE_PATH,
