@@ -25,8 +25,8 @@ import CaseStudyKSBC from "@/pages/CaseStudyKSBC";
 import CaseStudyMetro from "@/pages/CaseStudyMetro";
 import PackageSetup from "@/pages/PackageSetup";
 
-const APP_BASE_PATH =
-  import.meta.env.VITE_APP_BASE_PATH || "/axi-global/AxiPortal";
+const APP_BASE_PATH = import.meta.env.VITE_APP_BASE_PATH;
+// import.meta.env.VITE_APP_BASE_PATH || "/axi-global/AxiPortal";
 
 function AppRouter() {
   return (

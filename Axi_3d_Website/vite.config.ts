@@ -3,10 +3,14 @@ import react from "@vitejs/plugin-react";
 import path from "node:path";
 import { defineConfig } from "vite";
 
-const bffOrigin = process.env.VITE_BFF_ORIGIN || "http://localhost/AxiPortalBFF";
+const bffOrigin = "/";
+// const bffOrigin = process.env.VITE_BFF_ORIGIN || "https://localhost:7180";
+// const bffOrigin =
+// process.env.VITE_BFF_ORIGIN || "http://localhost/axi-global/AxiPortal";
 
 export default defineConfig({
-  base: process.env.VITE_APP_BASE_PATH || "/axi-global/AxiPortal/",
+  base: process.env.VITE_APP_BASE_PATH,
+  // base: process.env.VITE_APP_BASE_PATH || "/axi-global/AxiPortal/",
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
