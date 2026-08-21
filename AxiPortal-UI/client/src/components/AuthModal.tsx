@@ -16,13 +16,6 @@ import RedirectingModal from "./RedirectingModal";
 import { useLocation, useRouter, useSearch } from "wouter";
 import { assetUrl } from "@/lib/paths";
 
-// ── External OAuth URLs ────────────────────────────────────────────────────
-const GOOGLE_AUTH_URL =
-  "https://accounts.google.com/v3/signin/identifier?continue=https%3A%2F%2Faccounts.google.com%2Fgsi%2Fselect%3Fclient_id%3D990339570472-k6nqn1tpmitg8pui82bfaun3jrpmiuhs.apps.googleusercontent.com%26auto_select%3Dtrue%26ux_mode%3Dpopup%26ui_mode%3Dcard%26context%3Dsignin%26as%3D5zpfOzHjU779kRjzxSLP0Q%26channel_id%3Dddf0eef750007715681c7150ca8b56af11c2e99c12b9affdd144c2525dc770a2%26origin%3Dhttps%3A%2F%2Fwww.linkedin.com&dsh=S-1171815638%3A1786016042881362&faa=1&rip=1&flowName=GlifWebSignIn&flowEntry=ServiceLogin&ifkv=Ac50bxtxl0SlrOTm72Zxmc6lEYd9PDGSs2C4vKIfZwJualgBmBGHP60kAojd1_BkvhAuSZ0wfmmm";
-
-const MICROSOFT_AUTH_URL =
-  "https://login.live.com/oauth20_authorize.srf?client_id=3fa91358-6f74-4525-b5df-da149652be36&scope=openid+profile+User.Read+email+offline_access&redirect_uri=https%3a%2f%2fwww.linkedin.com%2fmicrosoft-login%2fhandler&response_type=code&response_mode=form_post&uaid=b61353ce817e416c9169c2472339511c&msproxy=1&issuer=mso&tenant=consumers&ui_locales=en-US&epctrc=Z7GFDkyBolbmYfGapWNQv%2f9o7pCv0CtoaDVuxFdfKaw%3d9%3a1%3aCANARY%3abBvK%2bbI3A6LvRplnEb9orfOjPkAxsvK9%2btn5nf2ynUY%3d&epct=PAQABDgEAAAAdDD7nC9b5Q7JPd_okEQRFRXZvU3RzQXJ0aWZhY3RzCAAAAAAAw9HjIV01x20ZGYBv1bAfHI7EqFOL9y0ZU4NJ5cIMQKvPXqlpu-A3p0P2Ug9E9qqL-kmUKN_-liA-opeiz1P1qtf2duOjiHUdTFLIiARXkQQpldTaHeHk4ENhtPpbfuFU1z4WQV3yqOfvHVmpaXVfpdniQ1cOO4xoismLKBgjmCqGYoOUbN46S519UDNSqJWPAehFt1DDJ6Ej_fuv4JXDUyAA&jshs=0#";
-
 export default function AuthModal() {
   const [currentPath, setLocation] = useLocation();
   const searchString = useSearch();
@@ -77,6 +70,7 @@ export default function AuthModal() {
   const [selectedSchemaId, setSelectedSchemaId] = useState("");
   const [provisioningSchema, setProvisioningSchema] = useState<Schema>();
   const directLoginStarted = useRef(false);
+  const linkedInCallbackHandled = useRef(false);
 
   const getCurrentUrl = () => {
     const url = new URL(
@@ -157,6 +151,7 @@ export default function AuthModal() {
     setSelectedSchemaId("");
   }, [mode]);
 
+  // Handle keep me signin
   useEffect(() => {
     const search = new URLSearchParams(searchString);
 
@@ -183,6 +178,7 @@ export default function AuthModal() {
     };
   }, [searchString]);
 
+  // Handle direct login
   useEffect(() => {
     if (directLoginStarted.current) return;
 
@@ -235,13 +231,52 @@ export default function AuthModal() {
     return () => window.clearTimeout(timer);
   }, [currentPath, openLogin, searchString, setLocation]);
 
+  // Handle linkedIn response
   useEffect(() => {
-    if (!window.location.hash.includes("access_token")) return;
+    const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+    const search = new URLSearchParams(window.location.search);
+
+    const hasAccessToken = hash.has("access_token");
+    const hasOAuthError = hash.has("error") || search.has("error");
+    const oauthError = hash.get("error") || search.get("error");
+    const oauthErrorDescription =
+      hash.get("error_description") || search.get("error_description");
+
+    // Nothing related to LinkedIn OAuth is present.
+    if (!hasAccessToken && !hasOAuthError) return;
+
+    // Prevent the callback from being processed more than once.
+    if (linkedInCallbackHandled.current) return;
+
+    linkedInCallbackHandled.current = true;
+
     const finishLinkedIn = async () => {
       try {
         const isSignup = sessionStorage.getItem("axi_oauth_mode") === "signup";
+
         if (isSignup) openSignUp();
         else openLogin();
+
+        setLoading(true);
+        setError("");
+
+        // Handle LinkedIn/Supabase OAuth errors first.
+        if (oauthError) {
+          // Check for user cancellation specifically
+          if (
+            oauthError === "user_cancelled_login" ||
+            oauthError === "access_denied" ||
+            oauthErrorDescription?.includes("cancelled")
+          ) {
+            throw new Error("LinkedIn sign-in was cancelled.");
+          }
+          throw new Error(
+            oauthErrorDescription
+              ? decodeURIComponent(oauthErrorDescription)
+              : "LinkedIn sign-in failed. Please try again."
+          );
+        }
+
         const supabaseWindow = window as unknown as {
           supabase?: {
             createClient: (
@@ -250,52 +285,84 @@ export default function AuthModal() {
             ) => {
               auth: {
                 getSession: () => Promise<{
-                  data: { session: { access_token: string } | null };
+                  data: {
+                    session: {
+                      access_token: string;
+                    } | null;
+                  };
                 }>;
               };
             };
           };
         };
-        if (!supabaseWindow.supabase)
+
+        if (!supabaseWindow.supabase) {
           await new Promise<void>((resolve, reject) => {
             const script = document.createElement("script");
+
             script.src = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
+            script.async = true;
+            script.defer = true;
+
             script.onload = () => resolve();
             script.onerror = () =>
               reject(new Error("LinkedIn sign-in could not load."));
-            document.head.append(script);
+
+            document.head.appendChild(script);
           });
+        }
+
         const config = (await bff.oauthConfig()) as {
-          supabase?: { url?: string; publicKey?: string };
+          supabase?: {
+            url?: string;
+            publicKey?: string;
+          };
         };
-        if (!config.supabase?.url || !config.supabase.publicKey)
+
+        if (!config.supabase?.url || !config.supabase.publicKey) {
           throw new Error("LinkedIn sign-in is not configured.");
+        }
+
         const session = await supabaseWindow
           .supabase!.createClient(
             config.supabase.url,
             config.supabase.publicKey
           )
           .auth.getSession();
-        if (!session.data.session)
+
+        if (!session.data.session) {
           throw new Error("LinkedIn sign-in was cancelled.");
+        }
+
         const result = await bff.oauth(
           "supabase",
           session.data.session.access_token,
           isSignup,
           "linkedin_oidc"
         );
+
         handleOAuthResult(result);
       } catch (error) {
         setError(
-          error instanceof Error ? error.message : "LinkedIn sign-in failed."
+          error instanceof Error
+            ? error.message
+            : "LinkedIn sign-in failed. Please try again."
         );
       } finally {
-        setLocation(currentPath);
+        setLoading(false);
+        // Remove OAuth params from URL without triggering React Router
+        const url = new URL(window.location.href);
+        url.hash = "";
+        // Remove error params from search
+        url.searchParams.delete("error");
+        url.searchParams.delete("error_description");
+        window.history.replaceState(window.history.state, "", url.toString());
         sessionStorage.removeItem("axi_oauth_mode");
       }
     };
+
     void finishLinkedIn();
-  }, [currentPath, openLogin, openSignUp, setLocation]);
+  }, [openLogin, openSignUp]);
 
   const loginRememberedAccount = async (userName: string) => {
     setRememberedAccountLoading(userName);
@@ -341,11 +408,12 @@ export default function AuthModal() {
 
   // ── Helper: log the social provider attempt then redirect ──────
   const handleSocialLogin = async (
-    provider: "google" | "office365" | "linkedin",
-    redirectUrl: string
+    provider: "google" | "office365" | "linkedin"
   ) => {
     if (provider === "google") {
       setLoading(true);
+      setError("");
+
       try {
         const googleIdentity = window as unknown as {
           google?: {
@@ -358,6 +426,10 @@ export default function AuthModal() {
                     access_token?: string;
                     error?: string;
                   }) => void;
+                  error_callback?: (error: {
+                    type?: string;
+                    message?: string;
+                  }) => void;
                 }) => {
                   requestAccessToken: (config: { prompt: string }) => void;
                 };
@@ -365,35 +437,54 @@ export default function AuthModal() {
             };
           };
         };
-        if (!googleIdentity.google?.accounts?.oauth2)
+
+        if (!googleIdentity.google?.accounts?.oauth2) {
           await new Promise<void>((resolve, reject) => {
             const script = document.createElement("script");
             script.src = "https://accounts.google.com/gsi/client";
+            script.async = true;
+            script.defer = true;
+
             script.onload = () => resolve();
             script.onerror = () =>
               reject(new Error("Google sign-in could not load."));
-            document.head.append(script);
+
+            document.head.appendChild(script);
           });
+        }
+
         const config = (await bff.oauthConfig()) as {
-          google?: { clientId?: string };
+          google?: {
+            clientId?: string;
+          };
         };
-        if (!config.google?.clientId)
+
+        if (!config.google?.clientId) {
           throw new Error("Google sign-in is not configured.");
-        googleIdentity
-          .google!.accounts!.oauth2!.initTokenClient({
+        }
+
+        const client = googleIdentity.google!.accounts!.oauth2!.initTokenClient(
+          {
             client_id: config.google.clientId,
             scope: "openid email profile",
+
             callback: async response => {
               try {
-                if (!response.access_token)
+                if (response.error) {
+                  throw new Error("Google sign-in failed. Please try again.");
+                }
+
+                if (!response.access_token) {
                   throw new Error("Google sign-in was cancelled.");
-                handleOAuthResult(
-                  await bff.oauth(
-                    "google",
-                    response.access_token,
-                    mode === "signup"
-                  )
+                }
+
+                const result = await bff.oauth(
+                  "google",
+                  response.access_token,
+                  mode === "signup"
                 );
+
+                handleOAuthResult(result);
               } catch (error) {
                 setError(
                   error instanceof Error
@@ -404,18 +495,40 @@ export default function AuthModal() {
                 setLoading(false);
               }
             },
-          })
-          .requestAccessToken({ prompt: "select_account" });
+
+            // Important: handles popup close / popup failure.
+            error_callback: error => {
+              if (error.type === "popup_closed") {
+                setError("Google sign-in was cancelled.");
+              } else if (error.type === "popup_failed_to_open") {
+                setError(
+                  "Unable to open Google sign-in. Please allow popups and try again."
+                );
+              } else {
+                setError("Google sign-in failed. Please try again.");
+              }
+
+              setLoading(false);
+            },
+          }
+        );
+
+        client.requestAccessToken({
+          prompt: "select_account",
+        });
       } catch (error) {
         setError(
           error instanceof Error ? error.message : "Google sign-in failed."
         );
+
         setLoading(false);
       }
+
       return;
     }
     if (provider === "office365") {
       setLoading(true);
+      setError("");
       try {
         const msalWindow = window as unknown as {
           msal?: {
@@ -469,44 +582,89 @@ export default function AuthModal() {
       return;
     }
     if (provider === "linkedin") {
-      const config = (await bff.oauthConfig()) as {
-        supabase?: { url?: string; publicKey?: string };
-      };
-      if (!config.supabase?.url || !config.supabase.publicKey) {
-        setError("LinkedIn sign-in is not configured.");
-        return;
-      }
-      const { url, publicKey } = config.supabase;
-      sessionStorage.setItem("axi_oauth_mode", mode);
-      const supabaseWindow = window as unknown as {
-        supabase?: {
-          createClient: (
-            url: string,
-            key: string
-          ) => {
-            auth: { signInWithOAuth: (options: unknown) => Promise<unknown> };
+      setLoading(true);
+      setError("");
+      // debugger;
+
+      try {
+        const config = (await bff.oauthConfig()) as {
+          supabase?: {
+            url?: string;
+            publicKey?: string;
           };
         };
-      };
-      if (!supabaseWindow.supabase) {
-        const script = document.createElement("script");
-        script.src = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
-        document.head.append(script);
-        await new Promise<void>((resolve, reject) => {
-          script.onload = () => resolve();
-          script.onerror = () =>
-            reject(new Error("LinkedIn sign-in could not load."));
-        });
+
+        if (!config.supabase?.url || !config.supabase.publicKey) {
+          throw new Error("LinkedIn sign-in is not configured.");
+        }
+
+        const { url, publicKey } = config.supabase;
+        sessionStorage.setItem("axi_oauth_mode", mode);
+        const supabaseWindow = window as unknown as {
+          supabase?: {
+            createClient: (
+              url: string,
+              key: string
+            ) => {
+              auth: {
+                signInWithOAuth: (options: unknown) => Promise<{
+                  error?: {
+                    message?: string;
+                  } | null;
+                }>;
+              };
+            };
+          };
+        };
+
+        if (!supabaseWindow.supabase) {
+          await new Promise<void>((resolve, reject) => {
+            const script = document.createElement("script");
+
+            script.src = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
+            script.async = true;
+            script.defer = true;
+
+            script.onload = () => resolve();
+            script.onerror = () =>
+              reject(new Error("LinkedIn sign-in could not load."));
+
+            document.head.appendChild(script);
+          });
+        }
+
+        const { error } = await supabaseWindow
+          .supabase!.createClient(url, publicKey)
+          .auth.signInWithOAuth({
+            provider: "linkedin_oidc",
+            options: {
+              redirectTo: getCurrentUrl(),
+            },
+          });
+
+        if (error) {
+          throw new Error(
+            error.message || "LinkedIn sign-in failed. Please try again."
+          );
+        }
+
+        // OAuth redirect is now owned by the browser.
+        // The callback flow will finish in the effect above.
+        return;
+      } catch (error) {
+        sessionStorage.removeItem("axi_oauth_mode");
+
+        setError(
+          error instanceof Error
+            ? error.message
+            : "LinkedIn sign-in failed. Please try again."
+        );
+
+        setLoading(false);
       }
-      await supabaseWindow
-        .supabase!.createClient(url, publicKey)
-        .auth.signInWithOAuth({
-          provider: "linkedin_oidc",
-          options: { redirectTo: getCurrentUrl() },
-        });
+
       return;
     }
-    window.location.href = redirectUrl;
   };
 
   // ── OTP checkbox toggled on Login page ───────
@@ -796,7 +954,7 @@ export default function AuthModal() {
                   <button
                     type="button"
                     id="auth-google-btn"
-                    onClick={() => handleSocialLogin("google", GOOGLE_AUTH_URL)}
+                    onClick={() => handleSocialLogin("google")}
                     disabled={loading}
                     className="w-full py-3 px-4 rounded-full border border-slate-200 bg-white hover:bg-slate-50/80 transition-all font-semibold text-slate-700 text-sm flex items-center justify-center gap-3 shadow-xs hover:border-slate-300 active:scale-[0.99]"
                   >
@@ -825,9 +983,7 @@ export default function AuthModal() {
                   <button
                     type="button"
                     id="auth-office365-btn"
-                    onClick={() =>
-                      handleSocialLogin("office365", MICROSOFT_AUTH_URL)
-                    }
+                    onClick={() => handleSocialLogin("office365")}
                     disabled={loading}
                     className="w-full py-3 px-4 rounded-full border border-slate-200 bg-white hover:bg-slate-50/80 transition-all font-semibold text-slate-700 text-sm flex items-center justify-center gap-3 shadow-xs hover:border-slate-300 active:scale-[0.99]"
                   >
@@ -844,12 +1000,7 @@ export default function AuthModal() {
                   <button
                     type="button"
                     id="auth-linkedin-btn"
-                    onClick={() =>
-                      handleSocialLogin(
-                        "linkedin",
-                        "https://www.linkedin.com/login"
-                      )
-                    }
+                    onClick={() => handleSocialLogin("linkedin")}
                     disabled={loading}
                     className="w-full py-3 px-4 rounded-full border border-slate-200 bg-white hover:bg-slate-50/80 transition-all font-semibold text-slate-700 text-sm flex items-center justify-center gap-3 shadow-xs hover:border-slate-300 active:scale-[0.99]"
                   >
