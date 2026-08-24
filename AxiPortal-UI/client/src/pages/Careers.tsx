@@ -113,9 +113,9 @@ export default function Careers() {
             className="relative"
           >
             <div className="aspect-square md:aspect-[4/3] rounded-3xl overflow-hidden glass border border-white/20 p-2">
-              <img 
-                src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=80" 
-                alt="Agile Labs Team Collaboration" 
+              <img
+                src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=80"
+                alt="Agile Labs Team Collaboration"
                 className="w-full h-full object-cover rounded-2xl"
               />
             </div>
@@ -140,15 +140,15 @@ export default function Careers() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-50px" }}
               transition={{ duration: 0.5, delay: idx * 0.1, ease: [0.23, 1, 0.32, 1] }}
-              className="glass p-6 md:p-8 rounded-2xl border border-white/10 hover:border-[#fc8151]/50 hover:bg-white/10 transition-all duration-300 flex flex-col md:flex-row md:items-center justify-between gap-6 group cursor-pointer"
+              className="bg-[#fff6e5]/10 backdrop-blur-md p-6 md:p-8 rounded-2xl border border-[#fff6e5]/20 hover:border-[#fc8151]/60 hover:bg-[#fff6e5]/20 transition-all duration-300 flex flex-col md:flex-row md:items-center justify-between gap-6 group cursor-pointer"
             >
               <div>
                 <h3 className="text-xl font-bold text-white mb-2 group-hover:text-[#fc8151] transition-colors">
                   {job.title}
                 </h3>
-                <div className="flex flex-wrap items-center gap-3 text-sm text-white/50">
+                <div className="flex flex-wrap items-center gap-3 text-sm text-white/70">
                   <span className="flex items-center gap-1">
-                    <Briefcase className="w-4 h-4" /> {job.department}
+                    <Briefcase className="w-4 h-4 text-[#fc8151]" /> {job.department}
                   </span>
                   <span>•</span>
                   <span>{job.location}</span>
@@ -156,7 +156,7 @@ export default function Careers() {
                   <span>{job.type}</span>
                 </div>
               </div>
-              <div className="shrink-0 flex items-center justify-center w-12 h-12 rounded-full bg-white/5 border border-white/10 group-hover:bg-[#fc8151] group-hover:text-[#00007f] transition-all">
+              <div className="shrink-0 flex items-center justify-center w-12 h-12 rounded-full bg-[#fff6e5]/15 border border-[#fff6e5]/25 group-hover:bg-[#fc8151] group-hover:text-[#00007f] transition-all text-white">
                 <ChevronRight className="w-5 h-5" />
               </div>
             </motion.div>

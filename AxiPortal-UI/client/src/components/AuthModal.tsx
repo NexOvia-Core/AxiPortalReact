@@ -897,7 +897,7 @@ export default function AuthModal() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 15 }}
               transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
-              className="relative w-full max-w-[460px] bg-white rounded-3xl shadow-2xl shadow-indigo-950/30 border border-slate-100 overflow-hidden z-10 p-6 sm:p-8"
+              className="relative w-full max-w-[460px] bg-[#fff8ee] bg-[radial-gradient(circle_at_85%_85%,rgba(254,180,140,0.35)_0%,transparent_55%)] rounded-3xl shadow-2xl shadow-indigo-950/20 border border-[#f3e2cc] overflow-hidden z-10 p-6 sm:p-8 text-slate-800"
             >
               {/* Close Button */}
               <button
@@ -956,7 +956,7 @@ export default function AuthModal() {
                     id="auth-google-btn"
                     onClick={() => handleSocialLogin("google")}
                     disabled={loading}
-                    className="w-full py-3 px-4 rounded-full border border-slate-200 bg-white hover:bg-slate-50/80 transition-all font-semibold text-slate-700 text-sm flex items-center justify-center gap-3 shadow-xs hover:border-slate-300 active:scale-[0.99]"
+                    className="w-full py-3 px-4 rounded-full border border-[#e8d7c3] bg-[#fff8ee] hover:bg-[#fff2e0] transition-all font-semibold text-slate-700 text-sm flex items-center justify-center gap-3 shadow-xs hover:border-[#d6c2ab] active:scale-[0.99]"
                   >
                     <svg className="w-5 h-5" viewBox="0 0 24 24">
                       <path
@@ -985,13 +985,13 @@ export default function AuthModal() {
                     id="auth-office365-btn"
                     onClick={() => handleSocialLogin("office365")}
                     disabled={loading}
-                    className="w-full py-3 px-4 rounded-full border border-slate-200 bg-white hover:bg-slate-50/80 transition-all font-semibold text-slate-700 text-sm flex items-center justify-center gap-3 shadow-xs hover:border-slate-300 active:scale-[0.99]"
+                    className="w-full py-3 px-4 rounded-full border border-[#e8d7c3] bg-[#fff8ee] hover:bg-[#fff2e0] transition-all font-semibold text-slate-700 text-sm flex items-center justify-center gap-3 shadow-xs hover:border-[#d6c2ab] active:scale-[0.99]"
                   >
                     <svg className="w-5 h-5" viewBox="0 0 23 23">
                       <path fill="#f35325" d="M1 1h10v10H1z" />
-                      <path fill="#81bc06" d="M12 1h10v10H12z" />
+                      <path fill="#81bc06" d="M12 1h10v10H1z" />
                       <path fill="#05a6f0" d="M1 12h10v10H1z" />
-                      <path fill="#ffba08" d="M12 12h10v10H12z" />
+                      <path fill="#ffba08" d="M12 12h10v10H1z" />
                     </svg>
                     <span>Continue with Office 365</span>
                   </button>
@@ -1002,7 +1002,7 @@ export default function AuthModal() {
                     id="auth-linkedin-btn"
                     onClick={() => handleSocialLogin("linkedin")}
                     disabled={loading}
-                    className="w-full py-3 px-4 rounded-full border border-slate-200 bg-white hover:bg-slate-50/80 transition-all font-semibold text-slate-700 text-sm flex items-center justify-center gap-3 shadow-xs hover:border-slate-300 active:scale-[0.99]"
+                    className="w-full py-3 px-4 rounded-full border border-[#e8d7c3] bg-[#fff8ee] hover:bg-[#fff2e0] transition-all font-semibold text-slate-700 text-sm flex items-center justify-center gap-3 shadow-xs hover:border-[#d6c2ab] active:scale-[0.99]"
                   >
                     <svg className="w-5 h-5" fill="#0A66C2" viewBox="0 0 24 24">
                       <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 10.9v8.37H9.25V10.9H6.46M7.86 6.6a1.62 1.62 0 1 0 0 3.24 1.62 1.62 0 0 0 0-3.24z" />
@@ -1016,9 +1016,9 @@ export default function AuthModal() {
               {!showSsoSchemaStep && (
                 <div className="relative my-5 text-center">
                   <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-slate-200" />
+                    <div className="w-full border-t border-[#e8d7c3]" />
                   </div>
-                  <span className="relative bg-white px-4 text-xs font-bold text-slate-400 uppercase tracking-widest">
+                  <span className="relative bg-[#fff8ee] px-4 text-xs font-bold text-slate-400 uppercase tracking-widest">
                     OR
                   </span>
                 </div>

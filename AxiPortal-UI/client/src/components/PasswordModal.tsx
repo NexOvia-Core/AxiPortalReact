@@ -40,10 +40,10 @@ export default function PasswordModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[210] flex items-center justify-center bg-slate-950/75 p-4">
+    <div className="fixed inset-0 z-[210] flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4">
       <form
         onSubmit={submit}
-        className="relative w-full max-w-md rounded-lg bg-white p-7 shadow-2xl"
+        className="relative w-full max-w-md rounded-2xl bg-[#fff8ee] bg-[radial-gradient(circle_at_85%_85%,rgba(254,180,140,0.35)_0%,transparent_55%)] border border-[#f3e2cc] p-7 shadow-2xl"
         aria-labelledby="password-title"
       >
         <button

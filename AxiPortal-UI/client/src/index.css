@@ -218,7 +218,16 @@
   body,
   #root,
   .main-wrapper {
-    background-color: #fff6e5;
+    background-color: #fff8ee;
+    background-image: 
+      radial-gradient(circle at 85% 85%, rgba(254, 180, 140, 0.4) 0%, rgba(255, 248, 238, 0) 55%),
+      radial-gradient(circle at 15% 15%, rgba(33, 0, 98, 0.05) 0%, transparent 45%),
+      radial-gradient(2px 2px at 20px 30px, #210062 100%, transparent),
+      radial-gradient(2px 2px at 40px 70px, #fc8151 100%, transparent),
+      radial-gradient(2px 2px at 90px 40px, #210062 100%, transparent),
+      radial-gradient(2px 2px at 130px 80px, #d6573c 100%, transparent);
+    background-size: 100% 100%, 100% 100%, 200px 200px, 180px 180px, 240px 240px, 220px 220px;
+    background-attachment: fixed;
     font-family: "Kanit", sans-serif;
     color: #1e1b4b;
     overflow-x: clip;

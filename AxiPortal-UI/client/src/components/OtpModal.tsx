@@ -147,7 +147,7 @@ export default function OtpModal({
     >
       <form
         onSubmit={verify}
-        className="relative w-full max-w-[550px] overflow-hidden rounded-2xl border border-slate-200 bg-white px-6 py-7 text-slate-800 shadow-2xl sm:px-10 sm:py-9"
+        className="relative w-full max-w-[550px] overflow-hidden rounded-3xl border border-[#f3e2cc] bg-[#fff8ee] bg-[radial-gradient(circle_at_85%_85%,rgba(254,180,140,0.35)_0%,transparent_55%)] px-6 py-7 text-slate-800 shadow-2xl sm:px-10 sm:py-9"
       >
         <button
           type="button"
