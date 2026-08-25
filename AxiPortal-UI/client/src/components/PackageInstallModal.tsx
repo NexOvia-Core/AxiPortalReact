@@ -128,6 +128,15 @@ export default function PackageInstallModal({
         : "Installation Failed";
 
   useEffect(() => {
+    setStarted(false);
+    setLoading(false);
+    setError("");
+    setExistingStatus("");
+    setStartFailures({});
+    setMinimized(false);
+  }, [packageSignature]);
+
+  useEffect(() => {
     if (packages.length !== 1) return;
     let active = true;
     void bff
