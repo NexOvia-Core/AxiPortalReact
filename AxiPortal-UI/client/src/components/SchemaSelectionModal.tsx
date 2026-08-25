@@ -33,6 +33,7 @@ export default function SchemaSelectionModal({
     url: string;
     message: string;
   }>();
+
   const continueToApp = async () => {
     const schema = schemas.find(item => item.axiaccid === selected);
     if (!schema) return;
@@ -79,74 +80,75 @@ export default function SchemaSelectionModal({
       setLoading(false);
     }
   };
-  const schema = schemas.find(item => item.axiaccid === selected);
+
+  if (redirecting) {
+    return (
+      <RedirectingModal
+        redirectUrl={redirecting.url}
+        message={redirecting.message}
+      />
+    );
+  }
+
   return (
-    <>
-      {redirecting && (
-        <RedirectingModal
-          redirectUrl={redirecting.url}
-          message={redirecting.message}
-        />
-      )}
-      <div className="fixed inset-0 z-[210] flex items-center justify-center p-4 bg-black/70">
-        <div className="w-full max-w-md rounded-2xl bg-white p-7 space-y-4">
-          <h2 className="text-xl font-bold text-[#1E1B4B]">
-            Choose your application
-          </h2>
-          <select
-            value={selected}
-            onChange={e => {
-              setSelected(e.target.value);
-              setError(
-                getSchemaValidationError(
-                  schemas.find(schema => schema.axiaccid === e.target.value)
-                ) || ""
-              );
-            }}
+    <div className="fixed inset-0 z-[210] flex items-center justify-center p-4 bg-black/70">
+      <div className="w-full max-w-md rounded-2xl bg-white p-7 space-y-4">
+        <h2 className="text-xl font-bold text-[#1E1B4B]">
+          Choose your application
+        </h2>
+        <select
+          value={selected}
+          onChange={e => {
+            setSelected(e.target.value);
+            setError(
+              getSchemaValidationError(
+                schemas.find(schema => schema.axiaccid === e.target.value)
+              ) || ""
+            );
+          }}
+          className="w-full rounded-xl border p-3"
+        >
+          {schemas.map(schema => (
+            <option key={schema.axiaccid} value={schema.axiaccid}>
+              {schema.axiaccid}
+            </option>
+          ))}
+        </select>
+        {requirePassword && (
+          <input
+            type="password"
+            value={password}
+            onChange={event => setPassword(event.target.value)}
+            placeholder="Enter your password"
+            autoComplete="current-password"
             className="w-full rounded-xl border p-3"
+          />
+        )}
+        {error && (
+          <p
+            role="alert"
+            className="rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
           >
-            {schemas.map(schema => (
-              <option key={schema.axiaccid} value={schema.axiaccid}>
-                {schema.axiaccid}
-              </option>
-            ))}
-          </select>
-          {requirePassword && (
-            <input
-              type="password"
-              value={password}
-              onChange={event => setPassword(event.target.value)}
-              placeholder="Enter your password"
-              autoComplete="current-password"
-              className="w-full rounded-xl border p-3"
-            />
-          )}
-          {error && (
-            <p
-              role="alert"
-              className="rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
-            >
-              {error}
-            </p>
-          )}
-          <button
-            onClick={continueToApp}
-            disabled={loading}
-            className="w-full rounded-xl bg-[#210062] py-3 font-bold text-white"
-          >
-            {loading ? "Opening..." : "Continue"}
-          </button>
-          <button
-            onClick={() => {
-              clearSelectedPackages();
-              onClose();
-            }}
-            className="w-full text-sm text-slate-500"
-          >
-            Cancel
-          </button>
-        </div>
+            {error}
+          </p>
+        )}
+        <button
+          onClick={continueToApp}
+          disabled={loading}
+          className="w-full rounded-xl bg-[#210062] py-3 font-bold text-white"
+        >
+          {loading ? "Opening..." : "Continue"}
+        </button>
+        <button
+          onClick={() => {
+            clearSelectedPackages();
+            onClose();
+          }}
+          className="w-full text-sm text-slate-500"
+        >
+          Cancel
+        </button>
       </div>
-    </>
+    </div>
   );
 }

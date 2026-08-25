@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Check } from "lucide-react";
+import { X, Check, User, UserPlus } from "lucide-react";
 import { useAuthModal } from "@/contexts/AuthContext";
 import OtpModal from "./OtpModal";
 import { bff } from "@/lib/bff";
@@ -817,68 +817,120 @@ export default function AuthModal() {
   const showSsoSchemaStep =
     mode === "login" && isSsoAuthenticated && schemas.length > 0;
 
+  if (redirecting) {
+    return (
+      <RedirectingModal
+        redirectUrl={redirecting.url}
+        message={redirecting.message}
+      />
+    );
+  }
+
   return (
     <>
-      {redirecting && (
-        <RedirectingModal
-          redirectUrl={redirecting.url}
-          message={redirecting.message}
-        />
-      )}
-      {showRememberedAccounts && (
-        <div className="fixed inset-0 z-[230] flex items-center justify-center bg-slate-950/75 p-4">
-          <section
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="remembered-accounts-title"
-            className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"
-          >
-            <h2
-              id="remembered-accounts-title"
-              className="text-xl font-bold text-[#1E1B4B]"
+      <AnimatePresence>
+        {showRememberedAccounts && (
+          <div className="fixed inset-0 z-[230] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={dismiss}
+              className="fixed inset-0 bg-[#0a0c1a]/70 backdrop-blur-md transition-opacity"
+            />
+
+            {/* Modal Card */}
+            <motion.section
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="remembered-accounts-title"
+              className="relative w-full max-w-[460px] bg-[#fff8ee] bg-[radial-gradient(circle_at_85%_85%,rgba(254,180,140,0.35)_0%,transparent_55%)] rounded-3xl shadow-2xl shadow-indigo-950/20 border border-[#f3e2cc] overflow-hidden z-10 p-6 sm:p-8 text-slate-800"
             >
-              Continue to AXI
-            </h2>
-            <p className="mt-2 text-sm text-slate-600">
-              Choose an account to continue without entering your credentials.
-            </p>
-            {error && (
-              <p
-                role="alert"
-                className="mt-4 rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+              {/* Close Button */}
+              <button
+                type="button"
+                onClick={dismiss}
+                className="absolute top-5 right-5 p-2 rounded-full text-slate-400 hover:text-slate-700 hover:bg-[#f3e2cc]/50 transition-colors focus:outline-none"
+                aria-label="Close"
               >
-                {error}
-              </p>
-            )}
-            <div className="mt-5 space-y-2">
-              {rememberedAccounts.map(userName => (
-                <button
-                  key={userName}
-                  type="button"
-                  disabled={Boolean(rememberedAccountLoading)}
-                  onClick={() => void loginRememberedAccount(userName)}
-                  className="w-full rounded-lg border border-slate-200 px-4 py-3 text-left text-sm font-semibold text-slate-700 hover:border-[#5c1380] disabled:cursor-wait disabled:opacity-60"
+                <X className="w-5 h-5" />
+              </button>
+
+              {/* Logo & Header */}
+              <div className="text-center mb-6">
+                <img
+                  src={assetUrl("AXI_LOGO_AXPERT.png")}
+                  alt="Axi Logo"
+                  className="h-10 mx-auto mb-3 object-contain"
+                />
+                <h2
+                  id="remembered-accounts-title"
+                  className="text-2xl sm:text-3xl font-extrabold text-[#1E1B4B] tracking-tight"
                 >
-                  {rememberedAccountLoading === userName
-                    ? "Signing in..."
-                    : `Continue as ${userName}`}
+                  Continue to AXI
+                </h2>
+                <p className="text-xs text-slate-500 mt-1 font-medium max-w-xs mx-auto">
+                  Choose an account to continue without entering your credentials.
+                </p>
+              </div>
+
+              {error && (
+                <p
+                  role="alert"
+                  className="mb-4 rounded-xl border border-red-200 bg-red-50/80 px-3.5 py-2.5 text-xs font-medium text-red-700"
+                >
+                  {error}
+                </p>
+              )}
+
+              {/* Account List */}
+              <div className="space-y-3">
+                {rememberedAccounts.map(userName => (
+                  <button
+                    key={userName}
+                    type="button"
+                    disabled={Boolean(rememberedAccountLoading)}
+                    onClick={() => void loginRememberedAccount(userName)}
+                    className="group relative w-full rounded-2xl border border-[#e8d7c3] bg-white/80 hover:bg-white p-3.5 sm:p-4 text-left transition-all duration-200 hover:border-[#d6573c] hover:shadow-md hover:shadow-[#d6573c]/5 disabled:cursor-wait disabled:opacity-60 flex items-center gap-3.5"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-[#1E1B4B]/5 group-hover:bg-[#d6573c]/10 flex items-center justify-center text-[#1E1B4B] group-hover:text-[#d6573c] transition-colors flex-shrink-0">
+                      <User className="w-5 h-5" />
+                    </div>
+                    <span className="text-sm sm:text-base font-semibold text-[#1E1B4B] truncate flex-1">
+                      {rememberedAccountLoading === userName
+                        ? "Signing in..."
+                        : `Continue as ${userName}`}
+                    </span>
+                  </button>
+                ))}
+
+                {/* Login with another account */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowRememberedAccounts(false);
+                    setError("");
+                    openLogin();
+                  }}
+                  className="mt-3 group w-full rounded-2xl border-2 border-dashed border-[#e8d7c3] hover:border-[#d6573c] bg-white/40 hover:bg-white/90 p-3.5 sm:p-4 text-left transition-all duration-200 flex items-center gap-3.5"
+                >
+                  <div className="w-10 h-10 rounded-full bg-[#1E1B4B]/5 group-hover:bg-[#d6573c]/10 flex items-center justify-center text-[#1E1B4B] group-hover:text-[#d6573c] transition-colors flex-shrink-0">
+                    <UserPlus className="w-5 h-5" />
+                  </div>
+                  <span className="text-sm sm:text-base font-semibold text-[#1E1B4B]">
+                    Login with another account
+                  </span>
                 </button>
-              ))}
-            </div>
-            <button
-              type="button"
-              onClick={() => {
-                setShowRememberedAccounts(false);
-                setError("");
-                openLogin();
-              }}
-              className="mt-5 w-full text-sm font-semibold text-[#210062]"
-            >
-              Login with another account
-            </button>
-          </section>
-        </div>
-      )}
+              </div>
+            </motion.section>
+          </div>
+        )}
+      </AnimatePresence>
       <AnimatePresence>
         {showAuthCard && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
@@ -987,11 +1039,11 @@ export default function AuthModal() {
                     disabled={loading}
                     className="w-full py-3 px-4 rounded-full border border-[#e8d7c3] bg-[#fff8ee] hover:bg-[#fff2e0] transition-all font-semibold text-slate-700 text-sm flex items-center justify-center gap-3 shadow-xs hover:border-[#d6c2ab] active:scale-[0.99]"
                   >
-                    <svg className="w-5 h-5" viewBox="0 0 23 23">
-                      <path fill="#f35325" d="M1 1h10v10H1z" />
-                      <path fill="#81bc06" d="M12 1h10v10H1z" />
-                      <path fill="#05a6f0" d="M1 12h10v10H1z" />
-                      <path fill="#ffba08" d="M12 12h10v10H1z" />
+                    <svg className="w-5 h-5 flex-shrink-0" viewBox="0 0 21 21" fill="none">
+                      <rect x="0" y="0" width="10" height="10" fill="#F25022" />
+                      <rect x="11" y="0" width="10" height="10" fill="#7FBA00" />
+                      <rect x="0" y="11" width="10" height="10" fill="#00A4EF" />
+                      <rect x="11" y="11" width="10" height="10" fill="#FFB900" />
                     </svg>
                     <span>Continue with Office 365</span>
                   </button>
@@ -1059,7 +1111,7 @@ export default function AuthModal() {
                       <span
                         className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${
                           keepSignedIn
-                            ? "bg-[#00007f] border-[#00007f] text-white"
+                            ? "bg-[#1E1B4B] border-[#1E1B4B] text-white"
                             : "border-slate-300 bg-white"
                         }`}
                       >
@@ -1073,7 +1125,7 @@ export default function AuthModal() {
                         onClick={handleOtpToggle}
                         className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${
                           useOtp
-                            ? "bg-[#00007f] border-[#00007f] text-white"
+                            ? "bg-[#1E1B4B] border-[#1E1B4B] text-white"
                             : "border-slate-300 bg-white"
                         }`}
                       >
@@ -1125,7 +1177,7 @@ export default function AuthModal() {
                       <span
                         className={`flex h-4 w-4 items-center justify-center rounded border ${
                           keepSignedIn
-                            ? "border-[#00007f] bg-[#00007f] text-white"
+                            ? "border-[#1E1B4B] bg-[#1E1B4B] text-white"
                             : "border-slate-300 bg-white"
                         }`}
                       >

@@ -188,11 +188,11 @@ export default function PackageInstallModal({
   const completionMessage =
     failedCount === 0
       ? packages.length > 1
-        ? `All ${packages.length} selected Packages are successfully installed`
-        : "All selected Packages are successfully installed"
+        ? `All ${packages.length} selected Packages installed successfully`
+        : "Installation Successful"
       : packages.length > 1
         ? `All ${packages.length} selected Packages Failed to install`
-        : "All selected Packages Failed to install";
+        : "Installation Failed";
 
   useEffect(() => {
     if (packages.length !== 1) return;
@@ -359,7 +359,11 @@ export default function PackageInstallModal({
                 </p>
               </section>
             )}
-            <div className="max-h-52 space-y-2.5 overflow-y-auto pr-1">
+            <div
+              className={`max-h-52 space-y-2.5 overflow-y-auto pr-1 transition-all ${
+                installationRunning ? "pointer-events-none select-none opacity-90" : ""
+              }`}
+            >
               {packageStates.map(item => (
                 <div
                   key={item.packageName}
@@ -400,7 +404,7 @@ export default function PackageInstallModal({
             {started && allPackagesTerminal && (
               <p
                 role="status"
-                className={`rounded-2xl border px-4 py-3 text-sm font-semibold shadow-xs ${failedCount === 0
+                className={`rounded-2xl border px-4 py-3.5 text-center text-sm sm:text-base font-extrabold shadow-2xs ${failedCount === 0
                     ? "border-emerald-200 bg-emerald-50/90 text-emerald-800"
                     : "border-[#d6573c]/30 bg-[#d6573c]/10 text-[#7a2a1b]"
                   }`}

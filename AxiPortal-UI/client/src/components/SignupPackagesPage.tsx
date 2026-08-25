@@ -218,6 +218,7 @@ export default function SignupPackagesPage({
       if (!result.redirectUrl)
         throw new Error("The BFF did not return a redirect URL.");
       clearSelectedPackages();
+      setShowConfirmation(false);
       onContinue();
       setRedirecting({
         url: result.redirectUrl,
