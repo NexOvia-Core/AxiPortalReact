@@ -13,12 +13,10 @@ import {
 const packageStatusLabels: Record<string, string> = {
   PREPARED: "Prepared",
   QUEUED: "Queued",
-  PROCESSING: "Processing...",
-  ALMOST_DONE: "Almost Done...",
-  PREPARING: "Processing...",
-  DOWNLOADING: "Processing...",
-  EXTRACTING: "Processing...",
-  INSTALLING: "Processing...",
+  PREPARING: "Preparing...",
+  DOWNLOADING: "Downloading...",
+  EXTRACTING: "Extracting...",
+  INSTALLING: "Installing...",
   INSTALLED: "Installed",
   FAILED: "Installation failed",
 };
@@ -189,14 +187,12 @@ export default function PackageInstallModal({
 
   const completionMessage =
     failedCount === 0
-      ? `All ${packages.length} selected package${
-          packages.length === 1 ? " was" : "s were"
-        } installed successfully.`
-      : installedCount === 0
-        ? `All ${packages.length} selected package${
-            packages.length === 1 ? " failed" : "s failed"
-          } to install.`
-        : `${installedCount} of ${packages.length} packages were installed successfully. ${failedCount} failed.`;
+      ? packages.length > 1
+        ? `All ${packages.length} selected Packages are successfully installed`
+        : "All selected Packages are successfully installed"
+      : packages.length > 1
+        ? `All ${packages.length} selected Packages Failed to install`
+        : "All selected Packages Failed to install";
 
   useEffect(() => {
     if (packages.length !== 1) return;
@@ -268,25 +264,25 @@ export default function PackageInstallModal({
   const continueToAxi = () => {
     if (installationActive || (started && !allPackagesTerminal)) return;
     clearSelectedPackages();
+    onClose();
     onComplete();
   };
 
   return (
     <>
-      {minimized && installationRunning && (
+      {minimized && (
         <button
           type="button"
           onClick={() => setMinimized(false)}
-          className="fixed bottom-5 right-5 z-[220] flex min-w-64 items-center justify-between gap-4 rounded-2xl border border-[#f3e2cc] bg-[#fff8ee] bg-[radial-gradient(circle_at_85%_85%,rgba(254,180,140,0.35)_0%,transparent_55%)] px-5 py-3.5 text-left text-sm text-slate-800 shadow-xl backdrop-blur-xl transition hover:scale-105"
+          className="fixed bottom-5 right-5 z-[220] flex min-w-64 items-center justify-between gap-4 rounded-2xl border border-[#f3e2cc] bg-[#fff8ee] bg-[radial-gradient(circle_at_85%_85%,rgba(254,180,140,0.35)_0%,transparent_55%)] px-5 py-3.5 text-left text-sm text-slate-800 shadow-xl backdrop-blur-xl transition hover:scale-105 cursor-pointer"
           aria-label="Restore package installation progress"
         >
           <span className="font-semibold text-slate-700">
             {currentPackage
-              ? `${currentPackage.packageName}: ${
-                  packageStatusLabels[currentPackage.status] ||
-                  currentPackage.status
-                }`
-              : "Installation is running in the background"}
+              ? `${currentPackage.packageName}: ${packageStatusLabels[currentPackage.status] ||
+              currentPackage.status
+              }`
+              : "Package installation progress"}
           </span>
           <span className="flex items-center gap-2 font-extrabold text-[#5c1380]">
             {progressPercentage}% <ChevronUp size={17} />
@@ -300,26 +296,25 @@ export default function PackageInstallModal({
               <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight gradient-text">
                 {started ? "Installing packages" : "Confirm package setup"}
               </h2>
-              {!started && (
+              {!started ? (
                 <button
                   type="button"
                   onClick={close}
-                  className="rounded-full p-2 text-slate-400 bg-white/80 border border-white/80 transition hover:bg-white hover:text-slate-700 shadow-2xs"
+                  className="flex h-9 w-9 items-center justify-center rounded-full bg-white/90 border border-slate-200/80 text-slate-600 hover:bg-white hover:text-slate-900 shadow-2xs transition active:scale-95 cursor-pointer shrink-0"
                   aria-label="Close package confirmation"
                   title="Close"
                 >
-                  <X size={18} />
+                  <X size={18} strokeWidth={2.5} />
                 </button>
-              )}
-              {installationRunning && (
+              ) : (
                 <button
                   type="button"
                   onClick={() => setMinimized(true)}
-                  className="rounded-full p-2 text-slate-400 bg-white/80 border border-white/80 transition hover:bg-white hover:text-slate-700 shadow-2xs"
+                  className="flex h-9 w-9 items-center justify-center rounded-full bg-white/90 border border-slate-200/80 text-slate-600 hover:bg-white hover:text-slate-900 shadow-2xs transition active:scale-95 cursor-pointer shrink-0"
                   aria-label="Minimize installation progress"
                   title="Minimize"
                 >
-                  <Minus size={18} />
+                  <Minus size={18} strokeWidth={2.5} />
                 </button>
               )}
             </div>
@@ -347,21 +342,19 @@ export default function PackageInstallModal({
                   aria-valuenow={progressPercentage}
                 >
                   <div
-                    className={`h-full rounded-full transition-all duration-500 ${
-                      progressPercentage === 100
+                    className={`h-full rounded-full transition-all duration-500 ${progressPercentage === 100
                         ? "bg-emerald-600"
                         : "bg-gradient-to-r from-[#210062] via-[#5c1380] to-[#d6573c]"
-                    }`}
+                      }`}
                     style={{ width: `${progressPercentage}%` }}
                   />
                 </div>
                 <p className="text-sm font-semibold text-[#5c1380] flex items-center gap-2">
                   <Loader2 size={14} className="animate-spin text-[#d6573c]" />
                   {currentPackage
-                    ? `${currentPackage.packageName}: ${
-                        packageStatusLabels[currentPackage.status] ||
-                        currentPackage.status
-                      }`
+                    ? `${currentPackage.packageName}: ${packageStatusLabels[currentPackage.status] ||
+                    currentPackage.status
+                    }`
                     : "All packages have reached a final status."}
                 </p>
               </section>
@@ -377,8 +370,7 @@ export default function PackageInstallModal({
                       {item.packageName}
                     </span>
                     <span
-                      className={`text-xs font-bold px-3 py-1 rounded-full transition-all ${
-                        item.status === "QUEUED"
+                      className={`text-xs font-bold px-3 py-1 rounded-full transition-all ${item.status === "QUEUED"
                           ? "bg-[#5c1380]/10 text-[#5c1380] border border-[#5c1380]/20"
                           : item.status === "PROCESSING"
                             ? "bg-blue-50 text-blue-700 border border-blue-200 animate-pulse"
@@ -387,7 +379,7 @@ export default function PackageInstallModal({
                               : item.status === "FAILED"
                                 ? "bg-red-50 text-red-700 border border-red-200"
                                 : "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                      }`}
+                        }`}
                     >
                       {packageStatusLabels[item.status] || item.status}
                     </span>
@@ -408,11 +400,10 @@ export default function PackageInstallModal({
             {started && allPackagesTerminal && (
               <p
                 role="status"
-                className={`rounded-2xl border px-4 py-3 text-sm font-semibold shadow-xs ${
-                  failedCount === 0
+                className={`rounded-2xl border px-4 py-3 text-sm font-semibold shadow-xs ${failedCount === 0
                     ? "border-emerald-200 bg-emerald-50/90 text-emerald-800"
                     : "border-[#d6573c]/30 bg-[#d6573c]/10 text-[#7a2a1b]"
-                }`}
+                  }`}
               >
                 {completionMessage}
               </p>

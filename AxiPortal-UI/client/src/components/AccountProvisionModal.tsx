@@ -1,38 +1,38 @@
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Building2, Loader2, ShieldCheck, X } from "lucide-react";
+import { Building2, ChevronDown, Loader2, ShieldCheck, X } from "lucide-react";
 import { bff, type Schema } from "@/lib/bff";
 
 const countryCodes = [
-  { code: "+1", country: "US/CA", flag: "🇺🇸" },
-  { code: "+91", country: "IN", flag: "🇮🇳" },
-  { code: "+44", country: "UK", flag: "🇬🇧" },
-  { code: "+61", country: "AU", flag: "🇦🇺" },
-  { code: "+971", country: "AE", flag: "🇦🇪" },
-  { code: "+65", country: "SG", flag: "🇸🇬" },
-  { code: "+49", country: "DE", flag: "🇩🇪" },
-  { code: "+33", country: "FR", flag: "🇫🇷" },
-  { code: "+81", country: "JP", flag: "🇯🇵" },
-  { code: "+86", country: "CN", flag: "🇨🇳" },
-  { code: "+966", country: "SA", flag: "🇸🇦" },
-  { code: "+60", country: "MY", flag: "🇲🇾" },
-  { code: "+64", country: "NZ", flag: "🇳🇿" },
-  { code: "+27", country: "ZA", flag: "🇿🇦" },
-  { code: "+55", country: "BR", flag: "🇧🇷" },
-  { code: "+52", country: "MX", flag: "🇲🇽" },
-  { code: "+39", country: "IT", flag: "🇮🇹" },
-  { code: "+34", country: "ES", flag: "🇪🇸" },
-  { code: "+31", country: "NL", flag: "🇳🇱" },
-  { code: "+46", country: "SE", flag: "🇸🇪" },
-  { code: "+41", country: "CH", flag: "🇨🇭" },
-  { code: "+353", country: "IE", flag: "🇮🇪" },
-  { code: "+82", country: "KR", flag: "🇰🇷" },
-  { code: "+63", country: "PH", flag: "🇵🇭" },
-  { code: "+62", country: "ID", flag: "🇮🇩" },
-  { code: "+84", country: "VN", flag: "🇻🇳" },
-  { code: "+90", country: "TR", flag: "🇹🇷" },
+  { code: "+1", country: "US/CA", iso: "us" },
+  { code: "+91", country: "IN", iso: "in" },
+  { code: "+44", country: "UK", iso: "gb" },
+  { code: "+61", country: "AU", iso: "au" },
+  { code: "+971", country: "AE", iso: "ae" },
+  { code: "+65", country: "SG", iso: "sg" },
+  { code: "+49", country: "DE", iso: "de" },
+  { code: "+33", country: "FR", iso: "fr" },
+  { code: "+81", country: "JP", iso: "jp" },
+  { code: "+86", country: "CN", iso: "cn" },
+  { code: "+966", country: "SA", iso: "sa" },
+  { code: "+60", country: "MY", iso: "my" },
+  { code: "+64", country: "NZ", iso: "nz" },
+  { code: "+27", country: "ZA", iso: "za" },
+  { code: "+55", country: "BR", iso: "br" },
+  { code: "+52", country: "MX", iso: "mx" },
+  { code: "+39", country: "IT", iso: "it" },
+  { code: "+34", country: "ES", iso: "es" },
+  { code: "+31", country: "NL", iso: "nl" },
+  { code: "+46", country: "SE", iso: "se" },
+  { code: "+41", country: "CH", iso: "ch" },
+  { code: "+353", country: "IE", iso: "ie" },
+  { code: "+82", country: "KR", iso: "kr" },
+  { code: "+63", country: "PH", iso: "ph" },
+  { code: "+62", country: "ID", iso: "id" },
+  { code: "+84", country: "VN", iso: "vn" },
+  { code: "+90", country: "TR", iso: "tr" },
 ];
 
 const companySchema = z.object({
@@ -99,6 +99,22 @@ export default function AccountProvisionModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [countryCode, setCountryCode] = useState("+1");
+  const [selectedIso, setSelectedIso] = useState("us");
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const form = useForm<CompanyForm>({
     resolver: zodResolver(companySchema),
@@ -329,23 +345,59 @@ export default function AccountProvisionModal({
                 />
               </Field>
 
-              {/* Mobile Number Section with Country Code Add-on */}
+              {/* Mobile Number Section with Country Flag SVG Selector */}
               <Field
                 label="Mobile number"
                 error={form.formState.errors.mobileNo?.message}
               >
                 <div className="flex items-center gap-2">
-                  <select
-                    value={countryCode}
-                    onChange={e => setCountryCode(e.target.value)}
-                    className="h-[42px] rounded-xl border border-slate-200 bg-[#FAF8F5] px-2.5 text-xs font-bold text-slate-700 outline-none transition focus:border-[#5c1380] focus:bg-white focus:ring-2 focus:ring-[#5c1380]/20 shrink-0 cursor-pointer"
-                  >
-                    {countryCodes.map(c => (
-                      <option key={c.code} value={c.code}>
-                        {c.flag} {c.code}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="relative" ref={dropdownRef}>
+                    <button
+                      type="button"
+                      onClick={() => setDropdownOpen(prev => !prev)}
+                      className="flex h-[42px] items-center gap-2 rounded-xl border border-slate-200 bg-[#FAF8F5] px-2.5 text-xs font-bold text-slate-700 outline-none transition hover:border-[#5c1380]/60 focus:border-[#5c1380] focus:bg-white focus:ring-2 focus:ring-[#5c1380]/20 shrink-0 cursor-pointer"
+                    >
+                      <img
+                        src={`/flags/${selectedIso}.svg`}
+                        alt={selectedIso}
+                        className="h-3.5 w-5 object-cover rounded-[2px] shadow-2xs"
+                      />
+                      <span>{countryCode}</span>
+                      <ChevronDown size={14} className="text-slate-400" />
+                    </button>
+                    {dropdownOpen && (
+                      <div className="absolute left-0 top-full z-50 mt-1 max-h-52 w-48 overflow-y-auto rounded-xl border border-[#e8d7c3] bg-white p-1.5 shadow-xl space-y-0.5">
+                        {countryCodes.map(c => (
+                          <button
+                            key={c.code + c.iso}
+                            type="button"
+                            onClick={() => {
+                              setCountryCode(c.code);
+                              setSelectedIso(c.iso);
+                              setDropdownOpen(false);
+                            }}
+                            className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-xs font-semibold transition ${
+                              selectedIso === c.iso
+                                ? "bg-[#5c1380]/10 text-[#5c1380] font-bold"
+                                : "text-slate-700 hover:bg-[#fff8ee]"
+                            }`}
+                          >
+                            <div className="flex items-center gap-2">
+                              <img
+                                src={`/flags/${c.iso}.svg`}
+                                alt={c.country}
+                                className="h-3.5 w-5 object-cover rounded-[2px] shadow-2xs"
+                              />
+                              <span>{c.code}</span>
+                            </div>
+                            <span className="text-[10px] text-slate-400 font-normal">
+                              {c.country}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                   <input
                     {...form.register("mobileNo", {
                       onBlur: () => {
