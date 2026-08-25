@@ -348,7 +348,7 @@ export default function SignupPackagesPage({
                     redirectLoading
                   }
                   onClick={() => void togglePackage(packageData)}
-                  className={`relative flex min-h-[105px] flex-col justify-between rounded-2xl ${style.bg} p-3.5 text-left transition-all duration-300 backdrop-blur-md disabled:cursor-not-allowed disabled:opacity-60 ${
+                  className={`relative flex min-h-[105px] flex-col justify-between rounded-2xl ${style.bg} p-3.5 text-left transition-all duration-300 backdrop-blur-md disabled:cursor-not-allowed disabled:opacity-50 disabled:pointer-events-none disabled:select-none ${
                     selected
                       ? `${style.borderSelected} scale-[1.02]`
                       : `${style.borderUnselected} hover:scale-[1.01] hover:shadow-lg`
@@ -418,7 +418,7 @@ export default function SignupPackagesPage({
                   redirectLoading
                 }
                 onClick={() => setShowConfirmation(true)}
-                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#210062] via-[#5c1380] to-[#d6573c] px-5 py-3 text-xs sm:text-sm font-extrabold uppercase tracking-wider text-white shadow-lg shadow-[#210062]/20 transition-all hover:opacity-95 active:scale-[0.99] disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 disabled:opacity-60 disabled:shadow-none"
+                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#210062] via-[#5c1380] to-[#d6573c] px-5 py-3 text-xs sm:text-sm font-extrabold uppercase tracking-wider text-white shadow-lg shadow-[#210062]/20 transition-all hover:opacity-95 active:scale-[0.99] disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 disabled:opacity-50 disabled:pointer-events-none disabled:select-none disabled:shadow-none"
               >
                 <PackageCheck size={16} /> INSTALL SELECTED (
                 {selectedPackages.length})
@@ -428,7 +428,7 @@ export default function SignupPackagesPage({
               type="button"
               disabled={installationInProgress || redirectLoading}
               onClick={continueToAxi}
-              className="inline-flex items-center gap-2 rounded-xl border border-[#e8d7c3] bg-white/80 hover:bg-white px-5 py-3 text-xs sm:text-sm font-extrabold uppercase tracking-wider text-[#210062] shadow-xs transition-all hover:border-[#d6c2ab] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex items-center gap-2 rounded-xl border border-[#e8d7c3] bg-white/80 hover:bg-white px-5 py-3 text-xs sm:text-sm font-extrabold uppercase tracking-wider text-[#210062] shadow-xs transition-all hover:border-[#d6c2ab] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 disabled:pointer-events-none disabled:select-none"
             >
               {redirectLoading ? "Opening AXI..." : "CONTINUE TO AXI"}
             </button>

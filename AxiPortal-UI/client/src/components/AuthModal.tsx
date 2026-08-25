@@ -889,14 +889,14 @@ export default function AuthModal() {
               )}
 
               {/* Account List */}
-              <div className="space-y-3">
-                {rememberedAccounts.map(userName => (
+              <div className="max-h-[260px] sm:max-h-[300px] overflow-y-auto space-y-3 pr-1.5 scrollbar-thin scrollbar-thumb-slate-300/60 scrollbar-track-transparent">
+                {rememberedAccounts.map((userName, index) => (
                   <button
-                    key={userName}
+                    key={`${userName}-${index}`}
                     type="button"
                     disabled={Boolean(rememberedAccountLoading)}
                     onClick={() => void loginRememberedAccount(userName)}
-                    className="group relative w-full rounded-2xl border border-[#e8d7c3] bg-white/80 hover:bg-white p-3.5 sm:p-4 text-left transition-all duration-200 hover:border-[#d6573c] hover:shadow-md hover:shadow-[#d6573c]/5 disabled:cursor-wait disabled:opacity-60 flex items-center gap-3.5"
+                    className="group relative w-full rounded-2xl border border-[#e8d7c3] bg-white/80 hover:bg-white p-3.5 sm:p-4 text-left transition-all duration-200 hover:border-[#d6573c] hover:shadow-md hover:shadow-[#d6573c]/5 disabled:cursor-wait disabled:opacity-60 flex items-center gap-3.5 shrink-0"
                   >
                     <div className="w-10 h-10 rounded-full bg-[#1E1B4B]/5 group-hover:bg-[#d6573c]/10 flex items-center justify-center text-[#1E1B4B] group-hover:text-[#d6573c] transition-colors flex-shrink-0">
                       <User className="w-5 h-5" />
@@ -908,17 +908,18 @@ export default function AuthModal() {
                     </span>
                   </button>
                 ))}
+              </div>
 
-                {/* Login with another account */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowRememberedAccounts(false);
-                    setError("");
-                    openLogin();
-                  }}
-                  className="mt-3 group w-full rounded-2xl border-2 border-dashed border-[#e8d7c3] hover:border-[#d6573c] bg-white/40 hover:bg-white/90 p-3.5 sm:p-4 text-left transition-all duration-200 flex items-center gap-3.5"
-                >
+              {/* Login with another account */}
+              <button
+                type="button"
+                onClick={() => {
+                  setShowRememberedAccounts(false);
+                  setError("");
+                  openLogin();
+                }}
+                className="mt-3 group w-full rounded-2xl border-2 border-dashed border-[#e8d7c3] hover:border-[#d6573c] bg-white/40 hover:bg-white/90 p-3.5 sm:p-4 text-left transition-all duration-200 flex items-center gap-3.5 shrink-0"
+              >
                   <div className="w-10 h-10 rounded-full bg-[#1E1B4B]/5 group-hover:bg-[#d6573c]/10 flex items-center justify-center text-[#1E1B4B] group-hover:text-[#d6573c] transition-colors flex-shrink-0">
                     <UserPlus className="w-5 h-5" />
                   </div>
@@ -926,7 +927,6 @@ export default function AuthModal() {
                     Login with another account
                   </span>
                 </button>
-              </div>
             </motion.section>
           </div>
         )}

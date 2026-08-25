@@ -46,9 +46,6 @@ export default function PackageInstallModal({
     `${Date.now()}-${Math.random().toString(36).slice(2)}`
   );
   const [installationAttempt, setInstallationAttempt] = useState("");
-  const [stageMap, setStageMap] = useState<
-    Record<string, "QUEUED" | "PROCESSING" | "ALMOST_DONE" | "FINAL">
-  >({});
 
   const packageNames = useMemo(
     () => packages.map(item => item.packageName),
@@ -80,98 +77,34 @@ export default function PackageInstallModal({
     realStatuses[packageName] = "FAILED";
   });
 
-  // Stage progression flow: Queued -> Processing -> Almost Done -> Final (Failed / Installed)
-  useEffect(() => {
-    if (!started) return;
-
-    const initialStages: Record<
-      string,
-      "QUEUED" | "PROCESSING" | "ALMOST_DONE" | "FINAL"
-    > = {};
-    packages.forEach(p => {
-      initialStages[p.packageName] = "QUEUED";
-    });
-    setStageMap(initialStages);
-
-    const timer1 = setTimeout(() => {
-      setStageMap(prev => {
-        const next = { ...prev };
-        Object.keys(next).forEach(k => {
-          if (next[k] === "QUEUED") next[k] = "PROCESSING";
-        });
-        return next;
-      });
-    }, 1200);
-
-    const timer2 = setTimeout(() => {
-      setStageMap(prev => {
-        const next = { ...prev };
-        Object.keys(next).forEach(k => {
-          if (next[k] === "PROCESSING") next[k] = "ALMOST_DONE";
-        });
-        return next;
-      });
-    }, 2700);
-
-    const timer3 = setTimeout(() => {
-      setStageMap(prev => {
-        const next = { ...prev };
-        Object.keys(next).forEach(k => {
-          next[k] = "FINAL";
-        });
-        return next;
-      });
-    }, 4000);
-
-    return () => {
-      clearTimeout(timer1);
-      clearTimeout(timer2);
-      clearTimeout(timer3);
-    };
-  }, [started, packages]);
-
   const packageStates = packages.map(item => {
     const rawStatus =
       realStatuses[item.packageName] || (started ? "QUEUED" : "PREPARED");
-    const stage = stageMap[item.packageName] || (started ? "QUEUED" : "FINAL");
-
-    let effectiveStatus = rawStatus;
-    if (started) {
-      if (stage === "QUEUED") effectiveStatus = "QUEUED";
-      else if (stage === "PROCESSING") effectiveStatus = "PROCESSING";
-      else if (stage === "ALMOST_DONE") effectiveStatus = "ALMOST_DONE";
-      else effectiveStatus = rawStatus || "FAILED";
-    }
+    const isTerminal = isTerminalPackageStatus(rawStatus);
 
     return {
       packageName: item.packageName,
-      status: effectiveStatus,
+      status: rawStatus,
       rawStatus,
-      isFinal: stage === "FINAL",
+      isFinal: isTerminal,
       logUrl: progressItemsByPackage[item.packageName]?.logUrl,
     };
   });
 
-  const completedCount = packageStates.filter(
-    item => item.isFinal && isTerminalPackageStatus(item.rawStatus)
-  ).length;
+  const completedCount = packageStates.filter(item => item.isFinal).length;
 
-  const currentStageName = packageStates.find(item => !item.isFinal)?.status;
+  const currentPackage = packageStates.find(item => !item.isFinal);
 
   const progressPercentage = !started
     ? 0
-    : completedCount === packages.length
-      ? 100
-      : currentStageName === "QUEUED"
-        ? 20
-        : currentStageName === "PROCESSING"
-          ? 50
-          : currentStageName === "ALMOST_DONE"
-            ? 85
-            : Math.round((completedCount / packages.length) * 100);
+    : packages.length === 0
+      ? 0
+      : completedCount === packages.length
+        ? 100
+        : Math.round((completedCount / packages.length) * 100);
 
-  const currentPackage = packageStates.find(item => !item.isFinal);
   const allPackagesTerminal =
+    started &&
     packageStates.length === packages.length &&
     packageStates.every(item => item.isFinal);
 
