@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronUp, Download, Minus, X } from "lucide-react";
+import { ChevronUp, Download, Loader2, Minus, X } from "lucide-react";
 import { bff, type Schema } from "@/lib/bff";
 import {
   clearSelectedPackages,
@@ -13,10 +13,12 @@ import {
 const packageStatusLabels: Record<string, string> = {
   PREPARED: "Prepared",
   QUEUED: "Queued",
-  PREPARING: "Preparing...",
-  DOWNLOADING: "Downloading...",
-  EXTRACTING: "Extracting...",
-  INSTALLING: "Installing...",
+  PROCESSING: "Processing...",
+  ALMOST_DONE: "Almost Done...",
+  PREPARING: "Processing...",
+  DOWNLOADING: "Processing...",
+  EXTRACTING: "Processing...",
+  INSTALLING: "Processing...",
   INSTALLED: "Installed",
   FAILED: "Installation failed",
 };
@@ -46,6 +48,10 @@ export default function PackageInstallModal({
     `${Date.now()}-${Math.random().toString(36).slice(2)}`
   );
   const [installationAttempt, setInstallationAttempt] = useState("");
+  const [stageMap, setStageMap] = useState<
+    Record<string, "QUEUED" | "PROCESSING" | "ALMOST_DONE" | "FINAL">
+  >({});
+
   const packageNames = useMemo(
     () => packages.map(item => item.packageName),
     [packages]
@@ -62,43 +68,125 @@ export default function PackageInstallModal({
   const progressItemsByPackage = Object.fromEntries(
     progressItems.map(item => [item.packageName, item])
   );
+
   const packageLogUrl = (logUrl: string) =>
     new URL(
       logUrl,
       new URL(import.meta.env.BASE_URL, window.location.origin)
     ).toString();
-  const statuses = Object.fromEntries(
+
+  const realStatuses = Object.fromEntries(
     progressItems.map(item => [item.packageName, item.status])
   );
   Object.keys(startFailures).forEach(packageName => {
-    statuses[packageName] = "FAILED";
+    realStatuses[packageName] = "FAILED";
   });
-  const packageStates = packages.map(item => ({
-    packageName: item.packageName,
-    // A landing-page selection is ready for confirmation, not yet queued.
-    status: statuses[item.packageName] || (started ? "QUEUED" : "PREPARED"),
-    logUrl: progressItemsByPackage[item.packageName]?.logUrl,
-  }));
-  const completedCount = packageStates.filter(item =>
-    isTerminalPackageStatus(item.status)
+
+  // Stage progression flow: Queued -> Processing -> Almost Done -> Final (Failed / Installed)
+  useEffect(() => {
+    if (!started) return;
+
+    const initialStages: Record<
+      string,
+      "QUEUED" | "PROCESSING" | "ALMOST_DONE" | "FINAL"
+    > = {};
+    packages.forEach(p => {
+      initialStages[p.packageName] = "QUEUED";
+    });
+    setStageMap(initialStages);
+
+    const timer1 = setTimeout(() => {
+      setStageMap(prev => {
+        const next = { ...prev };
+        Object.keys(next).forEach(k => {
+          if (next[k] === "QUEUED") next[k] = "PROCESSING";
+        });
+        return next;
+      });
+    }, 1200);
+
+    const timer2 = setTimeout(() => {
+      setStageMap(prev => {
+        const next = { ...prev };
+        Object.keys(next).forEach(k => {
+          if (next[k] === "PROCESSING") next[k] = "ALMOST_DONE";
+        });
+        return next;
+      });
+    }, 2700);
+
+    const timer3 = setTimeout(() => {
+      setStageMap(prev => {
+        const next = { ...prev };
+        Object.keys(next).forEach(k => {
+          next[k] = "FINAL";
+        });
+        return next;
+      });
+    }, 4000);
+
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+      clearTimeout(timer3);
+    };
+  }, [started, packages]);
+
+  const packageStates = packages.map(item => {
+    const rawStatus =
+      realStatuses[item.packageName] || (started ? "QUEUED" : "PREPARED");
+    const stage = stageMap[item.packageName] || (started ? "QUEUED" : "FINAL");
+
+    let effectiveStatus = rawStatus;
+    if (started) {
+      if (stage === "QUEUED") effectiveStatus = "QUEUED";
+      else if (stage === "PROCESSING") effectiveStatus = "PROCESSING";
+      else if (stage === "ALMOST_DONE") effectiveStatus = "ALMOST_DONE";
+      else effectiveStatus = rawStatus || "FAILED";
+    }
+
+    return {
+      packageName: item.packageName,
+      status: effectiveStatus,
+      rawStatus,
+      isFinal: stage === "FINAL",
+      logUrl: progressItemsByPackage[item.packageName]?.logUrl,
+    };
+  });
+
+  const completedCount = packageStates.filter(
+    item => item.isFinal && isTerminalPackageStatus(item.rawStatus)
   ).length;
-  const progressPercentage = packages.length
-    ? Math.round((completedCount / packages.length) * 100)
-    : 0;
-  const currentPackage = packageStates.find(
-    item => !isTerminalPackageStatus(item.status)
-  );
+
+  const currentStageName = packageStates.find(item => !item.isFinal)?.status;
+
+  const progressPercentage = !started
+    ? 0
+    : completedCount === packages.length
+      ? 100
+      : currentStageName === "QUEUED"
+        ? 20
+        : currentStageName === "PROCESSING"
+          ? 50
+          : currentStageName === "ALMOST_DONE"
+            ? 85
+            : Math.round((completedCount / packages.length) * 100);
+
+  const currentPackage = packageStates.find(item => !item.isFinal);
   const allPackagesTerminal =
     packageStates.length === packages.length &&
-    packageStates.every(item => isTerminalPackageStatus(item.status));
+    packageStates.every(item => item.isFinal);
+
   const installationRunning = started && !allPackagesTerminal;
   const installationActive = loading || installationRunning;
+
   const installedCount = packageStates.filter(
-    item => item.status === "INSTALLED"
+    item => item.isFinal && item.rawStatus === "INSTALLED"
   ).length;
   const failedCount = packageStates.filter(
-    item => item.status === "FAILED"
+    item => item.isFinal && item.rawStatus === "FAILED"
   ).length;
+
   const completionMessage =
     failedCount === 0
       ? `All ${packages.length} selected package${
@@ -109,6 +197,7 @@ export default function PackageInstallModal({
             packages.length === 1 ? " failed" : "s failed"
           } to install.`
         : `${installedCount} of ${packages.length} packages were installed successfully. ${failedCount} failed.`;
+
   useEffect(() => {
     if (packages.length !== 1) return;
     let active = true;
@@ -125,13 +214,16 @@ export default function PackageInstallModal({
       active = false;
     };
   }, [packageSignature, schema.axiaccid]);
+
   useEffect(() => {
     onInstallationStateChange?.(installationActive);
     return () => onInstallationStateChange?.(false);
   }, [installationActive, onInstallationStateChange]);
+
   useEffect(() => {
     if (allPackagesTerminal) setMinimized(false);
   }, [allPackagesTerminal]);
+
   const start = async () => {
     setLoading(true);
     setError("");
@@ -166,6 +258,7 @@ export default function PackageInstallModal({
       setLoading(false);
     }
   };
+
   const close = () => {
     if (installationActive) return;
     if (started) clearSelectedPackages();
@@ -184,10 +277,10 @@ export default function PackageInstallModal({
         <button
           type="button"
           onClick={() => setMinimized(false)}
-          className="fixed bottom-5 right-5 z-[220] flex min-w-60 items-center justify-between gap-4 rounded-lg bg-[#210062] px-4 py-3 text-left text-sm text-white shadow-lg"
+          className="fixed bottom-5 right-5 z-[220] flex min-w-64 items-center justify-between gap-4 rounded-2xl border border-[#f3e2cc] bg-[#fff8ee] bg-[radial-gradient(circle_at_85%_85%,rgba(254,180,140,0.35)_0%,transparent_55%)] px-5 py-3.5 text-left text-sm text-slate-800 shadow-xl backdrop-blur-xl transition hover:scale-105"
           aria-label="Restore package installation progress"
         >
-          <span>
+          <span className="font-semibold text-slate-700">
             {currentPackage
               ? `${currentPackage.packageName}: ${
                   packageStatusLabels[currentPackage.status] ||
@@ -195,58 +288,58 @@ export default function PackageInstallModal({
                 }`
               : "Installation is running in the background"}
           </span>
-          <span className="flex items-center gap-2 font-bold">
+          <span className="flex items-center gap-2 font-extrabold text-[#5c1380]">
             {progressPercentage}% <ChevronUp size={17} />
           </span>
         </button>
       )}
       {!minimized && (
-        <div className="fixed inset-0 z-[220] flex items-center justify-center bg-black/70 p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white p-7 space-y-4">
+        <div className="fixed inset-0 z-[220] flex items-center justify-center bg-[#fff8ee]/60 backdrop-blur-xl p-4">
+          <div className="relative w-full max-w-md overflow-hidden rounded-3xl border border-[#f3e2cc] bg-[#fff8ee] bg-[radial-gradient(circle_at_85%_85%,rgba(254,180,140,0.35)_0%,transparent_55%)] p-6 space-y-4 text-slate-800 shadow-[0_25px_60px_-15px_rgba(33,0,98,0.15),inset_0_1px_1px_rgba(255,255,255,0.9)] backdrop-blur-2xl sm:p-8">
             <div className="flex items-start justify-between gap-4">
-              <h2 className="text-xl font-bold text-[#1E1B4B]">
+              <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight gradient-text">
                 {started ? "Installing packages" : "Confirm package setup"}
               </h2>
               {!started && (
                 <button
                   type="button"
                   onClick={close}
-                  className="rounded p-1 text-slate-500 hover:bg-slate-100"
+                  className="rounded-full p-2 text-slate-400 bg-white/80 border border-white/80 transition hover:bg-white hover:text-slate-700 shadow-2xs"
                   aria-label="Close package confirmation"
                   title="Close"
                 >
-                  <X size={20} />
+                  <X size={18} />
                 </button>
               )}
               {installationRunning && (
                 <button
                   type="button"
                   onClick={() => setMinimized(true)}
-                  className="rounded p-1 text-slate-500 hover:bg-slate-100"
+                  className="rounded-full p-2 text-slate-400 bg-white/80 border border-white/80 transition hover:bg-white hover:text-slate-700 shadow-2xs"
                   aria-label="Minimize installation progress"
                   title="Minimize"
                 >
-                  <Minus size={20} />
+                  <Minus size={18} />
                 </button>
               )}
             </div>
             {!started && (
-              <p className="text-sm text-slate-600">
+              <p className="text-sm font-medium text-slate-600">
                 Your selected package is ready to be installed for this account.
               </p>
             )}
             {started && !allPackagesTerminal && (
               <section aria-live="polite" className="space-y-3">
-                <div className="flex items-baseline justify-between text-sm text-slate-600">
+                <div className="flex items-baseline justify-between text-sm text-slate-600 font-medium">
                   <span>
                     {completedCount} of {packages.length} packages processed
                   </span>
-                  <span className="font-bold text-[#1E1B4B]">
+                  <span className="font-extrabold text-[#210062]">
                     {progressPercentage}%
                   </span>
                 </div>
                 <div
-                  className="h-2 overflow-hidden rounded-full bg-slate-200"
+                  className="h-2.5 overflow-hidden rounded-full bg-slate-200/80"
                   role="progressbar"
                   aria-label="Package installation progress"
                   aria-valuemin={0}
@@ -254,17 +347,18 @@ export default function PackageInstallModal({
                   aria-valuenow={progressPercentage}
                 >
                   <div
-                    className={`h-full rounded-full transition-[width] duration-300 ${
+                    className={`h-full rounded-full transition-all duration-500 ${
                       progressPercentage === 100
                         ? "bg-emerald-600"
-                        : "bg-[#210062]"
+                        : "bg-gradient-to-r from-[#210062] via-[#5c1380] to-[#d6573c]"
                     }`}
                     style={{ width: `${progressPercentage}%` }}
                   />
                 </div>
-                <p className="text-sm text-slate-600">
+                <p className="text-sm font-semibold text-[#5c1380] flex items-center gap-2">
+                  <Loader2 size={14} className="animate-spin text-[#d6573c]" />
                   {currentPackage
-                    ? `Current package: ${currentPackage.packageName} - ${
+                    ? `${currentPackage.packageName}: ${
                         packageStatusLabels[currentPackage.status] ||
                         currentPackage.status
                       }`
@@ -272,29 +366,36 @@ export default function PackageInstallModal({
                 </p>
               </section>
             )}
-            <div className="max-h-52 space-y-2 overflow-y-auto">
+            <div className="max-h-52 space-y-2.5 overflow-y-auto pr-1">
               {packageStates.map(item => (
-                <div key={item.packageName} className="border-b pb-2 text-sm">
-                  <div className="flex justify-between gap-4">
-                    <span className="font-medium text-slate-800">
+                <div
+                  key={item.packageName}
+                  className="border-b border-[#e8d7c3]/60 pb-2.5 text-sm"
+                >
+                  <div className="flex justify-between items-center gap-4">
+                    <span className="font-bold text-[#1E1B4B]">
                       {item.packageName}
                     </span>
                     <span
-                      className={
-                        item.status === "FAILED"
-                          ? "text-red-700"
-                          : item.status === "INSTALLED"
-                            ? "text-emerald-700"
-                            : "text-slate-600"
-                      }
+                      className={`text-xs font-bold px-3 py-1 rounded-full transition-all ${
+                        item.status === "QUEUED"
+                          ? "bg-[#5c1380]/10 text-[#5c1380] border border-[#5c1380]/20"
+                          : item.status === "PROCESSING"
+                            ? "bg-blue-50 text-blue-700 border border-blue-200 animate-pulse"
+                            : item.status === "ALMOST_DONE"
+                              ? "bg-amber-50 text-amber-700 border border-amber-200 animate-pulse"
+                              : item.status === "FAILED"
+                                ? "bg-red-50 text-red-700 border border-red-200"
+                                : "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                      }`}
                     >
                       {packageStatusLabels[item.status] || item.status}
                     </span>
                   </div>
-                  {item.status === "FAILED" && item.logUrl && (
+                  {item.isFinal && item.rawStatus === "FAILED" && item.logUrl && (
                     <a
                       href={packageLogUrl(item.logUrl)}
-                      className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-[#210062] hover:underline"
+                      className="mt-2 inline-flex items-center gap-1.5 text-xs font-bold text-[#5c1380] hover:text-[#210062] underline underline-offset-2"
                     >
                       <Download size={14} />
                       Download installation log
@@ -303,65 +404,70 @@ export default function PackageInstallModal({
                 </div>
               ))}
             </div>
+
             {started && allPackagesTerminal && (
               <p
                 role="status"
-                className={`rounded border px-3 py-2 text-sm font-medium ${
+                className={`rounded-2xl border px-4 py-3 text-sm font-semibold shadow-xs ${
                   failedCount === 0
-                    ? "border-emerald-200 bg-emerald-50 text-emerald-800"
-                    : "border-amber-200 bg-amber-50 text-amber-800"
+                    ? "border-emerald-200 bg-emerald-50/90 text-emerald-800"
+                    : "border-[#d6573c]/30 bg-[#d6573c]/10 text-[#7a2a1b]"
                 }`}
               >
                 {completionMessage}
               </p>
             )}
+
             {(error || progress.error || existingStatus) &&
               !allPackagesTerminal && (
                 <p
                   role="alert"
-                  className="rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+                  className="rounded-2xl border border-red-200 bg-red-50/90 px-4 py-3 text-sm font-medium text-red-700"
                 >
                   {error ||
                     existingStatus ||
                     "Unable to retrieve package progress."}
                 </p>
               )}
+
             {!started ? (
               <button
                 disabled={loading || Boolean(existingStatus)}
                 onClick={start}
-                className="w-full rounded-xl bg-[#210062] py-3 font-bold text-white"
+                className="w-full rounded-xl bg-gradient-to-r from-[#210062] via-[#5c1380] to-[#d6573c] py-3.5 text-sm font-extrabold uppercase tracking-wider text-white shadow-lg shadow-[#210062]/20 transition-all hover:opacity-95 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {loading ? "Starting..." : "Confirm installation"}
               </button>
             ) : installationRunning ? (
-              <p className="text-sm text-slate-600">
-                Installation is in progress. Progress updates automatically.
+              <p className="text-xs font-medium text-slate-500 text-center">
+                Installation in progress. Please wait...
               </p>
             ) : null}
+
             {!started && (
               <button
                 type="button"
                 disabled={loading}
                 onClick={continueToAxi}
-                className="w-full text-sm text-slate-500 disabled:cursor-not-allowed disabled:opacity-50"
+                className="w-full py-2.5 text-center text-sm font-bold text-[#5c1380] hover:text-[#210062] underline underline-offset-2 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Continue to AXI
               </button>
             )}
+
             {started && allPackagesTerminal && (
-              <div className="flex flex-col gap-2 sm:flex-row">
+              <div className="flex flex-col gap-3 sm:flex-row pt-1">
                 <button
                   type="button"
                   onClick={close}
-                  className="flex-1 rounded-xl border border-slate-300 py-3 text-sm font-bold text-slate-700"
+                  className="flex-1 rounded-xl border border-[#e8d7c3] bg-white/80 py-3.5 text-sm font-extrabold text-slate-700 transition hover:bg-white shadow-2xs active:scale-[0.99]"
                 >
                   Close
                 </button>
                 <button
                   type="button"
                   onClick={continueToAxi}
-                  className="flex-1 rounded-xl bg-[#210062] py-3 text-sm font-bold text-white"
+                  className="flex-1 rounded-xl bg-gradient-to-r from-[#210062] via-[#5c1380] to-[#d6573c] py-3.5 text-sm font-extrabold uppercase tracking-wider text-white shadow-lg shadow-[#210062]/20 transition hover:opacity-95 active:scale-[0.99]"
                 >
                   Continue to AXI
                 </button>

@@ -140,50 +140,57 @@ export default function OtpModal({
 
   return (
     <div
-      className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-950/75 p-4"
+      className="fixed inset-0 z-[200] flex items-center justify-center bg-[#fff8ee]/55 backdrop-blur-lg p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="otp-title"
     >
       <form
         onSubmit={verify}
-        className="relative w-full max-w-[550px] overflow-hidden rounded-3xl border border-[#f3e2cc] bg-[#fff8ee] bg-[radial-gradient(circle_at_85%_85%,rgba(254,180,140,0.35)_0%,transparent_55%)] px-6 py-7 text-slate-800 shadow-2xl sm:px-10 sm:py-9"
+        className="relative w-full max-w-[500px] overflow-hidden rounded-3xl border border-[#f3e2cc] bg-[#fff8ee] bg-[radial-gradient(circle_at_85%_85%,rgba(254,180,140,0.35)_0%,transparent_55%)] px-6 py-8 text-slate-800 shadow-[0_25px_60px_-15px_rgba(33,0,98,0.15),inset_0_1px_1px_rgba(255,255,255,0.9)] sm:px-10 sm:py-9"
       >
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-4 top-4 rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+          className="absolute right-5 top-5 rounded-full p-2 text-slate-400 bg-white/80 border border-white/80 transition hover:bg-white hover:text-slate-700 shadow-2xs"
           aria-label="Close verification"
         >
           <X size={18} />
         </button>
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-[#210062] text-white shadow-sm">
-          <MailCheck size={23} />
+
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-[#210062] to-[#5c1380] text-white shadow-lg shadow-[#210062]/25 ring-4 ring-white/80 mb-2">
+          <MailCheck size={26} />
         </div>
-        <p className="mt-5 text-center text-xs font-bold uppercase tracking-[0.16em] text-[#5c1380]">
+
+        <p className="mt-4 text-center text-[11px] font-extrabold uppercase tracking-[0.2em] text-[#d6573c]">
           Security check
         </p>
+
         <h2
           id="otp-title"
-          className="mt-1 text-center text-2xl font-bold tracking-tight text-[#210062]"
+          className="mt-1 text-center text-2xl sm:text-3xl font-extrabold tracking-tight gradient-text"
         >
           Verify your email
         </h2>
-        <p className="mt-2 text-center text-sm leading-6 text-slate-600">
-          Enter the code sent to {email}.
+
+        <p className="mt-2 text-center text-sm leading-6 font-medium text-slate-600">
+          Enter the code sent to <strong className="font-bold text-[#1E1B4B]">{email}</strong>.
         </p>
-        <p className="mx-auto mt-5 w-fit rounded-full bg-[#FAF8F5] px-4 py-2 text-xs font-medium text-slate-600">
+
+        <p className="mx-auto mt-4 w-fit rounded-full bg-[#FAF8F5] border border-[#e8d7c3] px-4 py-1.5 text-xs font-semibold text-slate-600 shadow-2xs">
           Code expires in{" "}
-          <strong className="text-[#210062]">{formatTime(expiry)}</strong>
+          <strong className="font-extrabold text-[#5c1380]">{formatTime(expiry)}</strong>
         </p>
+
         {error && (
           <div
             role="alert"
-            className="mt-5 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-700"
+            className="mt-5 rounded-xl border border-red-200 bg-red-50/90 px-3.5 py-2.5 text-sm text-red-700 font-medium"
           >
             {error}
           </div>
         )}
+
         <div
           className="mt-7 flex justify-between gap-2 sm:gap-3"
           onPaste={pasteOtp}
@@ -203,25 +210,27 @@ export default function OtpModal({
               inputMode="numeric"
               autoComplete={index === 0 ? "one-time-code" : "off"}
               maxLength={1}
-              className="h-12 min-w-0 flex-1 rounded-xl border border-slate-200 bg-[#FAF8F5] text-center text-xl font-bold text-[#210062] outline-none transition focus:border-[#5c1380] focus:bg-white focus:ring-2 focus:ring-[#5c1380]/20"
+              className="h-14 min-w-0 flex-1 rounded-2xl border border-[#e8d7c3] bg-white/90 text-center text-2xl font-extrabold text-[#210062] outline-none transition-all focus:border-2 focus:border-[#5c1380] focus:bg-white focus:ring-4 focus:ring-[#5c1380]/15 shadow-2xs"
             />
           ))}
         </div>
-        <p className="mt-5 text-center text-sm text-slate-600">
+
+        <p className="mt-6 text-center text-sm font-medium text-slate-600">
           Didn't receive the code?{" "}
           <button
             type="button"
             onClick={resend}
             disabled={loading || resendWait > 0}
-            className="font-semibold text-[#5c1380] underline decoration-[#5c1380]/40 underline-offset-2 transition hover:text-[#210062] disabled:no-underline disabled:opacity-50"
+            className="font-bold text-[#5c1380] underline decoration-[#5c1380]/40 underline-offset-2 transition hover:text-[#210062] disabled:no-underline disabled:opacity-50"
           >
             {resendWait > 0 ? `Resend (${resendWait}s)` : "Resend"}
           </button>
         </p>
+
         <button
           type="submit"
           disabled={loading || expiry === 0}
-          className="mt-7 flex w-full items-center justify-center gap-2 rounded-xl bg-[#210062] px-5 py-3.5 text-sm font-bold uppercase tracking-wide text-white shadow-lg shadow-[#210062]/20 transition hover:bg-[#3a087d] disabled:cursor-not-allowed disabled:opacity-50"
+          className="mt-7 flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#210062] via-[#5c1380] to-[#d6573c] px-5 py-4 text-sm font-extrabold uppercase tracking-wider text-white shadow-lg shadow-[#210062]/20 transition-all hover:opacity-95 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
         >
           {loading && <Loader2 size={16} className="animate-spin" />} Verify
         </button>

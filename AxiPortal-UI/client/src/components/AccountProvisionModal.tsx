@@ -44,68 +44,31 @@ const companySchema = z.object({
     .max(32, "Username cannot exceed 32 characters.")
     .regex(
       /^[A-Za-z0-9_-]+$/,
-      "Special characters (*, #, $, %, etc.) are not allowed in Username."
+      "Username can only contain letters, numbers, '_' and '-'."
     ),
   orgName: z
     .string()
     .trim()
-    .min(1, "Organisation name is required.")
-    .min(2, "Organisation name must be at least 2 characters.")
-    .max(100, "Organisation name cannot exceed 100 characters.")
+    .min(1, "Organization name is required.")
+    .min(2, "Organization name must be at least 2 characters.")
+    .max(100, "Organization name cannot exceed 100 characters.")
     .regex(
-      /^[A-Za-z0-9 .,'()-]+$/,
-      "Special characters (*, #, $, %, etc.) are not allowed in Organisation name."
+      /^[A-Za-z0-9][A-Za-z0-9 .,'&()/-]{1,99}$/,
+      "Organization name contains invalid characters."
     ),
   axiAccId: z
     .string()
     .trim()
     .toUpperCase()
-    .min(1, "AXI Account ID is required.")
-    .min(5, "AXI Account ID must be at least 5 characters.")
-    .max(16, "AXI Account ID cannot exceed 16 characters.")
+    .min(1, "Axi Account ID is required.")
+    .min(5, "Axi Account ID must be at least 5 characters.")
+    .max(16, "Axi Account ID cannot exceed 16 characters.")
     .regex(/^[A-Z]{5}/, "The first 5 characters must be letters.")
-    .regex(
-      /^[A-Z0-9]+$/,
-      "Special characters (*, #, $, etc.) are not allowed in AXI Account ID."
-    ),
-  country: z
-    .string()
-    .trim()
-    .min(1, "Country is required.")
-    .min(2, "Country must be at least 2 characters.")
-    .max(60, "Country cannot exceed 60 characters.")
-    .regex(
-      /^[A-Za-z0-9 .,'-]+$/,
-      "Special characters (*, #, $, %, etc.) are not allowed in Country."
-    ),
-  state: z
-    .string()
-    .trim()
-    .min(1, "State / Province is required.")
-    .min(2, "State / Province must be at least 2 characters.")
-    .max(50, "State / Province cannot exceed 50 characters.")
-    .regex(
-      /^[A-Za-z0-9 .,'-]+$/,
-      "Special characters (*, #, $, %, etc.) are not allowed in State / Province."
-    ),
-  contactPersonName: z
-    .string()
-    .trim()
-    .min(1, "Contact person is required.")
-    .min(2, "Contact person must be at least 2 characters.")
-    .max(50, "Contact person cannot exceed 50 characters.")
-    .regex(
-      /^[A-Za-z0-9 .,'-]+$/,
-      "Special characters (*, #, $, %, etc.) are not allowed in Contact person."
-    ),
-  taxNo: z
-    .string()
-    .trim()
-    .max(30, "Tax No. cannot exceed 30 characters.")
-    .regex(
-      /^[A-Za-z0-9 -]*$/,
-      "Special characters (*, #, $, %, etc.) are not allowed in Tax No."
-    ),
+    .regex(/^[A-Z0-9]+$/, "Only letters and numbers are allowed."),
+  country: z.string().trim().max(60),
+  state: z.string().trim().max(50),
+  contactPersonName: z.string().trim().max(50),
+  taxNo: z.string().trim().max(30),
   mobileNo: z
     .string()
     .trim()
@@ -139,7 +102,8 @@ export default function AccountProvisionModal({
 
   const form = useForm<CompanyForm>({
     resolver: zodResolver(companySchema),
-    mode: "onChange",
+    mode: "onBlur",
+    reValidateMode: "onChange",
     defaultValues: {
       userName: email.split("@")[0] || "",
       orgName: "",
@@ -156,23 +120,18 @@ export default function AccountProvisionModal({
   const userNameVal = form.watch("userName")?.trim() || "";
   const orgNameVal = form.watch("orgName")?.trim() || "";
   const axiAccIdVal = form.watch("axiAccId")?.trim() || "";
-  const countryVal = form.watch("country")?.trim() || "";
-  const stateVal = form.watch("state")?.trim() || "";
-  const contactPersonVal = form.watch("contactPersonName")?.trim() || "";
 
   const isFormValid =
     userNameVal.length >= 3 &&
     /^[A-Za-z0-9_-]+$/.test(userNameVal) &&
     orgNameVal.length >= 2 &&
-    /^[A-Za-z0-9 .,'()-]+$/.test(orgNameVal) &&
+    /^[A-Za-z0-9][A-Za-z0-9 .,'&()/-]{1,99}$/.test(orgNameVal) &&
     axiAccIdVal.length >= 5 &&
+    /^[A-Z]{5}/.test(axiAccIdVal) &&
     /^[A-Z0-9]+$/.test(axiAccIdVal) &&
-    countryVal.length >= 2 &&
-    /^[A-Za-z0-9 .,'-]+$/.test(countryVal) &&
-    stateVal.length >= 2 &&
-    /^[A-Za-z0-9 .,'-]+$/.test(stateVal) &&
-    contactPersonVal.length >= 2 &&
-    /^[A-Za-z0-9 .,'-]+$/.test(contactPersonVal);
+    !form.formState.errors.userName &&
+    !form.formState.errors.orgName &&
+    !form.formState.errors.axiAccId;
 
   const submit = form.handleSubmit(async values => {
     setLoading(true);
@@ -273,13 +232,13 @@ export default function AccountProvisionModal({
                 error={form.formState.errors.userName?.message}
               >
                 <input
-                  {...form.register("userName")}
+                  {...form.register("userName", {
+                    onBlur: () => {
+                      void form.trigger("userName");
+                    },
+                  })}
                   autoComplete="username"
                   placeholder="Enter username"
-                  onChange={e => {
-                    const cleaned = e.target.value.replace(/[^A-Za-z0-9_-]/g, "");
-                    form.setValue("userName", cleaned, { shouldValidate: true });
-                  }}
                 />
               </Field>
               <Field
@@ -288,15 +247,12 @@ export default function AccountProvisionModal({
                 error={form.formState.errors.orgName?.message}
               >
                 <input
-                  {...form.register("orgName")}
+                  {...form.register("orgName", {
+                    onBlur: () => {
+                      void form.trigger("orgName");
+                    },
+                  })}
                   placeholder="Enter organization name"
-                  onChange={e => {
-                    const cleaned = e.target.value.replace(
-                      /[*#$%\^&+=<>~`{}[\]\\|?]/g,
-                      ""
-                    );
-                    form.setValue("orgName", cleaned, { shouldValidate: true });
-                  }}
                 />
               </Field>
               <Field
@@ -305,68 +261,58 @@ export default function AccountProvisionModal({
                 error={form.formState.errors.axiAccId?.message}
               >
                 <input
-                  {...form.register("axiAccId")}
+                  {...form.register("axiAccId", {
+                    onBlur: () => {
+                      void form.trigger("axiAccId");
+                    },
+                    onChange: e => {
+                      const cleaned = e.target.value
+                        .toUpperCase()
+                        .replace(/[^A-Z0-9]/g, "");
+                      form.setValue("axiAccId", cleaned, { shouldValidate: true });
+                    },
+                  })}
                   maxLength={16}
                   placeholder="e.g. ACME01"
-                  onChange={e => {
-                    const cleaned = e.target.value
-                      .toUpperCase()
-                      .replace(/[^A-Z0-9]/g, "");
-                    form.setValue("axiAccId", cleaned, { shouldValidate: true });
-                  }}
                 />
               </Field>
               <Field
                 label="Country"
-                required
                 error={form.formState.errors.country?.message}
               >
                 <input
-                  {...form.register("country")}
+                  {...form.register("country", {
+                    onBlur: () => {
+                      void form.trigger("country");
+                    },
+                  })}
                   placeholder="Enter country"
-                  onChange={e => {
-                    const cleaned = e.target.value.replace(
-                      /[*#$%\^&+=<>~`{}[\]\\|?]/g,
-                      ""
-                    );
-                    form.setValue("country", cleaned, { shouldValidate: true });
-                  }}
                 />
               </Field>
               <Field
                 label="State / Province"
-                required
                 error={form.formState.errors.state?.message}
               >
                 <input
-                  {...form.register("state")}
+                  {...form.register("state", {
+                    onBlur: () => {
+                      void form.trigger("state");
+                    },
+                  })}
                   placeholder="Enter state or province"
-                  onChange={e => {
-                    const cleaned = e.target.value.replace(
-                      /[*#$%\^&+=<>~`{}[\]\\|?]/g,
-                      ""
-                    );
-                    form.setValue("state", cleaned, { shouldValidate: true });
-                  }}
                 />
               </Field>
               <Field
                 label="Contact person"
-                required
                 error={form.formState.errors.contactPersonName?.message}
               >
                 <input
-                  {...form.register("contactPersonName")}
+                  {...form.register("contactPersonName", {
+                    onBlur: () => {
+                      void form.trigger("contactPersonName");
+                    },
+                  })}
                   placeholder="Enter contact person name"
-                  onChange={e => {
-                    const cleaned = e.target.value.replace(
-                      /[*#$%\^&+=<>~`{}[\]\\|?]/g,
-                      ""
-                    );
-                    form.setValue("contactPersonName", cleaned, {
-                      shouldValidate: true,
-                    });
-                  }}
                 />
               </Field>
               <Field
@@ -374,15 +320,12 @@ export default function AccountProvisionModal({
                 error={form.formState.errors.taxNo?.message}
               >
                 <input
-                  {...form.register("taxNo")}
+                  {...form.register("taxNo", {
+                    onBlur: () => {
+                      void form.trigger("taxNo");
+                    },
+                  })}
                   placeholder="Enter Tax / GST No. (optional)"
-                  onChange={e => {
-                    const cleaned = e.target.value.replace(
-                      /[*#$%\^&+=<>~`{}[\]\\|?]/g,
-                      ""
-                    );
-                    form.setValue("taxNo", cleaned, { shouldValidate: true });
-                  }}
                 />
               </Field>
 
@@ -404,15 +347,19 @@ export default function AccountProvisionModal({
                     ))}
                   </select>
                   <input
-                    {...form.register("mobileNo")}
+                    {...form.register("mobileNo", {
+                      onBlur: () => {
+                        void form.trigger("mobileNo");
+                      },
+                      onChange: e => {
+                        const cleaned = e.target.value.replace(/[^0-9\s-]/g, "");
+                        form.setValue("mobileNo", cleaned, {
+                          shouldValidate: true,
+                        });
+                      },
+                    })}
                     inputMode="tel"
                     placeholder="Enter mobile number"
-                    onChange={e => {
-                      const cleaned = e.target.value.replace(/[^0-9\s-]/g, "");
-                      form.setValue("mobileNo", cleaned, {
-                        shouldValidate: true,
-                      });
-                    }}
                   />
                 </div>
               </Field>
@@ -423,21 +370,18 @@ export default function AccountProvisionModal({
                 className="sm:col-span-2"
               >
                 <input
-                  {...form.register("address")}
+                  {...form.register("address", {
+                    onBlur: () => {
+                      void form.trigger("address");
+                    },
+                  })}
                   placeholder="Enter address (optional)"
-                  onChange={e => {
-                    const cleaned = e.target.value.replace(
-                      /[*$%\^&+=<>~`{}[\]\\|?]/g,
-                      ""
-                    );
-                    form.setValue("address", cleaned, { shouldValidate: true });
-                  }}
                 />
               </Field>
             </div>
           </div>
 
-          {/* Continue Button: Dim & Non-Clickable until required fields are valid, then Bright & Clickable */}
+          {/* Continue Button: Dim & Non-Clickable until Username, Organisation Name, and Axi Account ID are valid, then Bright & Clickable */}
           <button
             type="submit"
             disabled={!isFormValid || loading}
