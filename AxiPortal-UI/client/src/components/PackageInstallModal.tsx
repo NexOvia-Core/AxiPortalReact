@@ -118,14 +118,19 @@ export default function PackageInstallModal({
     item => item.isFinal && item.rawStatus === "FAILED"
   ).length;
 
-  const completionMessage =
-    failedCount === 0
-      ? packages.length > 1
+  const completionMessage = (() => {
+    if (failedCount === 0) {
+      return packages.length > 1
         ? `All ${packages.length} selected Packages installed successfully`
-        : "Installation Successful"
-      : packages.length > 1
+        : "Installation Successful";
+    }
+    if (installedCount === 0) {
+      return packages.length > 1
         ? `All ${packages.length} selected Packages Failed to install`
         : "Installation Failed";
+    }
+    return `${installedCount} Package${installedCount === 1 ? "" : "s"} Installed, ${failedCount} Failed to install`;
+  })();
 
   useEffect(() => {
     setStarted(false);
@@ -342,10 +347,13 @@ export default function PackageInstallModal({
             {started && allPackagesTerminal && (
               <p
                 role="status"
-                className={`rounded-2xl border px-4 py-3.5 text-center text-sm sm:text-base font-normal shadow-2xs ${failedCount === 0
+                className={`rounded-2xl border px-4 py-3.5 text-center text-sm sm:text-base font-normal shadow-2xs ${
+                  failedCount === 0
                     ? "border-emerald-200 bg-emerald-50/90 text-emerald-800"
-                    : "border-[#d6573c]/30 bg-[#d6573c]/10 text-[#7a2a1b]"
-                  }`}
+                    : installedCount === 0
+                      ? "border-[#d6573c]/30 bg-[#d6573c]/10 text-[#7a2a1b]"
+                      : "border-amber-200 bg-amber-50/90 text-amber-900"
+                }`}
               >
                 {completionMessage}
               </p>
