@@ -199,7 +199,7 @@ export default function PackageInstallModal({
 
   const close = () => {
     if (installationActive) return;
-    if (started) clearSelectedPackages();
+    clearSelectedPackages();
     onClose();
   };
 
@@ -291,7 +291,7 @@ export default function PackageInstallModal({
                     style={{ width: `${progressPercentage}%` }}
                   />
                 </div>
-                <p className="text-sm font-semibold text-[#5c1380] flex items-center gap-2">
+                <p className="text-sm font-normal text-[#5c1380] flex items-center gap-2">
                   <Loader2 size={14} className="animate-spin text-[#d6573c]" />
                   {currentPackage
                     ? `${currentPackage.packageName}: ${packageStatusLabels[currentPackage.status] ||
@@ -301,11 +301,7 @@ export default function PackageInstallModal({
                 </p>
               </section>
             )}
-            <div
-              className={`max-h-52 space-y-2.5 overflow-y-auto pr-1 transition-all ${
-                installationRunning ? "pointer-events-none select-none opacity-90" : ""
-              }`}
-            >
+            <div className="max-h-52 space-y-2.5 overflow-y-auto pr-1">
               {packageStates.map(item => (
                 <div
                   key={item.packageName}
@@ -333,7 +329,7 @@ export default function PackageInstallModal({
                   {item.isFinal && item.rawStatus === "FAILED" && item.logUrl && (
                     <a
                       href={packageLogUrl(item.logUrl)}
-                      className="mt-2 inline-flex items-center gap-1.5 text-xs font-bold text-[#5c1380] hover:text-[#210062] underline underline-offset-2"
+                      className="mt-2 inline-flex items-center gap-1.5 text-xs font-bold text-[#5c1380] hover:text-[#210062] underline underline-offset-2 cursor-pointer pointer-events-auto"
                     >
                       <Download size={14} />
                       Download installation log
@@ -346,7 +342,7 @@ export default function PackageInstallModal({
             {started && allPackagesTerminal && (
               <p
                 role="status"
-                className={`rounded-2xl border px-4 py-3.5 text-center text-sm sm:text-base font-extrabold shadow-2xs ${failedCount === 0
+                className={`rounded-2xl border px-4 py-3.5 text-center text-sm sm:text-base font-normal shadow-2xs ${failedCount === 0
                     ? "border-emerald-200 bg-emerald-50/90 text-emerald-800"
                     : "border-[#d6573c]/30 bg-[#d6573c]/10 text-[#7a2a1b]"
                   }`}
@@ -359,7 +355,7 @@ export default function PackageInstallModal({
               !allPackagesTerminal && (
                 <p
                   role="alert"
-                  className="rounded-2xl border border-red-200 bg-red-50/90 px-4 py-3 text-sm font-medium text-red-700"
+                  className="rounded-2xl border border-red-200 bg-red-50/90 px-4 py-3 text-sm font-normal text-red-700 text-center"
                 >
                   {error ||
                     existingStatus ||

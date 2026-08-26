@@ -304,7 +304,7 @@ export default function SignupPackagesPage({
           {pageError && (
             <p
               role="alert"
-              className="mt-3 rounded-xl border border-red-200 bg-red-50/90 px-3 py-2 text-xs font-medium text-red-700"
+              className="mt-3 rounded-xl border border-red-200 bg-red-50/90 px-3 py-2 text-xs font-normal text-red-700"
             >
               {pageError}
             </p>
@@ -396,7 +396,7 @@ export default function SignupPackagesPage({
                     {packageMessages[packageData.packageName] && (
                       <span
                         role="status"
-                        className="mt-1 block text-[10px] font-bold text-amber-700 bg-amber-50/90 px-1.5 py-0.5 rounded border border-amber-200/80"
+                        className="mt-1 block text-[10px] font-normal text-amber-700 bg-amber-50/90 px-1.5 py-0.5 rounded border border-amber-200/80"
                       >
                         {packageMessages[packageData.packageName]}
                       </span>
@@ -441,7 +441,11 @@ export default function SignupPackagesPage({
           schema={schema}
           packages={selectedPackages}
           onComplete={continueToAxi}
-          onClose={() => setShowConfirmation(false)}
+          onClose={() => {
+            setShowConfirmation(false);
+            setSelectedPackages([]);
+            clearSelectedPackages();
+          }}
           onInstallationStateChange={setInstallationInProgress}
         />
       )}

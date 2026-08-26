@@ -882,7 +882,7 @@ export default function AuthModal() {
               {error && (
                 <p
                   role="alert"
-                  className="mb-4 rounded-xl border border-red-200 bg-red-50/80 px-3.5 py-2.5 text-xs font-medium text-red-700"
+                  className="mb-4 rounded-xl border border-red-200 bg-red-50/80 px-3.5 py-2.5 text-xs font-normal text-red-700"
                 >
                   {error}
                 </p>
