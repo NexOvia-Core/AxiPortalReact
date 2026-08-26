@@ -35,6 +35,36 @@ const countryCodes = [
   { code: "+90", country: "TR", iso: "tr" },
 ];
 
+const countryPhoneRules: Record<string, { digits: number[]; name: string }> = {
+  "+1": { digits: [10], name: "US/Canada" },
+  "+91": { digits: [10], name: "India" },
+  "+44": { digits: [10, 11], name: "UK" },
+  "+61": { digits: [9], name: "Australia" },
+  "+971": { digits: [9], name: "UAE" },
+  "+65": { digits: [8], name: "Singapore" },
+  "+49": { digits: [10, 11], name: "Germany" },
+  "+33": { digits: [9], name: "France" },
+  "+81": { digits: [10], name: "Japan" },
+  "+86": { digits: [11], name: "China" },
+  "+966": { digits: [9], name: "Saudi Arabia" },
+  "+60": { digits: [9, 10], name: "Malaysia" },
+  "+64": { digits: [8, 9, 10], name: "New Zealand" },
+  "+27": { digits: [9], name: "South Africa" },
+  "+55": { digits: [10, 11], name: "Brazil" },
+  "+52": { digits: [10], name: "Mexico" },
+  "+39": { digits: [10], name: "Italy" },
+  "+34": { digits: [9], name: "Spain" },
+  "+31": { digits: [9], name: "Netherlands" },
+  "+46": { digits: [7, 8, 9], name: "Sweden" },
+  "+41": { digits: [9], name: "Switzerland" },
+  "+353": { digits: [9], name: "Ireland" },
+  "+82": { digits: [9, 10], name: "South Korea" },
+  "+63": { digits: [10], name: "Philippines" },
+  "+62": { digits: [9, 10, 11, 12], name: "Indonesia" },
+  "+84": { digits: [9, 10], name: "Vietnam" },
+  "+90": { digits: [10], name: "Turkey" },
+};
+
 const companySchema = z.object({
   userName: z
     .string()
@@ -43,36 +73,55 @@ const companySchema = z.object({
     .min(3, "Username must be at least 3 characters.")
     .max(32, "Username cannot exceed 32 characters.")
     .regex(
-      /^[A-Za-z0-9_-]+$/,
-      "Username can only contain letters, numbers, '_' and '-'."
+      /^[A-Za-z0-9]+$/,
+      "Username cannot contain special characters. Only letters and numbers are allowed."
     ),
   orgName: z
     .string()
     .trim()
-    .min(1, "Organization name is required.")
-    .min(2, "Organization name must be at least 2 characters.")
-    .max(100, "Organization name cannot exceed 100 characters.")
+    .min(1, "Organisation name is required.")
+    .min(2, "Organisation name must be at least 2 characters.")
+    .max(100, "Organisation name cannot exceed 100 characters.")
     .regex(
-      /^[A-Za-z0-9][A-Za-z0-9 .,'&()/-]{1,99}$/,
-      "Organization name contains invalid characters."
+      /^[A-Za-z0-9][A-Za-z0-9 .,'&()/-]{0,99}$/,
+      "Organisation name contains invalid characters."
     ),
   axiAccId: z
     .string()
     .trim()
     .toUpperCase()
-    .min(1, "Axi Account ID is required.")
-    .min(5, "Axi Account ID must be at least 5 characters.")
-    .max(16, "Axi Account ID cannot exceed 16 characters.")
+    .min(1, "AXI Account ID is required.")
+    .min(5, "AXI Account ID must be at least 5 characters.")
+    .max(16, "AXI Account ID cannot exceed 16 characters.")
     .regex(/^[A-Z]{5}/, "The first 5 characters must be letters.")
     .regex(/^[A-Z0-9]+$/, "Only letters and numbers are allowed."),
-  country: z.string().trim().max(60),
-  state: z.string().trim().max(50),
-  contactPersonName: z.string().trim().max(50),
-  taxNo: z.string().trim().max(30),
+  country: z
+    .string()
+    .trim()
+    .max(60, "Country cannot exceed 60 characters.")
+    .regex(/^[A-Za-z\s.-]*$/, "Country can only contain letters."),
+  state: z
+    .string()
+    .trim()
+    .max(50, "State / Province cannot exceed 50 characters.")
+    .regex(/^[A-Za-z\s.-]*$/, "State / Province can only contain letters."),
+  contactPersonName: z
+    .string()
+    .trim()
+    .max(50, "Contact person cannot exceed 50 characters.")
+    .regex(/^[A-Za-z\s.-]*$/, "Contact person can only contain letters."),
+  taxNo: z
+    .string()
+    .trim()
+    .max(30, "Tax No. cannot exceed 30 characters.")
+    .regex(
+      /^[A-Za-z0-9\s-]*$/,
+      "Tax No. can only contain letters, numbers, and hyphens."
+    ),
   mobileNo: z
     .string()
     .trim()
-    .regex(/^[0-9\s-]*$/, "Mobile number must contain digits only."),
+    .regex(/^[0-9]*$/, "Mobile number must contain digits only."),
   address: z
     .string()
     .trim()
@@ -118,10 +167,10 @@ export default function AccountProvisionModal({
 
   const form = useForm<CompanyForm>({
     resolver: zodResolver(companySchema),
-    mode: "onBlur",
+    mode: "onTouched",
     reValidateMode: "onChange",
     defaultValues: {
-      userName: email.split("@")[0] || "",
+      userName: (email.split("@")[0] || "").replace(/[^A-Za-z0-9]/g, ""),
       orgName: "",
       axiAccId: "",
       country: "",
@@ -133,21 +182,43 @@ export default function AccountProvisionModal({
     },
   });
 
-  const userNameVal = form.watch("userName")?.trim() || "";
-  const orgNameVal = form.watch("orgName")?.trim() || "";
-  const axiAccIdVal = form.watch("axiAccId")?.trim() || "";
+  const validateMobile = (mobile: string, code: string): string => {
+    const trimmed = mobile.trim();
+    if (!trimmed) return "";
+    if (!/^[0-9]+$/.test(trimmed)) {
+      return "Mobile number must contain digits only.";
+    }
+    const rule = countryPhoneRules[code];
+    if (rule) {
+      if (!rule.digits.includes(trimmed.length)) {
+        const expected = rule.digits.join(" or ");
+        return `Mobile number must be ${expected} digits for ${rule.name}.`;
+      }
+    } else if (trimmed.length < 7 || trimmed.length > 15) {
+      return "Mobile number must be between 7 and 15 digits.";
+    }
+    return "";
+  };
+
+  const values = form.watch();
+  const userNameVal = values.userName?.trim() || "";
+  const orgNameVal = values.orgName?.trim() || "";
+  const axiAccIdVal = values.axiAccId?.trim() || "";
+  const currentMobileVal = values.mobileNo?.trim() || "";
+  const mobileCustomError = validateMobile(currentMobileVal, countryCode);
+
+  const hasFormErrors = Object.keys(form.formState.errors).length > 0;
 
   const isFormValid =
     userNameVal.length >= 3 &&
-    /^[A-Za-z0-9_-]+$/.test(userNameVal) &&
+    /^[A-Za-z0-9]+$/.test(userNameVal) &&
     orgNameVal.length >= 2 &&
-    /^[A-Za-z0-9][A-Za-z0-9 .,'&()/-]{1,99}$/.test(orgNameVal) &&
+    /^[A-Za-z0-9][A-Za-z0-9 .,'&()/-]{0,99}$/.test(orgNameVal) &&
     axiAccIdVal.length >= 5 &&
     /^[A-Z]{5}/.test(axiAccIdVal) &&
     /^[A-Z0-9]+$/.test(axiAccIdVal) &&
-    !form.formState.errors.userName &&
-    !form.formState.errors.orgName &&
-    !form.formState.errors.axiAccId;
+    !mobileCustomError &&
+    !hasFormErrors;
 
   const submit = form.handleSubmit(async values => {
     setLoading(true);
@@ -248,11 +319,7 @@ export default function AccountProvisionModal({
                 error={form.formState.errors.userName?.message}
               >
                 <input
-                  {...form.register("userName", {
-                    onBlur: () => {
-                      void form.trigger("userName");
-                    },
-                  })}
+                  {...form.register("userName")}
                   autoComplete="username"
                   placeholder="Enter username"
                 />
@@ -263,11 +330,7 @@ export default function AccountProvisionModal({
                 error={form.formState.errors.orgName?.message}
               >
                 <input
-                  {...form.register("orgName", {
-                    onBlur: () => {
-                      void form.trigger("orgName");
-                    },
-                  })}
+                  {...form.register("orgName")}
                   placeholder="Enter organization name"
                 />
               </Field>
@@ -278,14 +341,15 @@ export default function AccountProvisionModal({
               >
                 <input
                   {...form.register("axiAccId", {
-                    onBlur: () => {
-                      void form.trigger("axiAccId");
-                    },
                     onChange: e => {
                       const cleaned = e.target.value
                         .toUpperCase()
                         .replace(/[^A-Z0-9]/g, "");
-                      form.setValue("axiAccId", cleaned, { shouldValidate: true });
+                      form.setValue("axiAccId", cleaned, {
+                        shouldValidate: true,
+                        shouldDirty: true,
+                        shouldTouch: true,
+                      });
                     },
                   })}
                   maxLength={16}
@@ -297,11 +361,7 @@ export default function AccountProvisionModal({
                 error={form.formState.errors.country?.message}
               >
                 <input
-                  {...form.register("country", {
-                    onBlur: () => {
-                      void form.trigger("country");
-                    },
-                  })}
+                  {...form.register("country")}
                   placeholder="Enter country"
                 />
               </Field>
@@ -310,11 +370,7 @@ export default function AccountProvisionModal({
                 error={form.formState.errors.state?.message}
               >
                 <input
-                  {...form.register("state", {
-                    onBlur: () => {
-                      void form.trigger("state");
-                    },
-                  })}
+                  {...form.register("state")}
                   placeholder="Enter state or province"
                 />
               </Field>
@@ -323,11 +379,7 @@ export default function AccountProvisionModal({
                 error={form.formState.errors.contactPersonName?.message}
               >
                 <input
-                  {...form.register("contactPersonName", {
-                    onBlur: () => {
-                      void form.trigger("contactPersonName");
-                    },
-                  })}
+                  {...form.register("contactPersonName")}
                   placeholder="Enter contact person name"
                 />
               </Field>
@@ -336,11 +388,7 @@ export default function AccountProvisionModal({
                 error={form.formState.errors.taxNo?.message}
               >
                 <input
-                  {...form.register("taxNo", {
-                    onBlur: () => {
-                      void form.trigger("taxNo");
-                    },
-                  })}
+                  {...form.register("taxNo")}
                   placeholder="Enter Tax / GST No. (optional)"
                 />
               </Field>
@@ -348,7 +396,10 @@ export default function AccountProvisionModal({
               {/* Mobile Number Section with Country Flag SVG Selector */}
               <Field
                 label="Mobile number"
-                error={form.formState.errors.mobileNo?.message}
+                error={
+                  form.formState.errors.mobileNo?.message ||
+                  (form.formState.touchedFields.mobileNo ? mobileCustomError : "")
+                }
               >
                 <div className="flex items-center gap-2">
                   <div className="relative" ref={dropdownRef}>
@@ -400,13 +451,12 @@ export default function AccountProvisionModal({
                   </div>
                   <input
                     {...form.register("mobileNo", {
-                      onBlur: () => {
-                        void form.trigger("mobileNo");
-                      },
                       onChange: e => {
-                        const cleaned = e.target.value.replace(/[^0-9\s-]/g, "");
+                        const cleaned = e.target.value.replace(/[^0-9]/g, "");
                         form.setValue("mobileNo", cleaned, {
                           shouldValidate: true,
+                          shouldDirty: true,
+                          shouldTouch: true,
                         });
                       },
                     })}
@@ -422,11 +472,7 @@ export default function AccountProvisionModal({
                 className="sm:col-span-2"
               >
                 <input
-                  {...form.register("address", {
-                    onBlur: () => {
-                      void form.trigger("address");
-                    },
-                  })}
+                  {...form.register("address")}
                   placeholder="Enter address (optional)"
                 />
               </Field>
@@ -470,11 +516,17 @@ function Field({
         {label}
         {required && <span className="ml-1 text-red-500 font-bold">*</span>}
       </span>
-      <div className="[&_input]:w-full [&_input]:rounded-xl [&_input]:border [&_input]:border-slate-200 [&_input]:bg-[#FAF8F5] [&_input]:px-3 [&_input]:py-2.5 [&_input]:text-sm [&_input]:text-slate-800 [&_input]:outline-none [&_input]:transition [&_input]:placeholder:text-slate-400 [&_input]:focus:border-[#5c1380] [&_input]:focus:bg-white [&_input]:focus:ring-2 [&_input]:focus:ring-[#5c1380]/20">
+      <div
+        className={`[&_input]:w-full [&_input]:rounded-xl [&_input]:border ${
+          error
+            ? "[&_input]:border-red-400 [&_input]:bg-red-50/30 [&_input]:focus:ring-red-400/20 [&_input]:focus:border-red-500"
+            : "[&_input]:border-slate-200 [&_input]:bg-[#FAF8F5] [&_input]:focus:border-[#5c1380] [&_input]:focus:ring-[#5c1380]/20"
+        } [&_input]:px-3 [&_input]:py-2.5 [&_input]:text-sm [&_input]:text-slate-800 [&_input]:outline-none [&_input]:transition [&_input]:placeholder:text-slate-400 [&_input]:focus:bg-white [&_input]:focus:ring-2`}
+      >
         {children}
       </div>
-      <span className="mt-1 block min-h-4 text-[11px] font-medium text-red-600">
-        {error}
+      <span className="mt-1 block min-h-4 text-[11px] font-normal text-red-600">
+        {error || ""}
       </span>
     </label>
   );

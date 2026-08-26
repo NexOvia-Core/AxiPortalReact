@@ -33,9 +33,40 @@ export default function AuthModal() {
   } = useAuthModal();
 
   const [email, setEmail] = useState("");
+  const [emailTouched, setEmailTouched] = useState(false);
+  const [emailError, setEmailError] = useState("");
   const [keepSignedIn, setKeepSignedIn] = useState(false);
   const [useOtp, setUseOtp] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const validateEmail = (val: string): string => {
+    const trimmed = val.trim();
+    if (!trimmed) {
+      return "Email address is required.";
+    }
+    const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+    if (!emailRegex.test(trimmed)) {
+      return "Please enter a valid email address.";
+    }
+    return "";
+  };
+
+  const handleEmailChange = (val: string) => {
+    setEmail(val);
+    setError("");
+    setSchemas([]);
+    setSelectedSchemaId("");
+    setShowPasswordModal(false);
+    setIsSsoAuthenticated(false);
+    if (emailTouched) {
+      setEmailError(validateEmail(val));
+    }
+  };
+
+  const handleEmailBlur = () => {
+    setEmailTouched(true);
+    setEmailError(validateEmail(email));
+  };
 
   // OTP sub-modal state
   const [showOtpModal, setShowOtpModal] = useState(false);
@@ -83,6 +114,8 @@ export default function AuthModal() {
 
   const dismiss = () => {
     setEmail("");
+    setEmailTouched(false);
+    setEmailError("");
     setKeepSignedIn(false);
     setUseOtp(false);
     setChallenge(undefined);
@@ -105,6 +138,8 @@ export default function AuthModal() {
 
   const handleOAuthResult = (result: import("@/lib/bff").OAuthResult) => {
     setEmail(result.email);
+    setEmailTouched(false);
+    setEmailError("");
     setIsSsoAuthenticated(true);
     if (mode === "signup")
       setSignupSso({
@@ -141,6 +176,8 @@ export default function AuthModal() {
 
   // Reset useOtp & showOtpModal when switching between login and signup modes
   useEffect(() => {
+    setEmailTouched(false);
+    setEmailError("");
     setKeepSignedIn(false);
     setUseOtp(false);
     setShowOtpModal(false);
@@ -674,9 +711,13 @@ export default function AuthModal() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!email) {
-      setError("Enter your work email.");
-      return;
+    if (!showSsoSchemaStep) {
+      setEmailTouched(true);
+      const emailValidationError = validateEmail(email);
+      setEmailError(emailValidationError);
+      if (emailValidationError) {
+        return;
+      }
     }
 
     setLoading(true);
@@ -1082,19 +1123,25 @@ export default function AuthModal() {
                   <div>
                     <input
                       type="email"
-                      required
+                      id="auth-email-input"
                       value={email}
-                      onChange={e => {
-                        setEmail(e.target.value);
-                        setError("");
-                        setSchemas([]);
-                        setSelectedSchemaId("");
-                        setShowPasswordModal(false);
-                        setIsSsoAuthenticated(false);
-                      }}
+                      onChange={e => handleEmailChange(e.target.value)}
+                      onBlur={handleEmailBlur}
                       placeholder="Enter your work email"
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-[#FAF8F5] text-slate-800 text-sm font-medium placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#5c1380] focus:border-transparent transition-all"
+                      className={`w-full px-4 py-3 rounded-xl border ${
+                        emailTouched && emailError
+                          ? "border-red-400 bg-red-50/30 focus:ring-red-400/20 focus:border-red-500"
+                          : "border-slate-200 bg-[#FAF8F5] focus:ring-[#5c1380]"
+                      } text-slate-800 text-sm font-medium placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:border-transparent transition-all`}
                     />
+                    {emailTouched && emailError && (
+                      <span
+                        role="alert"
+                        className="mt-1.5 block text-[11px] font-normal text-red-600"
+                      >
+                        {emailError}
+                      </span>
+                    )}
                   </div>
                 )}
 
@@ -1236,22 +1283,38 @@ export default function AuthModal() {
                 )}
 
                 {/* Submit Button */}
-                <button
-                  type="submit"
-                  id="auth-submit-btn"
-                  disabled={loading}
-                  className="w-full mt-2 py-3.5 px-6 rounded-xl font-bold text-white text-sm tracking-wider uppercase bg-gradient-to-r from-[#210062] via-[#5c1380] to-[#d6573c] shadow-lg hover:shadow-xl hover:opacity-95 transition-all transform active:scale-[0.99] disabled:opacity-50"
-                >
-                  {loading
-                    ? "PROCESSING..."
-                    : showSsoSchemaStep
-                      ? "CONTINUE"
-                      : mode === "login"
-                        ? useOtp
-                          ? "CONTINUE WITH OTP →"
-                          : "NEXT"
-                        : "REGISTER NOW →"}
-                </button>
+                {(() => {
+                  const isEmailValid = validateEmail(email) === "";
+                  const isSubmitDisabled =
+                    loading ||
+                    (!showSsoSchemaStep &&
+                      (!email.trim() ||
+                        !isEmailValid ||
+                        (emailTouched && Boolean(emailError))));
+
+                  return (
+                    <button
+                      type="submit"
+                      id="auth-submit-btn"
+                      disabled={isSubmitDisabled}
+                      className={`w-full mt-2 py-3.5 px-6 rounded-xl font-bold text-white text-sm tracking-wider uppercase transition-all transform active:scale-[0.99] ${
+                        isSubmitDisabled
+                          ? "bg-slate-300 opacity-60 cursor-not-allowed shadow-none text-slate-500"
+                          : "bg-gradient-to-r from-[#210062] via-[#5c1380] to-[#d6573c] shadow-lg hover:shadow-xl hover:opacity-95 cursor-pointer"
+                      }`}
+                    >
+                      {loading
+                        ? "PROCESSING..."
+                        : showSsoSchemaStep
+                          ? "CONTINUE"
+                          : mode === "login"
+                            ? useOtp
+                              ? "CONTINUE WITH OTP →"
+                              : "NEXT"
+                            : "REGISTER NOW →"}
+                    </button>
+                  );
+                })()}
               </form>
 
               {/* Bottom Link */}
