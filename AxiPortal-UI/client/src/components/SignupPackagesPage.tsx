@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Check,
   DollarSign,
@@ -12,6 +13,7 @@ import {
   Sparkles,
   Users,
   Wallet,
+  X,
 } from "lucide-react";
 import { bff, type Schema } from "@/lib/bff";
 import { getBrowserId } from "@/lib/browser-id";
@@ -142,7 +144,15 @@ export default function SignupPackagesPage({
   schema: Schema;
   onContinue: () => void;
 }) {
+  const [showWelcome, setShowWelcome] = useState(true);
   const [landingPackage] = useState(() => readSelectedPackages()[0]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowWelcome(false);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, []);
   const [selectedPackages, setSelectedPackages] = useState<SelectedPackage[]>(
     landingPackage ? [landingPackage] : []
   );
@@ -282,6 +292,61 @@ export default function SignupPackagesPage({
 
   return (
     <>
+      <AnimatePresence>
+        {showWelcome && schema?.axiaccid && (
+          <div className="fixed inset-0 z-[250] flex items-center justify-center bg-[#0a0c1a]/60 backdrop-blur-md p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: -10 }}
+              transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+              className="relative w-full max-w-sm overflow-hidden rounded-3xl border border-[#f3e2cc] bg-[#fff8ee] bg-[radial-gradient(circle_at_85%_85%,rgba(254,180,140,0.35)_0%,transparent_55%)] p-6 sm:p-8 text-center text-slate-800 shadow-2xl shadow-indigo-950/20"
+            >
+              {/* Top Close Button */}
+              <button
+                type="button"
+                onClick={() => setShowWelcome(false)}
+                className="absolute top-4 right-4 p-1.5 rounded-full text-slate-400 hover:text-slate-700 hover:bg-[#f3e2cc]/50 transition-colors cursor-pointer"
+                aria-label="Close welcome message"
+              >
+                <X size={18} />
+              </button>
+
+              {/* Icon Badge Container */}
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#210062] via-[#5c1380] to-[#210062] text-white shadow-lg shadow-[#210062]/20 ring-4 ring-white/80">
+                <Sparkles size={28} className="text-amber-300" />
+              </div>
+
+              {/* Top Pill Badge */}
+              <div className="mb-2">
+                <span className="inline-block px-3.5 py-1 text-[10px] font-extrabold tracking-widest text-[#d6573c] uppercase bg-[#d6573c]/10 rounded-full">
+                  WELCOME TO AXI
+                </span>
+              </div>
+
+              {/* Header Title with Axi Account ID */}
+              <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#1E1B4B]">
+                {schema.axiaccid}
+              </h2>
+
+              {/* Subtitle Message */}
+              <p className="mt-2 text-sm font-normal text-slate-600">
+                Welcome to your AXI platform. Your account is ready for package setup.
+              </p>
+
+              {/* Auto Fade Progress Bar */}
+              <div className="mt-6 h-1 w-full overflow-hidden rounded-full bg-slate-200/80">
+                <motion.div
+                  initial={{ width: "100%" }}
+                  animate={{ width: "0%" }}
+                  transition={{ duration: 5, ease: "linear" }}
+                  className="h-full bg-gradient-to-r from-[#210062] via-[#5c1380] to-[#d6573c]"
+                />
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
       {redirecting && (
         <RedirectingModal
           redirectUrl={redirecting.url}

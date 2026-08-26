@@ -248,7 +248,7 @@ export default function PackageInstallModal({
                 >
                   <X size={18} strokeWidth={2.5} />
                 </button>
-              ) : (
+              ) : !allPackagesTerminal ? (
                 <button
                   type="button"
                   onClick={() => setMinimized(true)}
@@ -258,7 +258,7 @@ export default function PackageInstallModal({
                 >
                   <Minus size={18} strokeWidth={2.5} />
                 </button>
-              )}
+              ) : null}
             </div>
             {!started && (
               <p className="text-sm font-medium text-slate-600">
