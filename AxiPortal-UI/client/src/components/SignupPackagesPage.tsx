@@ -144,15 +144,7 @@ export default function SignupPackagesPage({
   schema: Schema;
   onContinue: () => void;
 }) {
-  const [showWelcome, setShowWelcome] = useState(true);
   const [landingPackage] = useState(() => readSelectedPackages()[0]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowWelcome(false);
-    }, 5000);
-    return () => clearTimeout(timer);
-  }, []);
   const [selectedPackages, setSelectedPackages] = useState<SelectedPackage[]>(
     landingPackage ? [landingPackage] : []
   );
@@ -292,61 +284,6 @@ export default function SignupPackagesPage({
 
   return (
     <>
-      <AnimatePresence>
-        {showWelcome && schema?.axiaccid && (
-          <div className="fixed inset-0 z-[250] flex items-center justify-center bg-[#0a0c1a]/60 backdrop-blur-md p-4">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 15 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: -10 }}
-              transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
-              className="relative w-full max-w-sm overflow-hidden rounded-3xl border border-[#f3e2cc] bg-[#fff8ee] bg-[radial-gradient(circle_at_85%_85%,rgba(254,180,140,0.35)_0%,transparent_55%)] p-6 sm:p-8 text-center text-slate-800 shadow-2xl shadow-indigo-950/20"
-            >
-              {/* Top Close Button */}
-              <button
-                type="button"
-                onClick={() => setShowWelcome(false)}
-                className="absolute top-4 right-4 p-1.5 rounded-full text-slate-400 hover:text-slate-700 hover:bg-[#f3e2cc]/50 transition-colors cursor-pointer"
-                aria-label="Close welcome message"
-              >
-                <X size={18} />
-              </button>
-
-              {/* Icon Badge Container */}
-              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#210062] via-[#5c1380] to-[#210062] text-white shadow-lg shadow-[#210062]/20 ring-4 ring-white/80">
-                <Sparkles size={28} className="text-amber-300" />
-              </div>
-
-              {/* Top Pill Badge */}
-              <div className="mb-2">
-                <span className="inline-block px-3.5 py-1 text-[10px] font-extrabold tracking-widest text-[#d6573c] uppercase bg-[#d6573c]/10 rounded-full">
-                  WELCOME TO AXI
-                </span>
-              </div>
-
-              {/* Header Title with Axi Account ID */}
-              <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#1E1B4B]">
-                {schema.axiaccid}
-              </h2>
-
-              {/* Subtitle Message */}
-              <p className="mt-2 text-sm font-normal text-slate-600">
-                Welcome to your AXI platform. Your account is ready for package setup.
-              </p>
-
-              {/* Auto Fade Progress Bar */}
-              <div className="mt-6 h-1 w-full overflow-hidden rounded-full bg-slate-200/80">
-                <motion.div
-                  initial={{ width: "100%" }}
-                  animate={{ width: "0%" }}
-                  transition={{ duration: 5, ease: "linear" }}
-                  className="h-full bg-gradient-to-r from-[#210062] via-[#5c1380] to-[#d6573c]"
-                />
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
       {redirecting && (
         <RedirectingModal
           redirectUrl={redirecting.url}
@@ -355,16 +292,36 @@ export default function SignupPackagesPage({
       )}
       <div className="min-h-screen bg-[#fff8ee] bg-[radial-gradient(circle_at_85%_85%,rgba(254,180,140,0.4)_0%,rgba(255,248,238,0)_55%),radial-gradient(circle_at_15%_15%,rgba(33,0,98,0.05)_0%,transparent_45%)] bg-fixed px-3 py-4 sm:px-6 sm:py-6 lg:px-8">
         <main className="mx-auto w-full max-w-7xl rounded-3xl border border-[#f3e2cc] bg-[#fff8ee]/90 bg-[radial-gradient(circle_at_85%_85%,rgba(254,180,140,0.25)_0%,transparent_55%)] p-4 shadow-[0_20px_50px_-15px_rgba(33,0,98,0.12),inset_0_1px_1px_rgba(255,255,255,0.9)] backdrop-blur-2xl sm:p-6 lg:p-7">
-          <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-[#d6573c]">
-            PACKAGE SETUP
-          </p>
-          <h1 className="mt-1 text-xl sm:text-2xl font-extrabold tracking-tight gradient-text">
-            Select packages for your AXI account
-          </h1>
-          <p className="mt-1.5 max-w-xl text-xs sm:text-sm leading-5 font-medium text-slate-600">
-            Select one or more packages to install, or continue to AXI without
-            installing a package now.
-          </p>
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+            <div>
+              <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-[#d6573c]">
+                PACKAGE SETUP
+              </p>
+              <h1 className="mt-1 text-xl sm:text-2xl font-extrabold tracking-tight gradient-text">
+                Select packages for your AXI account
+              </h1>
+              <p className="mt-1.5 max-w-xl text-xs sm:text-sm leading-5 font-medium text-slate-600">
+                Select one or more packages to install, or continue to AXI without
+                installing a package now.
+              </p>
+            </div>
+
+            {schema?.axiaccid && (
+              <div className="inline-flex items-center gap-2.5 self-start sm:self-auto rounded-2xl border border-[#e8d7c3] bg-white/90 px-3.5 py-2 shadow-2xs backdrop-blur-md shrink-0">
+                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-[#210062] via-[#5c1380] to-[#210062] text-white shadow-xs">
+                  <Sparkles size={15} className="text-amber-300" />
+                </div>
+                <div className="leading-tight">
+                  <span className="block text-[10px] font-extrabold tracking-wider uppercase text-[#d6573c]">
+                    WELCOME TO AXI
+                  </span>
+                  <span className="block text-xs sm:text-sm font-extrabold text-[#1E1B4B]">
+                    {schema.axiaccid}
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
 
           {pageError && (
             <p
