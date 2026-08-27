@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { KeyRound, Loader2, X } from "lucide-react";
+import { AlertCircle, KeyRound, Loader2, X } from "lucide-react";
 
 export default function PasswordModal({
   applicationName,
@@ -7,12 +7,14 @@ export default function PasswordModal({
   loading,
   onClose,
   onSubmit,
+  onForgotPassword,
 }: {
   applicationName: string;
   error?: string;
   loading: boolean;
   onClose: () => void;
   onSubmit: (password: string) => Promise<void>;
+  onForgotPassword?: () => void;
 }) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -24,20 +26,30 @@ export default function PasswordModal({
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!password) {
+    if (!password.trim()) {
       setError("Enter your password.");
       return;
     }
     try {
       await onSubmit(password);
     } catch (requestError) {
-      setError(
-        requestError instanceof Error
-          ? requestError.message
-          : "Unable to continue with this password."
-      );
+      const msg = requestError instanceof Error ? requestError.message : "";
+      if (
+        !msg ||
+        msg.toLowerCase().includes("invalid") ||
+        msg.toLowerCase().includes("password") ||
+        msg.toLowerCase().includes("credential") ||
+        msg.toLowerCase().includes("failed")
+      ) {
+        setError("Wrong Password, Please Try Again");
+      } else {
+        setError(msg);
+      }
     }
   };
+
+  const displayError = error || externalError;
+  const isContinueDisabled = loading || !password.trim();
 
   return (
     <div
@@ -55,7 +67,7 @@ export default function PasswordModal({
           type="button"
           onClick={onClose}
           disabled={loading}
-          className="absolute right-5 top-5 rounded-full p-2 text-slate-400 bg-white/80 border border-white/80 transition hover:bg-white hover:text-slate-700 shadow-2xs disabled:opacity-50"
+          className="absolute right-5 top-5 rounded-full p-2 text-slate-400 bg-white/80 border border-white/80 transition hover:bg-white hover:text-slate-700 shadow-2xs disabled:opacity-50 cursor-pointer"
           aria-label="Close password verification"
         >
           <X size={18} />
@@ -80,32 +92,62 @@ export default function PasswordModal({
           Continue to <strong className="font-bold text-[#1E1B4B]">{applicationName}</strong>.
         </p>
 
-        {(error || externalError) && (
-          <p
-            role="alert"
-            className="mt-4 rounded-xl border border-red-200 bg-red-50/90 px-3.5 py-2.5 text-center text-sm font-medium text-red-700"
-          >
-            {error || externalError}
-          </p>
-        )}
+        <div className="mt-6">
+          <input
+            autoComplete="current-password"
+            autoFocus
+            className={`w-full rounded-2xl border ${
+              displayError
+                ? "border-red-400 bg-red-50/30 focus:ring-red-400/20 focus:border-red-500"
+                : "border-[#e8d7c3] bg-white/90 focus:border-[#5c1380] focus:ring-[#5c1380]/15"
+            } px-4 py-3.5 text-sm font-semibold text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:bg-white focus:ring-4 shadow-2xs`}
+            onChange={event => {
+              setPassword(event.target.value);
+              setError("");
+            }}
+            onBlur={() => {
+              if (!password.trim()) {
+                setError("Enter your password.");
+              }
+            }}
+            placeholder="Enter your password"
+            type="password"
+            value={password}
+          />
 
-        <input
-          autoComplete="current-password"
-          autoFocus
-          className="mt-6 w-full rounded-2xl border border-[#e8d7c3] bg-white/90 px-4 py-3.5 text-sm font-semibold text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:border-2 focus:border-[#5c1380] focus:bg-white focus:ring-4 focus:ring-[#5c1380]/15 shadow-2xs"
-          onChange={event => {
-            setPassword(event.target.value);
-            setError("");
-          }}
-          placeholder="Enter your password"
-          type="password"
-          value={password}
-        />
+          <div className="mt-2 flex items-center justify-between gap-2 min-h-5">
+            {displayError ? (
+              <div
+                role="alert"
+                className="flex items-center gap-1.5 text-xs font-normal text-red-600"
+              >
+                <AlertCircle size={14} className="shrink-0 text-red-600" />
+                <span>{displayError}</span>
+              </div>
+            ) : (
+              <div />
+            )}
+
+            {onForgotPassword && (
+              <button
+                type="button"
+                onClick={onForgotPassword}
+                className="text-xs font-bold text-[#5c1380] hover:text-[#210062] underline underline-offset-2 transition-colors ml-auto shrink-0 cursor-pointer"
+              >
+                Forgot Password?
+              </button>
+            )}
+          </div>
+        </div>
 
         <button
           type="submit"
-          disabled={loading}
-          className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#210062] via-[#5c1380] to-[#d6573c] px-5 py-4 text-sm font-extrabold uppercase tracking-wider text-white shadow-lg shadow-[#210062]/20 transition-all hover:opacity-95 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
+          disabled={isContinueDisabled}
+          className={`mt-6 flex w-full items-center justify-center gap-2 rounded-2xl px-5 py-4 text-sm font-extrabold uppercase tracking-wider text-white transition-all ${
+            isContinueDisabled
+              ? "bg-slate-300 opacity-60 cursor-not-allowed shadow-none text-slate-500"
+              : "bg-gradient-to-r from-[#210062] via-[#5c1380] to-[#d6573c] shadow-lg shadow-[#210062]/20 hover:opacity-95 active:scale-[0.99] cursor-pointer"
+          }`}
         >
           {loading && <Loader2 size={16} className="animate-spin" />}
           Continue

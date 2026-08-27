@@ -1,5 +1,5 @@
 import { type ClipboardEvent, useEffect, useRef, useState } from "react";
-import { Loader2, MailCheck, X } from "lucide-react";
+import { AlertCircle, Loader2, MailCheck, X } from "lucide-react";
 import { bff, type Schema } from "@/lib/bff";
 
 type Challenge = {
@@ -106,6 +106,10 @@ export default function OtpModal({
     }
   };
 
+  const isOtpComplete =
+    digits.every(d => d !== "") && digits.join("").length === 6;
+  const isVerifyDisabled = loading || expiry === 0 || !isOtpComplete;
+
   const verify = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!challenge || expiry === 0) {
@@ -152,7 +156,7 @@ export default function OtpModal({
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-5 top-5 rounded-full p-2 text-slate-400 bg-white/80 border border-white/80 transition hover:bg-white hover:text-slate-700 shadow-2xs"
+          className="absolute right-5 top-5 rounded-full p-2 text-slate-400 bg-white/80 border border-white/80 transition hover:bg-white hover:text-slate-700 shadow-2xs cursor-pointer"
           aria-label="Close verification"
         >
           <X size={18} />
@@ -185,9 +189,10 @@ export default function OtpModal({
         {error && (
           <div
             role="alert"
-            className="mt-5 rounded-xl border border-red-200 bg-red-50/90 px-3.5 py-2.5 text-sm text-red-700 font-medium"
+            className="mt-4 flex items-center justify-center gap-1.5 rounded-xl border border-red-200 bg-red-50/90 px-3.5 py-2.5 text-xs font-normal text-red-700"
           >
-            {error}
+            <AlertCircle size={14} className="shrink-0 text-red-600" />
+            <span>{error}</span>
           </div>
         )}
 
@@ -221,7 +226,7 @@ export default function OtpModal({
             type="button"
             onClick={resend}
             disabled={loading || resendWait > 0}
-            className="font-bold text-[#5c1380] underline decoration-[#5c1380]/40 underline-offset-2 transition hover:text-[#210062] disabled:no-underline disabled:opacity-50"
+            className="font-bold text-[#5c1380] underline decoration-[#5c1380]/40 underline-offset-2 transition hover:text-[#210062] disabled:no-underline disabled:opacity-50 cursor-pointer"
           >
             {resendWait > 0 ? `Resend (${resendWait}s)` : "Resend"}
           </button>
@@ -229,8 +234,12 @@ export default function OtpModal({
 
         <button
           type="submit"
-          disabled={loading || expiry === 0}
-          className="mt-7 flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#210062] via-[#5c1380] to-[#d6573c] px-5 py-4 text-sm font-extrabold uppercase tracking-wider text-white shadow-lg shadow-[#210062]/20 transition-all hover:opacity-95 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
+          disabled={isVerifyDisabled}
+          className={`mt-7 flex w-full items-center justify-center gap-2 rounded-2xl px-5 py-4 text-sm font-extrabold uppercase tracking-wider text-white transition-all ${
+            isVerifyDisabled
+              ? "bg-slate-300 opacity-60 cursor-not-allowed shadow-none text-slate-500"
+              : "bg-gradient-to-r from-[#210062] via-[#5c1380] to-[#d6573c] shadow-lg shadow-[#210062]/20 hover:opacity-95 active:scale-[0.99] cursor-pointer"
+          }`}
         >
           {loading && <Loader2 size={16} className="animate-spin" />} Verify
         </button>

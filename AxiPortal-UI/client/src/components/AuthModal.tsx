@@ -1369,6 +1369,24 @@ export default function AuthModal() {
           error={error}
           loading={loading}
           onClose={() => setShowPasswordModal(false)}
+          onForgotPassword={async () => {
+            setShowPasswordModal(false);
+            setUseOtp(true);
+            try {
+              setLoading(true);
+              const challengeResult = await bff.checkAndSendOtp(email, "login");
+              setChallenge(challengeResult);
+              setShowOtpModal(true);
+            } catch (err) {
+              setError(
+                err instanceof Error
+                  ? err.message
+                  : "Unable to send verification code."
+              );
+            } finally {
+              setLoading(false);
+            }
+          }}
           onSubmit={async password => {
             const schema = schemas.find(
               item => item.axiaccid === selectedSchemaId
