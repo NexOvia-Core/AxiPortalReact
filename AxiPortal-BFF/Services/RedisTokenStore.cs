@@ -37,7 +37,9 @@ public sealed class RedisTokenStore(
 
     private readonly TimeSpan _ttl =
         TimeSpan.FromMinutes(redisOpts.Value.AbsoluteTimeoutMinutes);
-
+    //private readonly TimeSpan _idleTtl =
+    //    TimeSpan.FromMinutes(sessionOpts.Value.IdleTimeoutMinutes);
+    
     private DistributedCacheEntryOptions CacheOpts => new()
     {
         AbsoluteExpirationRelativeToNow = _ttl
@@ -53,9 +55,14 @@ public sealed class RedisTokenStore(
 
         var sessionId = GenerateSessionId();
         var redisKey = redisOpts.Value.RedisPrefix + sessionId;
+        //session.CreatedAtUtc = DateTimeOffset.UtcNow;
         var payload = JsonSerializer.Serialize(session, _json);
 
         await redis.SetStringAsync(redisKey, payload, CacheOpts, ct);
+//        await redis.SetStringAsync(redisKey, payload, new DistributedCacheEntryOptions
+//{
+//    AbsoluteExpirationRelativeToNow = _idleTtl < _ttl ? _idleTtl : _ttl
+//}, ct);
 
         Ctx.Response.Cookies.Append(sessionOpts.Value.CookieName, sessionId, new CookieOptions
         {
@@ -139,7 +146,7 @@ public sealed class RedisTokenStore(
     }
 
     /// <summary>Reads request cookie; throws 401 if none exists (SECURE endpoints).</summary>
-    public string GetSessionIdAsync(CancellationToken ct = default)
+    public string GetSessionId()
     {
         if (!Ctx.Request.Cookies.TryGetValue(sessionOpts.Value.CookieName, out var sessionId)
     || string.IsNullOrWhiteSpace(sessionId))
@@ -155,6 +162,33 @@ public sealed class RedisTokenStore(
         var session = await GetAsync(ct);
         return session is not null && !string.IsNullOrWhiteSpace(session.Token);
     }
+
+    // Idle touch
+    //public async Task<bool> TouchAsync(CancellationToken ct = default)
+    //{
+    //    if (!Ctx.Request.Cookies.TryGetValue(sessionOpts.Value.CookieName, out var sessionId)
+    //        || string.IsNullOrWhiteSpace(sessionId))
+    //        return false;
+
+    //    var redisKey = redisOpts.Value.RedisPrefix + sessionId;
+    //    var raw = await redis.GetStringAsync(redisKey, ct);
+    //    if (raw is null) return false;
+
+    //    var session = JsonSerializer.Deserialize<SessionData>(raw, _json)!;
+    //    var remainingAbsolute = _ttl - (DateTimeOffset.UtcNow - session.CreatedAtUtc);
+
+    //    if (remainingAbsolute <= TimeSpan.Zero)
+    //        return false; // past hard ceiling — caller should force re-auth, not extend
+
+    //    var nextExpiry = remainingAbsolute < _idleTtl ? remainingAbsolute : _idleTtl;
+
+    //    await redis.SetStringAsync(redisKey, raw, new DistributedCacheEntryOptions
+    //    {
+    //        AbsoluteExpirationRelativeToNow = nextExpiry
+    //    }, ct);
+
+    //    return true;
+    //}
 
     // ── Helpers ───────────────────────────────────────────────────────────────
     private HttpContext Ctx =>

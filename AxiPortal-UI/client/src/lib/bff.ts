@@ -54,8 +54,8 @@ function normalizePackageProgress(value: unknown): PackageProgress[] {
         : undefined;
     return Boolean(
       progress &&
-        typeof progress.packageName === "string" &&
-        typeof progress.status === "string"
+      typeof progress.packageName === "string" &&
+      typeof progress.status === "string"
     );
   });
 }
@@ -107,6 +107,22 @@ export const bff = {
     brId?: string
   ) =>
     request<{ redirectUrl?: string }>("auth/signin-info", {
+      schemaName: schema.axiaccid,
+      userName: schema.username,
+      email: schema.email,
+      isPrimary: schema.isprimary,
+      keepMeSignIn,
+      password,
+      brId,
+      installedPackages: schema.installedpackages,
+    }),
+  fallBackSigninInfo: (
+    schema: Schema,
+    keepMeSignIn: boolean,
+    password?: string,
+    brId?: string
+  ) =>
+    request<{ redirectUrl?: string }>("auth/fallback-signin-info", {
       schemaName: schema.axiaccid,
       userName: schema.username,
       email: schema.email,

@@ -25,5 +25,6 @@ export function useProvisioningStatus(enabled: boolean) {
         : provisioningPollIntervalMs();
     },
     refetchIntervalInBackground: true,
+    staleTime: 0,
   });
 }

@@ -9,5 +9,5 @@ public sealed class SessionData
     public string SsoId { get; set; } = string.Empty;
     public string Provider { get; set; } = string.Empty;
     public string Error { get; set; } = string.Empty;
-    //public Dictionary<string, string> Extra { get; set; } = new(); // arbitrary key-values
+    //public DateTimeOffset CreatedAtUtc { get; set; }
 }

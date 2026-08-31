@@ -150,6 +150,19 @@ public sealed class AuthController(IAuthService authService, ILogger<AuthControl
         return Ok(ApiResponse<object>.Ok(data));
     }
 
+    // POST /api/auth/continue-axi  [SECURE]
+    // Returns AES-encrypted redirect URL to the main Axi app.
+    [HttpPost("fallback-signin-info")]
+    [ProducesResponseType(typeof(ApiResponse<object>), 200)]
+    [ProducesResponseType(typeof(ApiResponse<object>), 401)]
+    public async Task<IActionResult> FallBackSigninInfo(
+        [FromBody] SigninInfoRequest req, CancellationToken ct)
+    {
+        logger.LogInformation("Fall Back SigninInfo schema={Schema} user={User}", req.SchemaName, Mask(req.UserName));
+        var data = await authService.FallBackSigninInfoAsync(req, ct);
+        return Ok(ApiResponse<object>.Ok(data));
+    }
+
     // POST /api/auth/direct-login [SECURE]
     // Returns AES-encrypted query with full URL for redirect to the main Axi app.
     [HttpPost("direct-login")]

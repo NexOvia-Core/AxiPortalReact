@@ -28,8 +28,9 @@ public interface ITokenStore
     /// </summary>
     Task ClearAsync(CancellationToken ct = default);
 
-    string GetSessionIdAsync(CancellationToken ct = default);
+    string GetSessionId();
 
 
     Task<bool> HasTokenAsync(CancellationToken ct = default);
+    //Task<bool> TouchAsync(CancellationToken ct = default);
 }

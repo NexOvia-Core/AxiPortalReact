@@ -178,12 +178,15 @@ export default function OtpModal({
         </h2>
 
         <p className="mt-2 text-center text-sm leading-6 font-medium text-slate-600">
-          Enter the code sent to <strong className="font-bold text-[#1E1B4B]">{email}</strong>.
+          Enter the code sent to{" "}
+          <strong className="font-bold text-[#1E1B4B]">{email}</strong>.
         </p>
 
         <p className="mx-auto mt-4 w-fit rounded-full bg-[#FAF8F5] border border-[#e8d7c3] px-4 py-1.5 text-xs font-semibold text-slate-600 shadow-2xs">
           Code expires in{" "}
-          <strong className="font-extrabold text-[#5c1380]">{formatTime(expiry)}</strong>
+          <strong className="font-extrabold text-[#5c1380]">
+            {formatTime(expiry)}
+          </strong>
         </p>
 
         {error && (
@@ -237,7 +240,7 @@ export default function OtpModal({
           disabled={isVerifyDisabled}
           className={`mt-7 flex w-full items-center justify-center gap-2 rounded-2xl px-5 py-4 text-sm font-extrabold uppercase tracking-wider text-white transition-all ${
             isVerifyDisabled
-              ? "bg-slate-300 opacity-60 cursor-not-allowed shadow-none text-slate-500"
+              ? "bg-gradient-to-r from-[#210062] via-[#5c1380] to-[#d6573c] cursor-not-allowed shadow-none opacity-60"
               : "bg-gradient-to-r from-[#210062] via-[#5c1380] to-[#d6573c] shadow-lg shadow-[#210062]/20 hover:opacity-95 active:scale-[0.99] cursor-pointer"
           }`}
         >

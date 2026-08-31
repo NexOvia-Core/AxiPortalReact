@@ -28,7 +28,7 @@ export default function ProvisionProgressModal({
       ? status.error.message
       : "Unable to check account provisioning."
     : result?.error === "PROVISION_FAILED"
-      ? "Account provisioning failed. Please contact support."
+      ? "Account provisioning failed. Please check your email."
       : result?.error === "UNAUTHORIZED"
         ? "Your secure provisioning session has expired. Please sign up again."
         : "";

@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Building2, ChevronDown, Loader2, ShieldCheck, X } from "lucide-react";
 import { bff, type Schema } from "@/lib/bff";
+import { useWatch } from "react-hook-form";
 
 const countryCodes = [
   { code: "+1", country: "US/CA", iso: "us" },
@@ -73,8 +74,8 @@ const companySchema = z.object({
     .min(3, "Username must be at least 3 characters.")
     .max(32, "Username cannot exceed 32 characters.")
     .regex(
-      /^[A-Za-z0-9]+$/,
-      "Username cannot contain special characters. Only letters and numbers are allowed."
+      /^[A-Za-z0-9_-]+$/,
+      "Username can only contain letters, numbers, '_' and '-'."
     ),
   orgName: z
     .string()
@@ -83,7 +84,7 @@ const companySchema = z.object({
     .min(2, "Organisation name must be at least 2 characters.")
     .max(100, "Organisation name cannot exceed 100 characters.")
     .regex(
-      /^[A-Za-z0-9][A-Za-z0-9 .,'&()/-]{0,99}$/,
+      /^[A-Za-z0-9][A-Za-z0-9 .,'&()/-]{1,99}$/,
       "Organisation name contains invalid characters."
     ),
   axiAccId: z
@@ -154,7 +155,7 @@ const companySchema = z.object({
   mobileNo: z
     .string()
     .trim()
-    .regex(/^[0-9]*$/, "Mobile number must contain digits only."),
+    .regex(/^[0-9+\-\s]{7,15}$|^$/, "Please enter a valid mobile number."),
   address: z
     .string()
     .trim()
@@ -180,8 +181,8 @@ export default function AccountProvisionModal({
 }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [countryCode, setCountryCode] = useState("+1");
-  const [selectedIso, setSelectedIso] = useState("us");
+  const [countryCode, setCountryCode] = useState("+91");
+  const [selectedIso, setSelectedIso] = useState("in");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [axiBlurred, setAxiBlurred] = useState(false);
   const [mobileBlurred, setMobileBlurred] = useState(false);
@@ -217,10 +218,18 @@ export default function AccountProvisionModal({
     },
   });
 
+  const watchedValues = useWatch({
+    control: form.control,
+  });
+
+  useEffect(() => {
+    setError("");
+  }, [watchedValues]);
+
   const validateMobile = (mobile: string, code: string): string => {
     const trimmed = mobile.trim();
     if (!trimmed) return "";
-    if (!/^[0-9]+$/.test(trimmed)) {
+    if (!/^[0-9+\-\s]{7,15}$|^$/.test(trimmed)) {
       return "Please enter a valid mobile number.";
     }
     const rule = countryPhoneRules[code];
@@ -269,19 +278,15 @@ export default function AccountProvisionModal({
           "This AXI Account ID is already in use. Please choose a different ID."
         );
 
-      const fullMobileNo = values.mobileNo
-        ? `${countryCode} ${values.mobileNo}`
-        : "";
-
       await bff.setupAccount({
         ...values,
-        mobileNo: fullMobileNo,
         axiAccId: accountId,
         email,
         nickName: values.userName,
         authProvider: sso?.provider || "credential",
         ssoId: sso?.id || "",
         isVerified: sso?.isEmailVerified ? "T" : "F",
+        countryCode: countryCode.slice(1),
       });
       form.reset();
       onProvisioningStarted({
@@ -289,7 +294,7 @@ export default function AccountProvisionModal({
         username: values.userName,
         email,
         isprimary: "T",
-        isverified: "T",
+        isverified: sso?.isEmailVerified ? "T" : "F",
       });
     } catch (requestError) {
       setError(
@@ -443,7 +448,8 @@ export default function AccountProvisionModal({
                 label="Mobile number"
                 error={
                   mobileBlurred || form.formState.isSubmitted
-                    ? form.formState.errors.mobileNo?.message || mobileCustomError
+                    ? form.formState.errors.mobileNo?.message ||
+                      mobileCustomError
                     : undefined
                 }
               >
@@ -545,7 +551,7 @@ export default function AccountProvisionModal({
             className={`mt-7 flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3.5 text-sm font-extrabold uppercase tracking-wider text-white transition-all ${
               isFormValid && !loading
                 ? "bg-gradient-to-r from-[#210062] via-[#5c1380] to-[#d6573c] shadow-lg shadow-[#210062]/20 hover:opacity-95 active:scale-[0.99] cursor-pointer"
-                : "bg-slate-300 opacity-60 cursor-not-allowed shadow-none text-slate-500"
+                : "bg-gradient-to-r from-[#210062] via-[#5c1380] to-[#d6573c] cursor-not-allowed shadow-none opacity-60"
             }`}
           >
             {loading && <Loader2 size={16} className="animate-spin" />} Continue
