@@ -5,7 +5,8 @@ import NotFound from "@/pages/NotFound";
 import Modules from "@/pages/Modules";
 import About from "@/pages/About";
 import Partners from "@/pages/Partners";
-import { Redirect, Route, Router as WouterRouter, Switch } from "wouter";
+import { useEffect } from "react";
+import { Redirect, Route, Router as WouterRouter, Switch, useLocation } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
@@ -28,9 +29,20 @@ import PackageSetup from "@/pages/PackageSetup";
 const APP_BASE_PATH = import.meta.env.VITE_APP_BASE_PATH;
 // import.meta.env.VITE_APP_BASE_PATH || "/axi-global/AxiPortal";
 
+function ScrollToTop() {
+  const [location] = useLocation();
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  }, [location]);
+
+  return null;
+}
+
 function AppRouter() {
   return (
     <WouterRouter base={APP_BASE_PATH}>
+      <ScrollToTop />
       <Switch>
         <Route path={"/"} component={Home} />
         <Route path={"/modules"} component={Modules} />

@@ -90,11 +90,44 @@ const companySchema = z.object({
     .string()
     .trim()
     .toUpperCase()
-    .min(1, "AXI Account ID is required.")
-    .min(5, "AXI Account ID must be at least 5 characters.")
-    .max(16, "AXI Account ID cannot exceed 16 characters.")
-    .regex(/^[A-Z]{5}/, "The first 5 characters must be letters.")
-    .regex(/^[A-Z0-9]+$/, "Only letters and numbers are allowed."),
+    .superRefine((val, ctx) => {
+      if (!val || val.length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "AXI Account ID is required.",
+        });
+        return;
+      }
+      const firstPart = val.slice(0, Math.min(val.length, 5));
+      if (!/^[A-Z]+$/.test(firstPart)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "The first 5 characters must be letters.",
+        });
+        return;
+      }
+      if (val.length < 5) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "AXI Account ID must be at least 5 characters.",
+        });
+        return;
+      }
+      if (val.length > 16) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "AXI Account ID cannot exceed 16 characters.",
+        });
+        return;
+      }
+      if (!/^[A-Z0-9]+$/.test(val)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Only letters and numbers are allowed.",
+        });
+        return;
+      }
+    }),
   country: z
     .string()
     .trim()
@@ -150,6 +183,8 @@ export default function AccountProvisionModal({
   const [countryCode, setCountryCode] = useState("+1");
   const [selectedIso, setSelectedIso] = useState("us");
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [axiBlurred, setAxiBlurred] = useState(false);
+  const [mobileBlurred, setMobileBlurred] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -186,16 +221,15 @@ export default function AccountProvisionModal({
     const trimmed = mobile.trim();
     if (!trimmed) return "";
     if (!/^[0-9]+$/.test(trimmed)) {
-      return "Mobile number must contain digits only.";
+      return "Please enter a valid mobile number.";
     }
     const rule = countryPhoneRules[code];
     if (rule) {
       if (!rule.digits.includes(trimmed.length)) {
-        const expected = rule.digits.join(" or ");
-        return `Mobile number must be ${expected} digits for ${rule.name}.`;
+        return "Please enter a valid mobile number.";
       }
     } else if (trimmed.length < 7 || trimmed.length > 15) {
-      return "Mobile number must be between 7 and 15 digits.";
+      return "Please enter a valid mobile number.";
     }
     return "";
   };
@@ -221,6 +255,10 @@ export default function AccountProvisionModal({
     !hasFormErrors;
 
   const submit = form.handleSubmit(async values => {
+    setAxiBlurred(true);
+    if (currentMobileVal.length > 0) {
+      setMobileBlurred(true);
+    }
     setLoading(true);
     setError("");
     try {
@@ -337,21 +375,28 @@ export default function AccountProvisionModal({
               <Field
                 label="AXI Account ID"
                 required
-                error={form.formState.errors.axiAccId?.message}
+                error={
+                  axiBlurred || form.formState.isSubmitted
+                    ? form.formState.errors.axiAccId?.message
+                    : undefined
+                }
               >
                 <input
-                  {...form.register("axiAccId", {
-                    onChange: e => {
-                      const cleaned = e.target.value
-                        .toUpperCase()
-                        .replace(/[^A-Z0-9]/g, "");
-                      form.setValue("axiAccId", cleaned, {
-                        shouldValidate: true,
-                        shouldDirty: true,
-                        shouldTouch: true,
-                      });
-                    },
-                  })}
+                  {...form.register("axiAccId")}
+                  value={form.watch("axiAccId") || ""}
+                  onChange={e => {
+                    const cleaned = e.target.value
+                      .toUpperCase()
+                      .replace(/[^A-Z0-9]/g, "");
+                    form.setValue("axiAccId", cleaned, {
+                      shouldDirty: true,
+                      shouldValidate: axiBlurred,
+                    });
+                  }}
+                  onBlur={() => {
+                    setAxiBlurred(true);
+                    form.trigger("axiAccId");
+                  }}
                   maxLength={16}
                   placeholder="e.g. ACME01"
                 />
@@ -397,8 +442,9 @@ export default function AccountProvisionModal({
               <Field
                 label="Mobile number"
                 error={
-                  form.formState.errors.mobileNo?.message ||
-                  (form.formState.touchedFields.mobileNo ? mobileCustomError : "")
+                  mobileBlurred || form.formState.isSubmitted
+                    ? form.formState.errors.mobileNo?.message || mobileCustomError
+                    : undefined
                 }
               >
                 <div className="flex items-center gap-2">
@@ -426,6 +472,9 @@ export default function AccountProvisionModal({
                               setCountryCode(c.code);
                               setSelectedIso(c.iso);
                               setDropdownOpen(false);
+                              if (currentMobileVal.length > 0) {
+                                setMobileBlurred(true);
+                              }
                             }}
                             className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-xs font-semibold transition ${
                               selectedIso === c.iso
@@ -450,16 +499,26 @@ export default function AccountProvisionModal({
                     )}
                   </div>
                   <input
-                    {...form.register("mobileNo", {
-                      onChange: e => {
-                        const cleaned = e.target.value.replace(/[^0-9]/g, "");
-                        form.setValue("mobileNo", cleaned, {
-                          shouldValidate: true,
-                          shouldDirty: true,
-                          shouldTouch: true,
-                        });
-                      },
-                    })}
+                    {...form.register("mobileNo")}
+                    value={form.watch("mobileNo") || ""}
+                    onChange={e => {
+                      const maxDigits = countryPhoneRules[countryCode]
+                        ? Math.max(...countryPhoneRules[countryCode].digits)
+                        : 15;
+                      const cleaned = e.target.value
+                        .replace(/[^0-9]/g, "")
+                        .slice(0, maxDigits);
+                      form.setValue("mobileNo", cleaned, {
+                        shouldDirty: true,
+                        shouldValidate: false,
+                      });
+                      setMobileBlurred(false);
+                    }}
+                    onBlur={() => {
+                      if (currentMobileVal.length > 0) {
+                        setMobileBlurred(true);
+                      }
+                    }}
                     inputMode="tel"
                     placeholder="Enter mobile number"
                   />

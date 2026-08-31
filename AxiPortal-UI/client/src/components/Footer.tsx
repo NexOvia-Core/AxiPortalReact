@@ -32,7 +32,11 @@ export default function Footer() {
         >
           {/* Brand Column */}
           <div className="col-span-2 md:col-span-1">
-            <Link href="/" className="flex items-center gap-3 mb-6 group">
+            <Link
+              href="/"
+              onClick={() => window.scrollTo({ top: 0, left: 0, behavior: "instant" })}
+              className="flex items-center gap-3 mb-6 group"
+            >
               <img
                 src={assetUrl("AXI_LOGO_AXPERT.png")}
                 alt="Axi Platform Logo"
@@ -124,6 +128,10 @@ export default function Footer() {
                       <li key={link}>
                         <a
                           href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+                          }}
                           className="text-sm text-white hover:text-[#fc8151] transition-all duration-300 hover:pl-1"
                         >
                           {link}
@@ -136,6 +144,9 @@ export default function Footer() {
                     <li key={link}>
                       <Link
                         href={href}
+                        onClick={() => {
+                          window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+                        }}
                         className="text-sm text-white hover:text-[#fc8151] transition-all duration-300 hover:pl-1"
                       >
                         {link}
@@ -156,12 +167,20 @@ export default function Footer() {
           <div className="flex items-center gap-6">
             <a
               href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+              }}
               className="text-sm text-white hover:text-[#fc8151] transition-colors duration-300"
             >
               Privacy Policy
             </a>
             <a
               href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+              }}
               className="text-sm text-white hover:text-[#fc8151] transition-colors duration-300"
             >
               Terms of Service
