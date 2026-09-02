@@ -895,14 +895,14 @@ export default function About() {
       </AnimatePresence>
 
       {/* 9. HEADQUARTERS & CONTACT SECTION */}
-      <section className="py-20 relative z-10 px-6 lg:px-8 max-w-7xl mx-auto">
-        <div className="grid md:grid-cols-2 gap-10 items-center p-10 rounded-3xl bg-white/5 backdrop-blur-2xl border border-white/15">
+      <section className="py-12 sm:py-16 md:py-20 relative z-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div className="grid md:grid-cols-2 gap-8 md:gap-10 items-center p-6 sm:p-8 md:p-10 rounded-3xl bg-white/5 backdrop-blur-2xl border border-white/15 w-full overflow-hidden">
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#fc8151]/20 text-[#fc8151] text-xs font-semibold mb-4">
               <MapPin className="w-3.5 h-3.5" />
               Global Headquarters
             </div>
-            <h2 className="text-3xl font-bold font-display text-white mb-4">
+            <h2 className="text-2xl sm:text-3xl font-bold font-display text-white mb-4 break-words">
               Agile Labs Private Limited
             </h2>
             <p className="text-sm text-white/70 leading-relaxed mb-6">
@@ -913,23 +913,23 @@ export default function About() {
             <div className="space-y-4 text-sm">
               <div className="flex items-start gap-3 text-white/80">
                 <MapPin className="w-5 h-5 text-[#fc8151] shrink-0 mt-0.5" />
-                <span>
+                <span className="break-words">
                   Axpert House, 627, 1st A Main Rd, 8th Block, Jayanagar,
                   Bengaluru, Karnataka 560070, India
                 </span>
               </div>
               <div className="flex items-center gap-3 text-white/80">
                 <Phone className="w-5 h-5 text-[#fc8151] shrink-0" />
-                <span>+91 9620996796 / +91 8882178785</span>
+                <span className="break-words">+91 9620996796 / +91 8882178785</span>
               </div>
               <div className="flex items-center gap-3 text-white/80">
                 <Mail className="w-5 h-5 text-[#fc8151] shrink-0" />
-                <span>marketing@agile-labs.com</span>
+                <span className="break-all">marketing@agile-labs.com</span>
               </div>
             </div>
           </div>
 
-          <div className="p-8 rounded-2xl bg-gradient-to-br from-white/10 to-white/5 border border-white/10 text-center">
+          <div className="p-5 sm:p-6 md:p-8 rounded-2xl bg-gradient-to-br from-white/10 to-white/5 border border-white/10 text-center w-full">
             <Building2 className="w-12 h-12 text-[#fc8151] mx-auto mb-4" />
             <h3 className="text-xl font-bold text-white mb-2">
               Connect With Agile Labs
@@ -939,7 +939,7 @@ export default function About() {
               insights, and event announcements.
             </p>
 
-            <div className="flex items-center justify-center gap-4">
+            <div className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-4">
               {[
                 {
                   name: "LinkedIn",
@@ -963,7 +963,7 @@ export default function About() {
                   href={s.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-4 py-2 rounded-full bg-white/10 hover:bg-[#fc8151] hover:text-[#00007f] text-xs font-semibold transition-all duration-300"
+                  className="px-3.5 sm:px-4 py-2 rounded-full bg-white/10 hover:bg-[#fc8151] hover:text-[#00007f] text-xs font-semibold transition-all duration-300"
                 >
                   {s.name}
                 </a>
