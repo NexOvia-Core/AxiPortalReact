@@ -20,7 +20,7 @@ export default function RedirectingModal({
 
   return (
     <div
-      className="fixed inset-0 z-[300] flex items-center justify-center bg-[#0a0c1a]/70 backdrop-blur-md p-4"
+      className="fixed inset-0 z-[300] flex items-center justify-center  bg-[#fff8ee]/55 backdrop-blur-lg p-4"
       role="dialog"
       aria-modal="true"
       aria-live="polite"

@@ -70,7 +70,8 @@ public interface IAuthService
     Task<object> AuthUpdateAsync(AuthUpdateRequest req, CancellationToken ct);
 
     /// <summary>Returns AES-encrypted redirect URL. SECURE.</summary>
-    Task<object> GetSigninInfoAsync(SigninInfoRequest req, CancellationToken ct);
+    Task<EncryptUrlResult> GetSigninInfoAsync(SigninInfoRequest req, CancellationToken ct, string? tokenOverride = null);
+    Task<EncryptUrlResult> FallBackSigninInfoAsync(SigninInfoRequest req, CancellationToken ct);
 
     Task<DirectLoginResult> DirectLoginAsync(DirectLoginRequest req, CancellationToken ct);
     Task<GetRedirectUrlResult> GetCurrentSessionRedirectUrlAsync(CancellationToken ct);

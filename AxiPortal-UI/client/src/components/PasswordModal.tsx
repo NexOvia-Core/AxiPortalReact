@@ -3,14 +3,14 @@ import { AlertCircle, KeyRound, Loader2, X } from "lucide-react";
 
 export default function PasswordModal({
   applicationName,
-  error: externalError,
+  // error: externalError,
   loading,
   onClose,
   onSubmit,
   onForgotPassword,
 }: {
   applicationName: string;
-  error?: string;
+  // error?: string;
   loading: boolean;
   onClose: () => void;
   onSubmit: (password: string) => Promise<void>;
@@ -48,7 +48,7 @@ export default function PasswordModal({
     }
   };
 
-  const displayError = error || externalError;
+  // const displayError = error || externalError;
   const isContinueDisabled = loading || !password.trim();
 
   return (
@@ -89,7 +89,11 @@ export default function PasswordModal({
         </h2>
 
         <p className="mt-2 text-center text-sm leading-6 font-medium text-slate-600">
-          Continue to <strong className="font-bold text-[#1E1B4B]">{applicationName}</strong>.
+          Continue to{" "}
+          <strong className="font-bold text-[#1E1B4B]">
+            {applicationName}
+          </strong>
+          .
         </p>
 
         <div className="mt-6">
@@ -97,13 +101,14 @@ export default function PasswordModal({
             autoComplete="current-password"
             autoFocus
             className={`w-full rounded-2xl border ${
-              displayError
+              error
                 ? "border-red-400 bg-red-50/30 focus:ring-red-400/20 focus:border-red-500"
                 : "border-[#e8d7c3] bg-white/90 focus:border-[#5c1380] focus:ring-[#5c1380]/15"
             } px-4 py-3.5 text-sm font-semibold text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:bg-white focus:ring-4 shadow-2xs`}
             onChange={event => {
               setPassword(event.target.value);
               setError("");
+              // onClearError?.();
             }}
             onBlur={() => {
               if (!password.trim()) {
@@ -116,13 +121,13 @@ export default function PasswordModal({
           />
 
           <div className="mt-2 flex items-center justify-between gap-2 min-h-5">
-            {displayError ? (
+            {error ? (
               <div
                 role="alert"
                 className="flex items-center gap-1.5 text-xs font-normal text-red-600"
               >
                 <AlertCircle size={14} className="shrink-0 text-red-600" />
-                <span>{displayError}</span>
+                <span>{error}</span>
               </div>
             ) : (
               <div />
@@ -145,12 +150,12 @@ export default function PasswordModal({
           disabled={isContinueDisabled}
           className={`mt-6 flex w-full items-center justify-center gap-2 rounded-2xl px-5 py-4 text-sm font-extrabold uppercase tracking-wider text-white transition-all ${
             isContinueDisabled
-              ? "bg-slate-300 opacity-60 cursor-not-allowed shadow-none text-slate-500"
+              ? "bg-gradient-to-r from-[#210062] via-[#5c1380] to-[#d6573c] cursor-not-allowed shadow-none opacity-60"
               : "bg-gradient-to-r from-[#210062] via-[#5c1380] to-[#d6573c] shadow-lg shadow-[#210062]/20 hover:opacity-95 active:scale-[0.99] cursor-pointer"
           }`}
         >
           {loading && <Loader2 size={16} className="animate-spin" />}
-          Continue
+          {loading ? "Continuing..." : "Continue"}
         </button>
       </form>
     </div>

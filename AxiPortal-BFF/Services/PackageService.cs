@@ -89,6 +89,9 @@ public sealed class PackageService(
     public async Task<PackageProgressResponse> GetInstallProgressAsync(
         PackageProgressRequest req, CancellationToken ct)
     {
+        //if (!await tokenStore.TouchAsync(ct))
+        //    throw new UnauthorizedException();
+
         var schema = req.SchemaName.ToUpperInvariant();
         var statuses = new List<PackageProgressItem>();
 

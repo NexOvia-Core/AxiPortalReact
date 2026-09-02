@@ -15,7 +15,7 @@ import {
   Wallet,
   X,
 } from "lucide-react";
-import { bff, type Schema } from "@/lib/bff";
+import { bff, BffError, type Schema } from "@/lib/bff";
 import { getBrowserId } from "@/lib/browser-id";
 import { packageCatalog } from "@/lib/package-catalog";
 import {
@@ -210,13 +210,23 @@ export default function SignupPackagesPage({
     return () => cancelAnimationFrame(frame);
   }, [initialized, pendingLandingConfirmation]);
 
+  const callSigninWithRetry = async (browserId: string) => {
+    try {
+      return await bff.signinInfo(schema, false, undefined, browserId);
+    } catch (err) {
+      if (!(err instanceof BffError) || err.errorCode !== "UNAUTHORIZED")
+        throw err;
+      return await bff.fallBackSigninInfo(schema, false, undefined, browserId);
+    }
+  };
+
   const continueToAxi = async () => {
     if (redirectLoading || redirecting) return;
     setPageError("");
     setRedirectLoading(true);
     try {
       const browserId = await getBrowserId();
-      const result = await bff.signinInfo(schema, false, undefined, browserId);
+      const result = await callSigninWithRetry(browserId);
       if (!result.redirectUrl)
         throw new Error("The BFF did not return a redirect URL.");
       clearSelectedPackages();
@@ -301,22 +311,22 @@ export default function SignupPackagesPage({
                 Select packages for your AXI account
               </h1>
               <p className="mt-1.5 max-w-xl text-xs sm:text-sm leading-5 font-medium text-slate-600">
-                Select one or more packages to install, or continue to AXI without
-                installing a package now.
+                Select one or more packages to install, or continue to AXI
+                without installing a package now.
               </p>
             </div>
 
-            {schema?.axiaccid && (
+            {schema?.username && (
               <div className="inline-flex items-center gap-2.5 self-start sm:self-auto rounded-2xl border border-[#e8d7c3] bg-white/90 px-3.5 py-2 shadow-2xs backdrop-blur-md shrink-0">
                 <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-[#210062] via-[#5c1380] to-[#210062] text-white shadow-xs">
                   <Sparkles size={15} className="text-amber-300" />
                 </div>
                 <div className="leading-tight">
-                  <span className="block text-[10px] font-extrabold tracking-wider uppercase text-[#d6573c]">
-                    WELCOME TO AXI
+                  <span className="block text-sm font-extrabold tracking-wider text-[#d6573c]">
+                    {schema.username}
                   </span>
-                  <span className="block text-xs sm:text-sm font-extrabold text-[#1E1B4B]">
-                    {schema.axiaccid}
+                  <span className="block text-[10px] sm:text-xs font-extrabold text-[#1E1B4B]">
+                    {schema?.axiaccid}
                   </span>
                 </div>
               </div>
@@ -334,8 +344,8 @@ export default function SignupPackagesPage({
 
           {!initialized && (
             <p className="mt-3 flex items-center gap-2 text-xs font-medium text-slate-600">
-              <Loader2 size={14} className="animate-spin text-[#5c1380]" /> Preparing package
-              setup...
+              <Loader2 size={14} className="animate-spin text-[#5c1380]" />{" "}
+              Preparing package setup...
             </p>
           )}
 
@@ -440,7 +450,7 @@ export default function SignupPackagesPage({
                   redirectLoading
                 }
                 onClick={() => setShowConfirmation(true)}
-                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#210062] via-[#5c1380] to-[#d6573c] px-5 py-3 text-xs sm:text-sm font-extrabold uppercase tracking-wider text-white shadow-lg shadow-[#210062]/20 transition-all hover:opacity-95 active:scale-[0.99] disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 disabled:opacity-50 disabled:pointer-events-none disabled:select-none disabled:shadow-none"
+                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#210062] via-[#5c1380] to-[#d6573c] px-5 py-3 text-xs sm:text-sm font-extrabold uppercase tracking-wider text-white shadow-lg shadow-[#210062]/20 transition-all hover:opacity-95 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 disabled:pointer-events-none disabled:select-none disabled:shadow-none"
               >
                 <PackageCheck size={16} /> INSTALL SELECTED (
                 {selectedPackages.length})

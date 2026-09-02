@@ -85,12 +85,7 @@ export default function AuthModal() {
     message: string;
   }>();
   const [browserId, setBrowserId] = useState("");
-  const [secondaryAuth, setSecondaryAuth] = useState<{
-    email: string;
-    ssoKey: string;
-    ssoProvider: string;
-  }>();
-  const [signupSso, setSignupSso] = useState<{
+  const [sso, setSso] = useState<{
     provider: string;
     id: string;
     isEmailVerified: boolean;
@@ -122,8 +117,7 @@ export default function AuthModal() {
     setShowOtpModal(false);
     setShowAccountProvision(false);
     setSchemas([]);
-    setSecondaryAuth(undefined);
-    setSignupSso(undefined);
+    setSso(undefined);
     setShowPasswordModal(false);
     setIsSsoAuthenticated(false);
     setSelectedSchemaId("");
@@ -141,12 +135,11 @@ export default function AuthModal() {
     setEmailTouched(false);
     setEmailError("");
     setIsSsoAuthenticated(true);
-    if (mode === "signup")
-      setSignupSso({
-        provider: result.provider,
-        id: result.sub,
-        isEmailVerified: result.isEmailVerified,
-      });
+    setSso({
+      provider: result.provider,
+      id: result.sub,
+      isEmailVerified: result.isEmailVerified,
+    });
     if (result.nextAction === "otp-required" && result.challengeId) {
       setChallenge({
         challengeId: result.challengeId,
@@ -156,12 +149,6 @@ export default function AuthModal() {
       setShowOtpModal(true);
       return;
     }
-    if (result.nextAction === "auth-update")
-      setSecondaryAuth({
-        email: result.email,
-        ssoKey: result.sub,
-        ssoProvider: result.provider,
-      });
     if (result.schemas?.length) {
       setSchemas(result.schemas);
       setSelectedSchemaId(
@@ -812,16 +799,16 @@ export default function AuthModal() {
     try {
       const schemaError = getSchemaValidationError(schema);
       if (schemaError) throw new Error(schemaError);
-      if (secondaryAuth)
+      if (schema?.isverified === "F" && sso?.id && sso?.provider)
         await bff.authUpdate(
-          secondaryAuth.email,
+          schema.email,
           schema.axiaccid,
-          secondaryAuth.ssoKey,
-          secondaryAuth.ssoProvider
+          sso.id,
+          sso.provider
         );
 
       const packages = readSelectedPackages();
-      if (schema.isprimary === "T" && packages.length > 0) {
+      if (schema?.isprimary === "T" && packages.length > 0) {
         setShowPasswordModal(false);
         savePackageSetupFlow({ schema });
         closeModal();
@@ -878,7 +865,7 @@ export default function AuthModal() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={dismiss}
-              className="fixed inset-0 bg-[#0a0c1a]/70 backdrop-blur-md transition-opacity"
+              className="fixed inset-0  bg-[#fff8ee]/55 backdrop-blur-lg transition-opacity"
             />
 
             {/* Modal Card */}
@@ -916,7 +903,8 @@ export default function AuthModal() {
                   Continue to AXI
                 </h2>
                 <p className="text-xs text-slate-500 mt-1 font-medium max-w-xs mx-auto">
-                  Choose an account to continue without entering your credentials.
+                  Choose an account to continue without entering your
+                  credentials.
                 </p>
               </div>
 
@@ -961,13 +949,13 @@ export default function AuthModal() {
                 }}
                 className="mt-3 group w-full rounded-2xl border-2 border-dashed border-[#e8d7c3] hover:border-[#d6573c] bg-white/40 hover:bg-white/90 p-3.5 sm:p-4 text-left transition-all duration-200 flex items-center gap-3.5 shrink-0"
               >
-                  <div className="w-10 h-10 rounded-full bg-[#1E1B4B]/5 group-hover:bg-[#d6573c]/10 flex items-center justify-center text-[#1E1B4B] group-hover:text-[#d6573c] transition-colors flex-shrink-0">
-                    <UserPlus className="w-5 h-5" />
-                  </div>
-                  <span className="text-sm sm:text-base font-semibold text-[#1E1B4B]">
-                    Login with another account
-                  </span>
-                </button>
+                <div className="w-10 h-10 rounded-full bg-[#1E1B4B]/5 group-hover:bg-[#d6573c]/10 flex items-center justify-center text-[#1E1B4B] group-hover:text-[#d6573c] transition-colors flex-shrink-0">
+                  <UserPlus className="w-5 h-5" />
+                </div>
+                <span className="text-sm sm:text-base font-semibold text-[#1E1B4B]">
+                  Login with another account
+                </span>
+              </button>
             </motion.section>
           </div>
         )}
@@ -981,7 +969,7 @@ export default function AuthModal() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={dismiss}
-              className="fixed inset-0 bg-[#0a0c1a]/70 backdrop-blur-md transition-opacity"
+              className="fixed inset-0  bg-[#fff8ee]/55 backdrop-blur-lg transition-opacity"
             />
 
             {/* Modal Card */}
@@ -1080,11 +1068,33 @@ export default function AuthModal() {
                     disabled={loading}
                     className="w-full py-3 px-4 rounded-full border border-[#e8d7c3] bg-[#fff8ee] hover:bg-[#fff2e0] transition-all font-semibold text-slate-700 text-sm flex items-center justify-center gap-3 shadow-xs hover:border-[#d6c2ab] active:scale-[0.99]"
                   >
-                    <svg className="w-5 h-5 flex-shrink-0" viewBox="0 0 21 21" fill="none">
+                    <svg
+                      className="w-5 h-5 flex-shrink-0"
+                      viewBox="0 0 21 21"
+                      fill="none"
+                    >
                       <rect x="0" y="0" width="10" height="10" fill="#F25022" />
-                      <rect x="11" y="0" width="10" height="10" fill="#7FBA00" />
-                      <rect x="0" y="11" width="10" height="10" fill="#00A4EF" />
-                      <rect x="11" y="11" width="10" height="10" fill="#FFB900" />
+                      <rect
+                        x="11"
+                        y="0"
+                        width="10"
+                        height="10"
+                        fill="#7FBA00"
+                      />
+                      <rect
+                        x="0"
+                        y="11"
+                        width="10"
+                        height="10"
+                        fill="#00A4EF"
+                      />
+                      <rect
+                        x="11"
+                        y="11"
+                        width="10"
+                        height="10"
+                        fill="#FFB900"
+                      />
                     </svg>
                     <span>Continue with Office 365</span>
                   </button>
@@ -1299,7 +1309,7 @@ export default function AuthModal() {
                       disabled={isSubmitDisabled}
                       className={`w-full mt-2 py-3.5 px-6 rounded-xl font-bold text-white text-sm tracking-wider uppercase transition-all transform active:scale-[0.99] ${
                         isSubmitDisabled
-                          ? "bg-slate-300 opacity-60 cursor-not-allowed shadow-none text-slate-500"
+                          ? "bg-gradient-to-r from-[#210062] via-[#5c1380] to-[#d6573c] cursor-not-allowed shadow-none opacity-60"
                           : "bg-gradient-to-r from-[#210062] via-[#5c1380] to-[#d6573c] shadow-lg hover:shadow-xl hover:opacity-95 cursor-pointer"
                       }`}
                     >
@@ -1310,7 +1320,7 @@ export default function AuthModal() {
                           : mode === "login"
                             ? useOtp
                               ? "CONTINUE WITH OTP →"
-                              : "NEXT"
+                              : "CONTINUE WITH PASSWORD →"
                             : "REGISTER NOW →"}
                     </button>
                   );
@@ -1355,7 +1365,10 @@ export default function AuthModal() {
       {/* OTP Sub-Modal */}
       <OtpModal
         isOpen={showOtpModal}
-        onClose={() => setShowOtpModal(false)}
+        onClose={() => {
+          setError("");
+          setShowOtpModal(false);
+        }}
         onSuccess={handleOtpSuccess}
         actionType={mode}
         email={email}
@@ -1366,16 +1379,16 @@ export default function AuthModal() {
       {showPasswordModal && (
         <PasswordModal
           applicationName={selectedSchemaId}
-          error={error}
+          // error={error}
           loading={loading}
           onClose={() => setShowPasswordModal(false)}
           onForgotPassword={async () => {
-            setShowPasswordModal(false);
             setUseOtp(true);
             try {
               setLoading(true);
               const challengeResult = await bff.checkAndSendOtp(email, "login");
               setChallenge(challengeResult);
+              setShowPasswordModal(false);
               setShowOtpModal(true);
             } catch (err) {
               setError(
@@ -1399,14 +1412,12 @@ export default function AuthModal() {
       {showAccountProvision && (
         <AccountProvisionModal
           email={email}
-          sso={signupSso}
+          sso={sso}
           onProvisioningStarted={schema => {
             setShowAccountProvision(false);
             setProvisioningSchema(schema);
           }}
           onClose={() => {
-            setShowAccountProvision(false);
-            setSignupSso(undefined);
             dismiss();
           }}
         />
@@ -1420,7 +1431,6 @@ export default function AuthModal() {
             setLocation("/packages/setup");
           }}
           onDismiss={() => {
-            setProvisioningSchema(undefined);
             dismiss();
           }}
         />

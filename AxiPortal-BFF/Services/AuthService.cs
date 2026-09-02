@@ -188,7 +188,7 @@ public sealed class AuthService(
     public async Task<object> SetupAccountAsync(SetupAccountRequest req, CancellationToken ct)
     {
         var token = await RequireTokenAsync(ct);
-        var sessionId = tokenStore.GetSessionIdAsync(ct);
+        var sessionId = tokenStore.GetSessionId();
 
         // Server-side derivations — client cannot override these
         var schemaName = req.AxiAccId.ToLower();
@@ -243,9 +243,9 @@ public sealed class AuthService(
         ct: ct);
 
     // ── 9. Get Signin Info ────────────────────────────────────────────────────
-    public async Task<object> GetSigninInfoAsync(SigninInfoRequest req, CancellationToken ct)
+    public async Task<EncryptUrlResult> GetSigninInfoAsync(SigninInfoRequest req, CancellationToken ct, string? tokenOverride = null)
     {
-        var token = await RequireTokenAsync(ct);
+        var token = tokenOverride ?? await RequireTokenAsync(ct);
 
         var (success, url, error) = await BuildSigninUrlAsync(
             schemaName: req.SchemaName,
@@ -268,6 +268,25 @@ public sealed class AuthService(
         logger.LogInformation("GetSigninInfoAsync: redirect URL generated for {Email}", Mask(req.Email));
         return new EncryptUrlResult(true, url, null);
     }
+
+    // ── 9. Continue to Axi ────────────────────────────────────────────────────
+    public async Task<EncryptUrlResult> FallBackSigninInfoAsync(SigninInfoRequest req, CancellationToken ct)
+    {
+        var checkResult = await proxy.PostJsonAsync("AxiClient", "api/AxiClient/AxiUserCheck",
+            new { UserName = req.Email, Purpose = "login", TokenRequired = "true" }, ct: ct);
+
+        var checkSuccess = checkResult.TryGetProperty("Success", out var cs) && cs.GetBoolean();
+        var token = GetString(checkResult, "Token");
+
+        if (!checkSuccess || string.IsNullOrWhiteSpace(token))
+            throw new UnauthorizedException();
+
+        //await tokenStore.SetAsync(new SessionData { Token = token, Email = req.Email }, ct);
+        logger.LogInformation("Session refreshed via verifyEmail fallback for {Email}", Mask(req.Email));
+
+        return await GetSigninInfoAsync(req, ct, token);
+    }
+
     // ── 10. Direct Login (sessionId or tokenStore → verify → signin info → URL) ──
     public async Task<DirectLoginResult> DirectLoginAsync(DirectLoginRequest req, CancellationToken ct)
     {
@@ -345,7 +364,11 @@ public sealed class AuthService(
         var session = await RequireSessionAsync(ct);
 
         if (!string.IsNullOrWhiteSpace(session.Error))
+        {
+            await tokenStore.ClearAsync(ct);
             return new ProvisioningStatusResult(false, "PROVISION_FAILED");
+        }
+
 
         if (string.IsNullOrWhiteSpace(session.Email))
             return new ProvisioningStatusResult(false, "UNDER_PROVISION");
@@ -364,7 +387,7 @@ public sealed class AuthService(
 
         if (!checkSuccess || string.IsNullOrWhiteSpace(token))
             throw new UpstreamApiException(
-    GetString(checkResult, "Message") ?? "No account found for this email or the account is inactive.", 422);
+                GetString(checkResult, "Message") ?? "No account found for this email or the account is inactive.", 422);
 
         await tokenStore.SetAsync(new SessionData
         {
@@ -390,7 +413,7 @@ public sealed class AuthService(
             throw new UpstreamApiException(
     GetString(checkResult, "Message") ?? "No account found for this email or the account is inactive.", 422);
 
-        await tokenStore.SetAsync(new SessionData { Token = token }, ct);
+        //await tokenStore.SetAsync(new SessionData { Token = token }, ct);
         logger.LogInformation("KeepMeSignIn: token acquired for {Email}", Mask(req.Email));
 
         var schemas = await GetSchemaListAsync(new GetSchemaListRequest(req.Email, token), ct);

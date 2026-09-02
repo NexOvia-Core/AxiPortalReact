@@ -11,7 +11,7 @@ import {
 } from "@/hooks/usePackageProgress";
 
 const packageStatusLabels: Record<string, string> = {
-  PREPARED: "Prepared",
+  READY: "Ready",
   QUEUED: "Queued",
   PREPARING: "Preparing...",
   DOWNLOADING: "Downloading...",
@@ -79,7 +79,7 @@ export default function PackageInstallModal({
 
   const packageStates = packages.map(item => {
     const rawStatus =
-      realStatuses[item.packageName] || (started ? "QUEUED" : "PREPARED");
+      realStatuses[item.packageName] || (started ? "QUEUED" : "READY");
     const isTerminal = isTerminalPackageStatus(rawStatus);
 
     return {
@@ -226,9 +226,10 @@ export default function PackageInstallModal({
         >
           <span className="font-semibold text-slate-700">
             {currentPackage
-              ? `${currentPackage.packageName}: ${packageStatusLabels[currentPackage.status] ||
-              currentPackage.status
-              }`
+              ? `${currentPackage.packageName}: ${
+                  packageStatusLabels[currentPackage.status] ||
+                  currentPackage.status
+                }`
               : "Package installation progress"}
           </span>
           <span className="flex items-center gap-2 font-extrabold text-[#5c1380]">
@@ -289,19 +290,21 @@ export default function PackageInstallModal({
                   aria-valuenow={progressPercentage}
                 >
                   <div
-                    className={`h-full rounded-full transition-all duration-500 ${progressPercentage === 100
+                    className={`h-full rounded-full transition-all duration-500 ${
+                      progressPercentage === 100
                         ? "bg-emerald-600"
                         : "bg-gradient-to-r from-[#210062] via-[#5c1380] to-[#d6573c]"
-                      }`}
+                    }`}
                     style={{ width: `${progressPercentage}%` }}
                   />
                 </div>
                 <p className="text-sm font-normal text-[#5c1380] flex items-center gap-2">
                   <Loader2 size={14} className="animate-spin text-[#d6573c]" />
                   {currentPackage
-                    ? `${currentPackage.packageName}: ${packageStatusLabels[currentPackage.status] ||
-                    currentPackage.status
-                    }`
+                    ? `${currentPackage.packageName}: ${
+                        packageStatusLabels[currentPackage.status] ||
+                        currentPackage.status
+                      }`
                     : "All packages have reached a final status."}
                 </p>
               </section>
@@ -317,29 +320,35 @@ export default function PackageInstallModal({
                       {item.packageName}
                     </span>
                     <span
-                      className={`text-xs font-bold px-3 py-1 rounded-full transition-all ${item.status === "QUEUED"
+                      className={`text-xs font-bold px-3 py-1 rounded-full transition-all ${
+                        item.status === "QUEUED"
                           ? "bg-[#5c1380]/10 text-[#5c1380] border border-[#5c1380]/20"
-                          : item.status === "PROCESSING"
+                          : item.status === "PREPARING" ||
+                              item.status === "DOWNLOADING"
                             ? "bg-blue-50 text-blue-700 border border-blue-200 animate-pulse"
-                            : item.status === "ALMOST_DONE"
+                            : item.status === "EXTRACTING"
                               ? "bg-amber-50 text-amber-700 border border-amber-200 animate-pulse"
-                              : item.status === "FAILED"
-                                ? "bg-red-50 text-red-700 border border-red-200"
-                                : "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                        }`}
+                              : item.status === "INSTALLING"
+                                ? "bg-lime-50 text-lime-700 border border-lime-200 animate-pulse"
+                                : item.status === "FAILED"
+                                  ? "bg-red-50 text-red-700 border border-red-200"
+                                  : "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                      }`}
                     >
                       {packageStatusLabels[item.status] || item.status}
                     </span>
                   </div>
-                  {item.isFinal && item.rawStatus === "FAILED" && item.logUrl && (
-                    <a
-                      href={packageLogUrl(item.logUrl)}
-                      className="mt-2 inline-flex items-center gap-1.5 text-xs font-bold text-[#5c1380] hover:text-[#210062] underline underline-offset-2 cursor-pointer pointer-events-auto"
-                    >
-                      <Download size={14} />
-                      Download installation log
-                    </a>
-                  )}
+                  {item.isFinal &&
+                    item.rawStatus === "FAILED" &&
+                    item.logUrl && (
+                      <a
+                        href={packageLogUrl(item.logUrl)}
+                        className="mt-2 inline-flex items-center gap-1.5 text-xs font-bold text-[#5c1380] hover:text-[#210062] underline underline-offset-2 cursor-pointer pointer-events-auto"
+                      >
+                        <Download size={14} />
+                        Download installation log
+                      </a>
+                    )}
                 </div>
               ))}
             </div>
