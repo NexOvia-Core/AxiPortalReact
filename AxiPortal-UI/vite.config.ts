@@ -3,8 +3,8 @@ import react from "@vitejs/plugin-react";
 import path from "node:path";
 import { defineConfig } from "vite";
 
-const bffOrigin = "/";
-// const bffOrigin = process.env.VITE_BFF_ORIGIN || "https://localhost:7180";
+// const bffOrigin = "/";
+const bffOrigin = process.env.VITE_BFF_ORIGIN || "http://localhost:5000";
 // const bffOrigin = process.env.VITE_BFF_ORIGIN || "https://axi-global.app";
 
 export default defineConfig({

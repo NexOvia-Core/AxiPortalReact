@@ -91,23 +91,6 @@ const teamMembers: TeamMember[] = [
     ],
   },
   {
-    id: "vishwanatha",
-    name: "Vishwanatha HV",
-    title: "Business Head – ERP Solutions",
-    tag: "The ERP Dazzler",
-    category: "Business",
-    image: "/team/vishwanatha.png",
-    experience: "20+ Years Experience",
-    highlight: "Heads Enterprise ERP Delivery",
-    shortBio:
-      "Techno-commercial leader who established Axpert as dominant ERP software across African & international markets.",
-    details: [
-      "Heads Enterprise ERP Delivery",
-      "Established Axpert across African Markets",
-      "Expert in Trading, Mfg & Supply Chain",
-    ],
-  },
-  {
     id: "bijaya",
     name: "Bijaya Singh",
     title: "Business Head – E-Government",
