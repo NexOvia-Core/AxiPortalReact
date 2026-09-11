@@ -33,8 +33,17 @@ interface ModuleItem {
   badge: string;
   icon: any;
   videoUrl?: string;
+  youtubeId?: string;
   isPlaceholder?: boolean;
   description: string[];
+}
+
+function getYouTubeId(url?: string): string | null {
+  if (!url) return null;
+  const match = url.match(
+    /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/
+  );
+  return match ? match[1] : null;
 }
 
 const modulesData: ModuleItem[] = [
@@ -44,7 +53,8 @@ const modulesData: ModuleItem[] = [
     subtitle: "Conversational Enterprise Intelligence",
     badge: "AI Powered",
     icon: Bot,
-    videoUrl: "/videos/AxiBot_Final_teaser_.mp4",
+    videoUrl: "https://youtu.be/SUDCPIu_p1U?si=aUVvAS7eOM6Fxn3v",
+    youtubeId: "SUDCPIu_p1U",
     description: [
       "Connect seamlessly with LLMs integrated directly into live ERP data for real-time business insights.",
       "Search across customer, product, and document history with 360° record recall and conversational querying.",
@@ -58,7 +68,8 @@ const modulesData: ModuleItem[] = [
     subtitle: "Natural Language ERP Navigation",
     badge: "High Velocity",
     icon: Terminal,
-    videoUrl: "/videos/AXI_CMDLINE_FINAL_TEASER.mp4",
+    videoUrl: "https://youtu.be/RsKSrNic4oo?si=ow8m88D766T698X5",
+    youtubeId: "RsKSrNic4oo",
     description: [
       "Instant access to any transaction, report, or wizard in the entire ERP using natural command line inputs.",
       "Execute direct actions like 'View trial balance', 'View Sales data', or 'Create Purchase order' in milliseconds.",
@@ -114,7 +125,8 @@ const modulesData: ModuleItem[] = [
     subtitle: "Multi-Store & Stock Valuation Engine",
     badge: "Core Suite",
     icon: Package,
-    isPlaceholder: true,
+    videoUrl: "https://youtu.be/5ossNnvU6Po?si=aEF2bt7IHu9i-EsR",
+    youtubeId: "5ossNnvU6Po",
     description: [
       "Multi-location and sub-location store management with default Main and Rejections store isolation.",
       "Material receipts, issues, and inter-store transfers with automatic tax handling for multi-state transfers.",
@@ -210,14 +222,20 @@ const modulesData: ModuleItem[] = [
 
 function ModuleVideoCard({ module }: { module: ModuleItem }) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const iframeRef = useRef<HTMLIFrameElement | null>(null);
+  const playerRef = useRef<any>(null);
   const cardRef = useRef<HTMLDivElement | null>(null);
   const [isHovered, setIsHovered] = useState(false);
   const [isNearViewport, setIsNearViewport] = useState(false);
 
-  // Lazy-load video when card enters extended viewport
+  const youtubeId = module.youtubeId || (module.videoUrl ? getYouTubeId(module.videoUrl) : null);
+  const isYoutube = Boolean(youtubeId);
+  const hasMedia = Boolean(isYoutube || module.videoUrl);
+
+  // Lazy-load video / iframe when card enters extended viewport
   useEffect(() => {
     const card = cardRef.current;
-    if (!card || !module.videoUrl) return;
+    if (!card || !hasMedia) return;
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -225,23 +243,156 @@ function ModuleVideoCard({ module }: { module: ModuleItem }) {
           observer.disconnect();
         }
       },
-      { rootMargin: "300px" }
+      { rootMargin: "400px" }
     );
     observer.observe(card);
     return () => observer.disconnect();
-  }, [module.videoUrl]);
+  }, [hasMedia]);
 
-  const handleMouseEnter = () => {
-    setIsHovered(true);
-    if (videoRef.current) {
-      videoRef.current.play().catch(() => {});
+  // Load YouTube IFrame API once if needed
+  useEffect(() => {
+    if (!isYoutube) return;
+    if (typeof window !== "undefined" && !(window as any).YT) {
+      const existing = document.querySelector('script[src="https://www.youtube.com/iframe_api"]');
+      if (!existing) {
+        const tag = document.createElement("script");
+        tag.src = "https://www.youtube.com/iframe_api";
+        document.head.appendChild(tag);
+      }
+    }
+  }, [isYoutube]);
+
+  const sendYoutubeCommand = (func: "playVideo" | "pauseVideo") => {
+    if (playerRef.current && typeof playerRef.current[func] === "function") {
+      try {
+        playerRef.current[func]();
+      } catch { }
+    }
+    if (iframeRef.current?.contentWindow) {
+      try {
+        iframeRef.current.contentWindow.postMessage(
+          JSON.stringify({ event: "command", func, args: "" }),
+          "*"
+        );
+      } catch { }
     }
   };
 
-  const handleMouseLeave = () => {
-    setIsHovered(false);
-    if (videoRef.current) {
-      videoRef.current.pause();
+  const handleIframeLoad = () => {
+    if (iframeRef.current?.contentWindow) {
+      try {
+        iframeRef.current.contentWindow.postMessage(
+          JSON.stringify({ event: "listening" }),
+          "*"
+        );
+      } catch { }
+    }
+
+    if (typeof window !== "undefined" && (window as any).YT && (window as any).YT.Player && iframeRef.current) {
+      try {
+        playerRef.current = new (window as any).YT.Player(iframeRef.current, {
+          events: {
+            onReady: (event: any) => {
+              playerRef.current = event.target;
+              if (isHovered) {
+                event.target.playVideo();
+              }
+            },
+          },
+        });
+      } catch { }
+    }
+
+    if (isHovered) {
+      sendYoutubeCommand("playVideo");
+    }
+  };
+
+  // Sync YouTube playback when hover state changes
+  useEffect(() => {
+    if (!isYoutube || !isNearViewport) return;
+    if (isHovered) {
+      sendYoutubeCommand("playVideo");
+      const retryTimer = setTimeout(() => {
+        sendYoutubeCommand("playVideo");
+      }, 350);
+      return () => clearTimeout(retryTimer);
+    } else {
+      sendYoutubeCommand("pauseVideo");
+    }
+  }, [isHovered, isYoutube, isNearViewport]);
+
+  // Track when mouse leaves the card area while allowing clicks on the iframe
+  useEffect(() => {
+    if (!isHovered || !isYoutube) return;
+
+    const handleWindowMouseMove = (e: MouseEvent) => {
+      const card = cardRef.current;
+      if (!card) return;
+      const rect = card.getBoundingClientRect();
+      const buffer = 15;
+      const isInside =
+        e.clientX >= rect.left - buffer &&
+        e.clientX <= rect.right + buffer &&
+        e.clientY >= rect.top - buffer &&
+        e.clientY <= rect.bottom + buffer;
+
+      if (!isInside) {
+        setIsHovered(false);
+        sendYoutubeCommand("pauseVideo");
+      }
+    };
+
+    window.addEventListener("mousemove", handleWindowMouseMove);
+    return () => {
+      window.removeEventListener("mousemove", handleWindowMouseMove);
+    };
+  }, [isHovered, isYoutube]);
+
+  const handleMouseEnter = () => {
+    setIsHovered(true);
+    setIsNearViewport(true);
+    if (isYoutube) {
+      sendYoutubeCommand("playVideo");
+    } else if (videoRef.current) {
+      videoRef.current.play().catch(() => { });
+    }
+  };
+
+  const handleMouseLeave = (e: React.MouseEvent) => {
+    // If moving into the child iframe, don't pause
+    if (
+      iframeRef.current &&
+      (e.relatedTarget === iframeRef.current ||
+        (e.relatedTarget && iframeRef.current.contains(e.relatedTarget as Node)))
+    ) {
+      return;
+    }
+
+    const card = cardRef.current;
+    if (card) {
+      const rect = card.getBoundingClientRect();
+      const buffer = 5;
+      if (
+        e.clientX < rect.left - buffer ||
+        e.clientX > rect.right + buffer ||
+        e.clientY < rect.top - buffer ||
+        e.clientY > rect.bottom + buffer
+      ) {
+        setIsHovered(false);
+        if (isYoutube) {
+          sendYoutubeCommand("pauseVideo");
+        } else if (videoRef.current) {
+          videoRef.current.pause();
+        }
+      }
+    } else {
+      setIsHovered(false);
+      if (isYoutube) {
+        sendYoutubeCommand("pauseVideo");
+      } else if (videoRef.current) {
+        videoRef.current.pause();
+      }
     }
   };
 
@@ -253,7 +404,21 @@ function ModuleVideoCard({ module }: { module: ModuleItem }) {
       className="relative rounded-3xl overflow-hidden glass-card border border-white/80 p-3 shadow-xl transition-all duration-500 hover:shadow-2xl group cursor-pointer"
     >
       <div className="relative rounded-2xl overflow-hidden aspect-video bg-[#00007f]/5 flex items-center justify-center">
-        {module.videoUrl ? (
+        {isYoutube && youtubeId ? (
+          <div className="w-full h-full relative overflow-hidden rounded-2xl bg-black/10">
+            {isNearViewport && (
+              <iframe
+                ref={iframeRef}
+                onLoad={handleIframeLoad}
+                src={`https://www.youtube.com/embed/${youtubeId}?enablejsapi=1&autoplay=0&mute=1&controls=1&loop=1&playlist=${youtubeId}&playsinline=1&rel=0&fs=1`}
+                title={module.title}
+                className="w-full h-full object-cover rounded-2xl transition-transform duration-700 group-hover:scale-105 pointer-events-auto border-0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+              />
+            )}
+          </div>
+        ) : module.videoUrl ? (
           <video
             ref={videoRef}
             src={isNearViewport ? module.videoUrl : undefined}
@@ -279,11 +444,10 @@ function ModuleVideoCard({ module }: { module: ModuleItem }) {
 
         {/* Glass transparent overlay when NOT hovered */}
         <div
-          className={`absolute inset-0 transition-all duration-500 flex flex-col items-center justify-center p-6 text-center pointer-events-none ${
-            isHovered
+          className={`absolute inset-0 transition-all duration-500 flex flex-col items-center justify-center p-6 text-center pointer-events-none ${isHovered
               ? "opacity-0 backdrop-blur-none bg-transparent"
               : "opacity-100 backdrop-blur-md bg-[#fff6e5]/45"
-          }`}
+            }`}
         >
           <div className="w-14 h-14 rounded-full glass border border-white/80 flex items-center justify-center text-[#00007f] shadow-lg mb-3 animate-pulse">
             <Play size={24} className="ml-1 text-[#fc8151]" />

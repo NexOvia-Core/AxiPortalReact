@@ -216,11 +216,10 @@ function WhyAxi3DCard({
                     e.stopPropagation();
                     onSelectSlide(idx);
                   }}
-                  className={`h-2 rounded-full transition-all duration-300 ${
-                    idx === slideIndex
+                  className={`h-2 rounded-full transition-all duration-300 ${idx === slideIndex
                       ? "w-6 bg-[#fc8151]"
                       : "w-2 bg-[#00007f]/20 hover:bg-[#00007f]/40"
-                  }`}
+                    }`}
                   aria-label={`Go to slide ${idx + 1}`}
                 />
               ))}
@@ -424,7 +423,7 @@ export default function PlatformSection() {
                 days One connected system — sales, stock, production, and
                 finance update together Changes are additive: low-code
                 structures don't fight each other Analytics, search, and 360°
-                views are native to every record
+                views are native to every record.
               </p>
             </div>
 
